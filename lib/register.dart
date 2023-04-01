@@ -1,5 +1,28 @@
 import 'package:flutter/material.dart';
 import 'login.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+Future<void> registerUser(String name, String email, String password) async {
+  final url = Uri.parse('http://localhost:3000/user/register');
+  final response = await http.post(
+    url,
+    body: json.encode({
+      'name': name,
+      'email': email,
+      'password': password,
+      'permissions': {'isAdmin':false, 'isUser':true, 'canCreateVehicule':false}
+
+    }),
+    headers: {'Content-Type': 'application/json'},
+  );
+  if (response.statusCode == 200 || response.statusCode == 201) {
+    final responseData = json.decode(response.body);
+    print(responseData);
+  } else {
+    print('Register failed with status code ${response.statusCode}');
+  }
+}
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -10,7 +33,6 @@ class RegisterPage extends StatefulWidget {
 
 class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
-  // ignore: unused_field
   late String _name, _email, _password;
 
   @override
@@ -42,7 +64,6 @@ class _RegisterPageState extends State<RegisterPage> {
                   if (value!.isEmpty) {
                     return 'Please enter your email';
                   }
-                  // TODO: Add email validation
                   return null;
                 },
                 onSaved: (value) => _email = value!,
@@ -54,7 +75,6 @@ class _RegisterPageState extends State<RegisterPage> {
                   if (value!.isEmpty) {
                     return 'Please enter your password';
                   }
-                  // TODO: Add password validation
                   return null;
                 },
                 onSaved: (value) => _password = value!,
@@ -63,7 +83,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
                     _formKey.currentState!.save();
-                    // TODO: Call register API
+                    registerUser(_name, _email, _password);
                   }
                 },
                 child: const Text('Register'),

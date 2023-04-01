@@ -1,4 +1,26 @@
 import 'package:flutter/material.dart';
+import 'home.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+Future<void> loginUser(String email, String password) async {
+  final url = Uri.parse('http://localhost:3000/user/login');
+  final response = await http.post(
+    url,
+    body: json.encode({
+      'email': email,
+      'password': password,
+      'remember': false
+    }),
+    headers: {'Content-Type': 'application/json'},
+  );
+  if (response.statusCode == 200 || response.statusCode == 201) {
+    final responseData = json.decode(response.body);
+    print(responseData);
+  } else {
+    print('Login failed with status code ${response.statusCode}');
+  }
+}
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -9,7 +31,6 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
-  // ignore: unused_field
   late String _email, _password;
 
   @override
@@ -31,7 +52,6 @@ class _LoginPageState extends State<LoginPage> {
                   if (value!.isEmpty) {
                     return 'Please enter your email';
                   }
-                  // TODO: Add email validation
                   return null;
                 },
                 onSaved: (value) => _email = value!,
@@ -43,7 +63,6 @@ class _LoginPageState extends State<LoginPage> {
                   if (value!.isEmpty) {
                     return 'Please enter your password';
                   }
-                  // TODO: Add password validation
                   return null;
                 },
                 onSaved: (value) => _password = value!,
@@ -52,7 +71,11 @@ class _LoginPageState extends State<LoginPage> {
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
                     _formKey.currentState!.save();
-                    // TODO: Call Login API
+                    loginUser(_email, _password);
+                    // Navigator.pushReplacement(
+                    //   context,
+                    //   MaterialPageRoute(builder: (context) => const HomePage()),
+                    // );
                   }
                 },
                 child: const Text('Login'),
