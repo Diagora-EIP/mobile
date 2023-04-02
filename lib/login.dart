@@ -61,6 +61,13 @@ class _LoginPageState extends State<LoginPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              Center(
+                child: Image.asset(
+                  '../assets/images/diagora.png',
+                  width: 200,
+                  height: 200,
+                ),
+              ),
               TextFormField(
                 decoration: const InputDecoration(labelText: 'Email'),
                 validator: (value) {
