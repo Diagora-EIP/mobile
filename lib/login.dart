@@ -2,23 +2,35 @@ import 'package:flutter/material.dart';
 import 'home.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:logger/logger.dart';
 
-Future<void> loginUser(String email, String password) async {
+/// Takes [String] [email], [String] [password] as input and returns an output value if the login is true or fasle.
+///
+/// The [email], [password] parameter are required and cannot be null.
+/// The output value will be true if the login works.
+/// If [response.statusCode] is not 200 or 201, this function will return false.
+Future<bool> loginUser(String email, String password) async {
+  final Logger logger = Logger();
+
   final url = Uri.parse('http://localhost:3000/user/login');
-  final response = await http.post(
-    url,
-    body: json.encode({
-      'email': email,
-      'password': password,
-      'remember': false
-    }),
-    headers: {'Content-Type': 'application/json'},
-  );
-  if (response.statusCode == 200 || response.statusCode == 201) {
-    final responseData = json.decode(response.body);
-    print(responseData);
-  } else {
-    print('Login failed with status code ${response.statusCode}');
+  try {
+    final response = await http.post(
+      url,
+      body: json
+          .encode({'email': email, 'password': password, 'remember': false}),
+      headers: {'Content-Type': 'application/json'},
+    );
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final responseData = json.decode(response.body);
+      logger.i(responseData);
+      return true;
+    } else {
+      logger.e('Login failed with status code ${response.statusCode}');
+      return false;
+    }
+  } catch (e) {
+    logger.e('${e.toString()}  : Serveur unreachable');
+    return false;
   }
 }
 
@@ -26,10 +38,13 @@ class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
   @override
+  // ignore: library_private_types_in_public_api
   _LoginPageState createState() => _LoginPageState();
 }
 
 class _LoginPageState extends State<LoginPage> {
+  final Logger logger = Logger();
+
   final _formKey = GlobalKey<FormState>();
   late String _email, _password;
 
@@ -68,14 +83,19 @@ class _LoginPageState extends State<LoginPage> {
                 onSaved: (value) => _password = value!,
               ),
               ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
                   if (_formKey.currentState!.validate()) {
                     _formKey.currentState!.save();
-                    loginUser(_email, _password);
-                    // Navigator.pushReplacement(
-                    //   context,
-                    //   MaterialPageRoute(builder: (context) => const HomePage()),
-                    // );
+                    bool returnValue = await loginUser(_email, _password);
+                    if (returnValue) {
+                      // ignore: use_build_context_synchronously
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const HomePage(),
+                        ),
+                      );
+                    }
                   }
                 },
                 child: const Text('Login'),

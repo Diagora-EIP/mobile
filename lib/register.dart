@@ -2,25 +2,44 @@ import 'package:flutter/material.dart';
 import 'login.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'home.dart';
+import 'package:logger/logger.dart';
 
-Future<void> registerUser(String name, String email, String password) async {
+/// Takes [String] [name], [String] [email], [String] [password] as input and returns an output value if the register is true or fasle.
+///
+/// The [name], [email], [password] parameter are required and cannot be null.
+/// The output value will be true if the register works.
+/// If [response.statusCode] is not 200 or 201, this function will return false.
+Future<bool> registerUser(String name, String email, String password) async {
+  final Logger logger = Logger();
+
   final url = Uri.parse('http://localhost:3000/user/register');
-  final response = await http.post(
-    url,
-    body: json.encode({
-      'name': name,
-      'email': email,
-      'password': password,
-      'permissions': {'isAdmin':false, 'isUser':true, 'canCreateVehicule':false}
-
-    }),
-    headers: {'Content-Type': 'application/json'},
-  );
-  if (response.statusCode == 200 || response.statusCode == 201) {
-    final responseData = json.decode(response.body);
-    print(responseData);
-  } else {
-    print('Register failed with status code ${response.statusCode}');
+  try {
+    final response = await http.post(
+      url,
+      body: json.encode({
+        'name': name,
+        'email': email,
+        'password': password,
+        'permissions': {
+          'isAdmin': false,
+          'isUser': true,
+          'canCreateVehicule': false
+        }
+      }),
+      headers: {'Content-Type': 'application/json'},
+    );
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final responseData = json.decode(response.body);
+      logger.i(responseData);
+      return true;
+    } else {
+      logger.e('Register failed with status code ${response.statusCode}');
+      return false;
+    }
+  } catch (e) {
+    logger.e('${e.toString()}  : Serveur unreachable');
+    return false;
   }
 }
 
@@ -28,12 +47,15 @@ class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
 
   @override
+  // ignore: library_private_types_in_public_api
   _RegisterPageState createState() => _RegisterPageState();
 }
 
 class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
   late String _name, _email, _password;
+
+  final Logger logger = Logger();
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +71,7 @@ class _RegisterPageState extends State<RegisterPage> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               TextFormField(
-                decoration: InputDecoration(labelText: 'Name'),
+                decoration: const InputDecoration(labelText: 'Name'),
                 validator: (value) {
                   if (value!.isEmpty) {
                     return 'Please enter your name';
@@ -59,7 +81,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 onSaved: (value) => _name = value!,
               ),
               TextFormField(
-                decoration: InputDecoration(labelText: 'Email'),
+                decoration: const InputDecoration(labelText: 'Email'),
                 validator: (value) {
                   if (value!.isEmpty) {
                     return 'Please enter your email';
@@ -80,10 +102,18 @@ class _RegisterPageState extends State<RegisterPage> {
                 onSaved: (value) => _password = value!,
               ),
               ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
                   if (_formKey.currentState!.validate()) {
                     _formKey.currentState!.save();
-                    registerUser(_name, _email, _password);
+                    bool returnValue = await registerUser(_name, _email, _password);
+                    if (returnValue) {
+                      // ignore: use_build_context_synchronously
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const HomePage()),
+                      );
+                    }
                   }
                 },
                 child: const Text('Register'),
