@@ -70,6 +70,13 @@ class _RegisterPageState extends State<RegisterPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              Center(
+                child: Image.asset(
+                  '../assets/images/diagora.png',
+                  width: 200,
+                  height: 200,
+                ),
+              ),
               TextFormField(
                 decoration: const InputDecoration(labelText: 'Name'),
                 validator: (value) {
@@ -105,7 +112,8 @@ class _RegisterPageState extends State<RegisterPage> {
                 onPressed: () async {
                   if (_formKey.currentState!.validate()) {
                     _formKey.currentState!.save();
-                    bool returnValue = await registerUser(_name, _email, _password);
+                    bool returnValue =
+                        await registerUser(_name, _email, _password);
                     if (returnValue) {
                       // ignore: use_build_context_synchronously
                       Navigator.push(
