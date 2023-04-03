@@ -1,16 +1,18 @@
 # diagora
 
-A new Flutter project.
+## Get started
 
-## Getting Started
+### Flutter installation
 
-This project is a starting point for a Flutter application.
+### Run the app
 
-A few resources to get you started if this is your first Flutter project:
+```bash
+flutter run
+```
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## Description of the functions
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- A brief summary of what the function does.
+- A description of the input parameter, including its type and any constraints or requirements.
+- A description of the output, including its type and format.
+- Any other important details about the function, such as error handling.

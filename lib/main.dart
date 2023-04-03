@@ -6,24 +6,31 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final primaryColor = const Color.fromARGB(255, 66, 147, 147);
 
-  // This widget is the root of your application.
+  const  MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Diagora',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
-        primarySwatch: Colors.blue,
+        primarySwatch: MaterialColor(
+          primaryColor.value,
+          <int, Color>{
+            50: primaryColor.withOpacity(0.1),
+            100: primaryColor.withOpacity(0.2),
+            200: primaryColor.withOpacity(0.3),
+            300: primaryColor.withOpacity(0.4),
+            400: primaryColor.withOpacity(0.5),
+            500: primaryColor.withOpacity(0.6),
+            600: primaryColor.withOpacity(0.7),
+            700: primaryColor.withOpacity(0.8),
+            800: primaryColor.withOpacity(0.9),
+            900: primaryColor.withOpacity(1.0),
+          },
+        ),
       ),
       home: const RegisterPage(),
     );
