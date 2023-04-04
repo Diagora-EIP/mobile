@@ -102,6 +102,13 @@ class _LoginPageState extends State<LoginPage> {
                           builder: (context) => const HomePage(),
                         ),
                       );
+                    } else {
+                      // ignore: use_build_context_synchronously
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Login failed'),
+                        ),
+                      );
                     }
                   }
                 },
