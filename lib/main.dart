@@ -1,4 +1,4 @@
-// import 'package:diagora/register.dart';
+import 'package:diagora/register.dart';
 import 'package:flutter/material.dart';
 import 'package:diagora/home.dart';
 void main() {
@@ -32,8 +32,8 @@ class MyApp extends StatelessWidget {
           },
         ),
       ),
-      // home: const RegisterPage(),
-      home: const HomePage(),
+      home: const RegisterPage(),
+      // home: const HomePage(),
     );
   }
 }

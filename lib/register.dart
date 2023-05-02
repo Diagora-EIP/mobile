@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'home.dart';
 import 'package:logger/logger.dart';
+import 'get_token.dart';
 
 /// Takes [String] [name], [String] [email], [String] [password] as input and returns an output value if the register is true or false.
 ///
@@ -32,6 +33,7 @@ Future<bool> registerUser(String name, String email, String password) async {
     if (response.statusCode == 200 || response.statusCode == 201) {
       final responseData = json.decode(response.body);
       logger.i(responseData);
+      await runToken(responseData["token"]);
       return true;
     } else {
       logger.e('Register failed with status code ${response.statusCode}');
