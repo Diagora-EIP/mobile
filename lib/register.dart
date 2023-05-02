@@ -5,7 +5,7 @@ import 'dart:convert';
 import 'home.dart';
 import 'package:logger/logger.dart';
 
-/// Takes [String] [name], [String] [email], [String] [password] as input and returns an output value if the register is true or fasle.
+/// Takes [String] [name], [String] [email], [String] [password] as input and returns an output value if the register is true or false.
 ///
 /// The [name], [email], [password] parameter are required and cannot be null.
 /// The output value will be true if the register works.
@@ -72,7 +72,7 @@ class _RegisterPageState extends State<RegisterPage> {
             children: [
               Center(
                 child: Image.asset(
-                  '../assets/images/diagora.png',
+                  'assets/images/diagora.png',
                   width: 200,
                   height: 200,
                 ),

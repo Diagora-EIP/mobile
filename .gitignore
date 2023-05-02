@@ -1,6 +1,7 @@
 # Vscode
 .vscode
 pubspec.lock
+note.txt
 
 # Miscellaneous
 *.class
