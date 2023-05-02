@@ -3,10 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'dart:convert';
-
 import 'package:diagora/register.dart';
-// import 'package:diagora/login.dart';
-// import 'package:diagora/home.dart';
 
 /// Main that got all the test function of the register page.
 ///
@@ -123,16 +120,5 @@ void main() {
 
     final passwordField = find.widgetWithText(TextFormField, 'Password');
     await tester.enterText(passwordField, 'password123');
-
-    // Tap the Register button.
-    // final registerButton = find.widgetWithText(ElevatedButton, 'Register');
-    // await tester.tap(registerButton);
-    // await tester.pump();
-
-    // Verify that the HomePage is displayed.
-    // final homePageFinder = find.byType(HomePage);
-    // expect(homePageFinder, findsOneWidget);
-
   });
-
 }

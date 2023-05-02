@@ -7,6 +7,11 @@ import 'dart:convert';
 import 'package:logger/logger.dart';
 import 'get_token.dart';
 
+/// Takes [DateTime] [begin], [end] as input and returns an output string if the api call succeed.
+///
+/// The[begin], [end] parameter are required and cannot be null.
+/// The output value will be the shipment date if the call succeed.
+/// If [response.statusCode] is not 200 or 202, this function will return "false".
 Future<String> calendarValues(DateTime begin, DateTime end) async {
   final Logger logger = Logger();
 
