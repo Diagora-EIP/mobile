@@ -1,5 +1,9 @@
+note.txt
+coverage
+
 # Vscode
 .vscode
+pubspec.lock
 
 # Miscellaneous
 *.class

@@ -3,18 +3,19 @@ import 'home.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:logger/logger.dart';
+import 'get_token.dart';
 
 /// Takes [String] [email], [String] [password] as input and returns an output value if the login is true or fasle.
 ///
 /// The [email], [password] parameter are required and cannot be null.
 /// The output value will be true if the login works.
 /// If [response.statusCode] is not 200 or 201, this function will return false.
-Future<bool> loginUser(String email, String password) async {
+Future<bool> loginUser(String email, String password, http.Client client) async {
   final Logger logger = Logger();
 
   final url = Uri.parse('http://localhost:3000/user/login');
   try {
-    final response = await http.post(
+    final response = await client.post(
       url,
       body: json
           .encode({'email': email, 'password': password, 'remember': false}),
@@ -23,6 +24,7 @@ Future<bool> loginUser(String email, String password) async {
     if (response.statusCode == 200 || response.statusCode == 201) {
       final responseData = json.decode(response.body);
       logger.i(responseData);
+      await runToken(responseData["token"]);
       return true;
     } else {
       logger.e('Login failed with status code ${response.statusCode}');
@@ -63,7 +65,7 @@ class _LoginPageState extends State<LoginPage> {
             children: [
               Center(
                 child: Image.asset(
-                  '../assets/images/diagora.png',
+                  'assets/images/diagora.png',
                   width: 200,
                   height: 200,
                 ),
@@ -93,13 +95,20 @@ class _LoginPageState extends State<LoginPage> {
                 onPressed: () async {
                   if (_formKey.currentState!.validate()) {
                     _formKey.currentState!.save();
-                    bool returnValue = await loginUser(_email, _password);
+                    bool returnValue = await loginUser(_email, _password, http.Client());
                     if (returnValue) {
                       // ignore: use_build_context_synchronously
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => const HomePage(),
+                        ),
+                      );
+                    } else {
+                      // ignore: use_build_context_synchronously
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Login failed'),
                         ),
                       );
                     }

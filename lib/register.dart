@@ -4,18 +4,20 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'home.dart';
 import 'package:logger/logger.dart';
+import 'get_token.dart';
 
-/// Takes [String] [name], [String] [email], [String] [password] as input and returns an output value if the register is true or fasle.
+/// Takes [String] [name], [String] [email], [String] [password] and [http.Client] [client] as input and returns an output value if the register is true or false.
 ///
-/// The [name], [email], [password] parameter are required and cannot be null.
+/// The [name], [email], [password] and [http.Client] [client] parameter are required and cannot be null.
 /// The output value will be true if the register works.
 /// If [response.statusCode] is not 200 or 201, this function will return false.
-Future<bool> registerUser(String name, String email, String password) async {
+Future<bool> registerUser(String name, String email, String password, http.Client client) async {
   final Logger logger = Logger();
 
   final url = Uri.parse('http://localhost:3000/user/register');
+
   try {
-    final response = await http.post(
+    final response = await client.post(
       url,
       body: json.encode({
         'name': name,
@@ -29,19 +31,22 @@ Future<bool> registerUser(String name, String email, String password) async {
       }),
       headers: {'Content-Type': 'application/json'},
     );
+
     if (response.statusCode == 200 || response.statusCode == 201) {
       final responseData = json.decode(response.body);
       logger.i(responseData);
+      await runToken(responseData["token"]);
       return true;
     } else {
       logger.e('Register failed with status code ${response.statusCode}');
       return false;
     }
   } catch (e) {
-    logger.e('${e.toString()}  : Serveur unreachable');
+    logger.e('Error: ${e.toString()}');
     return false;
   }
 }
+
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -64,7 +69,7 @@ class _RegisterPageState extends State<RegisterPage> {
         title: const Text('Register'),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(8.0),
         child: Form(
           key: _formKey,
           child: Column(
@@ -72,7 +77,7 @@ class _RegisterPageState extends State<RegisterPage> {
             children: [
               Center(
                 child: Image.asset(
-                  '../assets/images/diagora.png',
+                  'assets/images/diagora.png',
                   width: 200,
                   height: 200,
                 ),
@@ -113,13 +118,20 @@ class _RegisterPageState extends State<RegisterPage> {
                   if (_formKey.currentState!.validate()) {
                     _formKey.currentState!.save();
                     bool returnValue =
-                        await registerUser(_name, _email, _password);
+                        await registerUser(_name, _email, _password, http.Client());
                     if (returnValue) {
                       // ignore: use_build_context_synchronously
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                             builder: (context) => const HomePage()),
+                      );
+                    } else {
+                      // ignore: use_build_context_synchronously
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Register failed'),
+                        ),
                       );
                     }
                   }
