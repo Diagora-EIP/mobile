@@ -10,7 +10,31 @@ import 'package:diagora/login.dart';
 /// No parameters
 /// No output
 void main() {
-  test('registerUser returns true when registration is successful', () async {
+    test('loginUser test failed', () async {
+    final client = MockClient((request) async {
+      return http.Response('{"message": "error"}', 400);
+    });
+    const email = 'test02@example.com';
+    const password = 'password1234';
+
+    bool res = await loginUser(email, password, client);
+
+    expect(res, false);
+  });
+
+  test('loginUser test succeed', () async {
+    final client = MockClient((request) async {
+      return http.Response('{"message": "succeed", "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ODQsIm5hbWUiOiJ0ZXN0MDIiLCJlbWFpbCI6InRlc3QwMkBnbWFpbC5jb20i"}', 201);
+    });
+    const email = 'test02Wrong@example.com';
+    const password = 'password1234Wrong';
+
+    bool res = await loginUser(email, password, client);
+
+    expect(res, false);
+  });
+
+  test('loginUser returns true when registration is successful', () async {
     final client = MockClient((request) async {
       return http.Response('{"message": "success"}', 200);
     });
@@ -27,7 +51,7 @@ void main() {
 
     expect(response.statusCode, 200);
   });
-  test('registerUser returns true when registration is fails', () async {
+  test('loginUser returns true when registration is fails', () async {
     final client = MockClient((request) async {
       return http.Response('{"message": "success"}', 400);
     });

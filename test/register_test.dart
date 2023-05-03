@@ -10,6 +10,32 @@ import 'package:diagora/register.dart';
 /// No parameters
 /// No output
 void main() {
+  test('registerUser test failed', () async {
+    final client = MockClient((request) async {
+      return http.Response('{"message": "error"}', 400);
+    });
+    const name = 'test02';
+    const email = 'test02@example.com';
+    const password = 'password1234';
+
+    bool res = await registerUser(name, email, password, client);
+
+    expect(res, false);
+  });
+
+  test('registerUser test succeed', () async {
+    final client = MockClient((request) async {
+      return http.Response('{"message": "succeed", "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ODQsIm5hbWUiOiJ0ZXN0MDIiLCJlbWFpbCI6InRlc3QwMkBnbWFpbC5jb20i"}', 201);
+    });
+    const name = 'test0Wrong';
+    const email = 'test02Wrong@example.com';
+    const password = 'password1234Wrong';
+
+    bool res = await registerUser(name, email, password, client);
+
+    expect(res, false);
+  });
+
   test('registerUser returns true when registration is successful', () async {
     final client = MockClient((request) async {
       return http.Response('{"message": "success"}', 200);
