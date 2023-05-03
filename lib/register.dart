@@ -66,7 +66,7 @@ class _RegisterPageState extends State<RegisterPage> {
         title: const Text('Register'),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(8.0),
         child: Form(
           key: _formKey,
           child: Column(

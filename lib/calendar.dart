@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'package:syncfusion_flutter_calendar/calendar.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:logger/logger.dart';
 import 'get_token.dart';
+import 'dart:math';
 
 /// Takes [DateTime] [begin], [end] as input and returns an output string if the api call succeed.
 ///
@@ -59,15 +59,14 @@ class CalendarPage extends StatefulWidget {
 }
 
 class _CalendarPageState extends State<CalendarPage> {
-  late CalendarController _calendarController;
   CalendarFormat _calendarFormat = CalendarFormat.month;
   final noShipment = "No shipment set up";
   var shipment = true;
 
   DateTime today = DateTime.now();
   DateTime end = DateTime.now();
-  String text = "";
   String calValue = "";
+  List<dynamic> calendarList = [];
   List<dynamic> scheduleList = [];
 
   @override
@@ -107,20 +106,20 @@ class _CalendarPageState extends State<CalendarPage> {
   }
 
   void _shipmentOfTheDay(List<dynamic> scheduleListVal) {
-    String newText = "";
+    List<dynamic> newCalendarList = [];
 
     for (var schedule in scheduleListVal) {
-      newText += schedule["name"] + "\n";
       DateTime dateTimeBegin = DateTime.parse(schedule["begin"]);
       DateTime dateTimeEnd = DateTime.parse(schedule["end"]);
-      newText +=
-          "Begin: ${DateFormat('EEEE, MMM d, yyyy, hh:mm aaa').format(dateTimeBegin)}\n";
-      newText +=
-          "End:  ${DateFormat('EEEE, MMM d, yyyy hh:mm aaa').format(dateTimeEnd)}\n";
-      newText += "Address: ${schedule["address"]}}\n\n";
+      newCalendarList.add([
+        schedule["name"],
+        schedule["address"],
+        DateFormat('hh:mm aaa').format(dateTimeBegin),
+        DateFormat('hh:mm aaa').format(dateTimeEnd)
+      ]);
     }
     setState(() {
-      text = newText;
+      calendarList = newCalendarList;
     });
   }
 
@@ -128,7 +127,7 @@ class _CalendarPageState extends State<CalendarPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Monthly Calendar'),
+        title: const Text('Calendar'),
       ),
       body: Column(
         children: [
@@ -163,7 +162,7 @@ class _CalendarPageState extends State<CalendarPage> {
                     })
                   },
               child: const Text("Back to Today")),
-          Text(text)
+          Expanded(child: MyListWidget(items: calendarList)),
         ],
       ),
     );
@@ -171,7 +170,61 @@ class _CalendarPageState extends State<CalendarPage> {
 
   @override
   void dispose() {
-    _calendarController.dispose();
     super.dispose();
+  }
+}
+
+class MyListWidget extends StatelessWidget {
+  final List<dynamic> items;
+
+  const MyListWidget({super.key, required this.items});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      itemCount: items.length,
+      itemBuilder: (BuildContext context, int index) {
+        final color = Color((Random().nextDouble() * 0xFFFFFF).toInt() << 0)
+            .withOpacity(1.0);
+
+        return Column(
+          children: <Widget>[
+            GestureDetector(
+              onTap: () {
+                // handle the tap event here
+                print('ListTile $index tapped!');
+              },
+              child: ListTile(
+                title: Text(items[index][0],
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
+                subtitle: Text(items[index][1]),
+                leading: Container(
+                  width: 5.0,
+                  decoration: BoxDecoration(
+                    color: color,
+                    borderRadius: BorderRadius.circular(5.0),
+                  ),
+                ),
+                trailing: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 15.0),
+                      child: Text(items[index][2]),
+                    ),
+                    Text(items[index][3]),
+                  ],
+                ),
+              ),
+            ),
+            const Divider(
+              color: Colors.grey,
+              thickness: 1,
+              indent: 20,
+              endIndent: 20,
+            ),
+          ],
+        );
+      },
+    );
   }
 }

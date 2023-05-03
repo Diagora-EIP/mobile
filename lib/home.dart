@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'calendar.dart';
 import 'map.dart';
 import 'profile.dart';
-import 'test.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -10,10 +9,8 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Home'),
-        automaticallyImplyLeading: false
-      ),
+      appBar:
+          AppBar(title: const Text('Home'), automaticallyImplyLeading: false),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -61,21 +58,6 @@ class HomePage extends StatelessWidget {
               textStyle: const TextStyle(fontSize: 30),
             ),
             child: const Text('Profile'),
-          ),
-          const SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => TableBasicsExample()),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.pink,
-              padding: const EdgeInsets.all(20),
-              textStyle: const TextStyle(fontSize: 30),
-            ),
-            child: const Text('Test'),
           ),
         ],
       ),
