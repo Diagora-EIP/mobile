@@ -2,20 +2,54 @@ import 'dart:convert';
 
 import 'package:http/http.dart';
 import 'package:logger/logger.dart';
-import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:diagora/models/user_model.dart';
+
+/// Classe qui contient toutes les routes de l'API. Utilisez [route] pour créer une Uri.
+class ApiRoutes {
+  static const String baseUrl = 'http://localhost:3000';
+  // Authentification
+  static const String loginRoute = '/user/login'; // POST
+  static const String registerRoute = '/user/register'; // POST
+  static const String logoutRoute = '/user/logout'; // POST
+  // User(s)
+  static const String usersRoute = '/user'; // GET
+  static const String userRoute = '/user/:id'; // GET, PATCH, DELETE
+  static const String userPermissionsRoute = '/user/permissions/:id'; // GET
+  // Permissions
+  static const String permissionsRoute = '/permissions'; // GET
+  static const String permissionRoute = '/permissions/:id'; // GET, PATCH
+  // Entreprise(s)
+  static const String companiesRoute = '/company'; // GET, POST
+  static const String companyRoute = '/company/:id'; // GET, PATCH, DELETE
+  // Événement(s)
+  static const String userScheduleRoute = '/schedule/:user_id'; // GET, POST
+  static const String scheduleRoute = '/schedule/:id'; // PATCH, DELETE
+  static const String scheduleSlotsRoute =
+      '/schedule/avalaibleSlots/:event_id'; // GET
+  // Véhicule(s)
+  static const String vehiclesRoute = '/vehicle'; // GET, POST
+  static const String vehicleRoute = '/vehicle/:id'; // GET, PATCH, DELETE
+  // Itinéraire(s)
+  static const String itinerariesUserRoute = '/itinerary/:user_id'; // GET, POST
+  static const String itinerariesRoute = '/itinerary/:id'; // PATCH, DELETE
+
+  /// Permet de créer l'URL complète d'une route.
+  ///
+  /// [route] est la route à utiliser.
+  static Uri route(String route) => Uri.parse('$baseUrl$route');
+}
 
 /// Service qui permet de communiquer avec l'API.
 /// Ce service est un singleton, pour l'instancier, il faut utiliser la méthode [getInstance].
 class ApiService {
   // Attributs généraux
+  bool get isInitialized => _prefs != null;
   static SharedPreferences? _prefs;
-  static final http.Client _client = http.Client();
+  static final Client _httpClient = Client();
   static final Logger _logger = Logger();
   static const ApiService _instance = ApiService();
-  static const String _baseUrl = "http://localhost:3000";
 
   // Constructeur par défaut
   const ApiService();
@@ -25,48 +59,17 @@ class ApiService {
   User? get user => _user;
   static String? _token;
 
-  // Routes - Authentification
-  static const String _loginRoute = '/user/login'; // POST
-  static const String _registerRoute = '/user/register'; // POST
-  static const String _logoutRoute = '/user/logout'; // POST
-
-  // Routes - Utilisateurs
-  static const String _usersRoute = '/user'; // GET
-  static const String _userRoute = '/user/:id'; // GET, PATCH, DELETE
-  static const String _userPermissionsRoute = '/user/permissions/:id'; // GET
-
-  // Routes - Permissions
-  static const String _permissionsRoute = '/permissions'; // GET
-  static const String _permissionRoute = '/permissions/:id'; // GET, PATCH
-
-  // Routes - Entreprises
-  static const String _companiesRoute = '/company'; // GET, POST
-  static const String _companyRoute = '/company/:id'; // GET, PATCH, DELETE
-
-  // Routes - Événements
-  static const String _userScheduleRoute = '/schedule/:user_id'; // GET, POST
-  static const String _scheduleRoute = '/schedule/:id'; // PATCH, DELETE
-  static const String _scheduleSlotsRoute =
-      '/schedule/avalaibleSlots/:event_id'; // GET
-
-  // Routes - Véhicules
-  static const String _vehiclesRoute = '/vehicle'; // GET, POST
-  static const String _vehicleRoute = '/vehicle/:id'; // GET, PATCH, DELETE
-
-  // Routes - Itinéraires
-  static const String _itinerariesUserRoute =
-      '/itinerary/:user_id'; // GET, POST
-  static const String _itinerariesRoute = '/itinerary/:id'; // PATCH, DELETE
-
   /// Permet d'obtenir une instance de [ApiService].
-  /// Cette méthode est asynchrone.
-  static Future<ApiService> getInstance() async {
-    _prefs ??= await SharedPreferences.getInstance();
-    String? user = _prefs!.getString('user');
-    if (user != null) {
-      _user = User.fromJson(json.decode(user));
+  static ApiService getInstance() {
+    if (_prefs == null) {
+      SharedPreferences.getInstance().then((value) {
+        _prefs = value;
+        _token ??= _prefs?.getString('token');
+        _user ??= _prefs?.getString('user') != null
+            ? User.fromJson(json.decode(_prefs!.getString('user')!))
+            : null;
+      });
     }
-    _token = _prefs!.getString('token');
     return _instance;
   }
 
@@ -74,18 +77,18 @@ class ApiService {
   ///
   /// Prend en paramètre un [email] et un [password].
   ///
-  /// Peut prendre en paramètre un [client] qui est un [http.Client] et un [remember] qui est un [bool].
+  /// Peut prendre en paramètre un [client] qui est un [Client] et un [remember] qui est un [bool].
   ///
   /// Retourne un [bool] qui indique si la connexion a réussi.
   Future<bool> login(
     String email,
     String password, {
     bool remember = false,
-    http.Client? client,
+    Client? client,
   }) async {
     try {
-      client ??= _client;
-      Uri url = Uri.parse(_baseUrl + _loginRoute);
+      client ??= _httpClient;
+      Uri url = ApiRoutes.route(ApiRoutes.loginRoute);
       Response response = await client.post(
         url,
         body: json.encode(
@@ -98,8 +101,6 @@ class ApiService {
         dynamic responseData = json.decode(response.body);
         _logger.i(responseData);
         _prefs?.setString('token', responseData['token']);
-        _prefs?.setString('user', json.encode(responseData['user']));
-        _user = User.fromJson(responseData['user']);
         return true;
       } else {
         _logger.e('Login failed with status code ${response.statusCode}');
@@ -115,18 +116,18 @@ class ApiService {
   ///
   /// Prend en paramètre un [name], un [email] et un [password].
   ///
-  /// Peut prendre en paramètre un [client] qui est un [http.Client].
+  /// Peut prendre en paramètre un [client] qui est un [Client].
   ///
   /// Retourne un [bool] qui indique si l'inscription a réussi.
   Future<bool> register(
     String name,
     String email,
     String password, {
-    http.Client? client,
+    Client? client,
   }) async {
     try {
-      client ??= _client;
-      Uri url = Uri.parse(_baseUrl + _registerRoute);
+      client ??= _httpClient;
+      Uri url = ApiRoutes.route(ApiRoutes.registerRoute);
       Response response = await client.post(
         url,
         body: json.encode(
@@ -134,10 +135,10 @@ class ApiService {
         ),
         headers: {'Content-Type': 'application/json'},
       );
+
       if (response.statusCode == 200 || response.statusCode == 201) {
         dynamic responseData = json.decode(response.body);
         _logger.i(responseData);
-        _prefs?.setString('token', responseData['token']);
         _prefs?.setString('user', json.encode(responseData['user']));
         _user = User.fromJson(responseData['user']);
         return true;
@@ -153,15 +154,15 @@ class ApiService {
 
   /// Permet de se déconnecter de l'application.
   ///
-  /// Peut prendre en paramètre un [client] qui est un [http.Client].
+  /// Peut prendre en paramètre un [client] qui est un [Client].
   ///
   /// Retourne un [bool] qui indique si la déconnexion a réussi.
   Future<bool> logout({
-    http.Client? client,
+    Client? client,
   }) async {
     try {
-      client ??= _client;
-      Uri url = Uri.parse(_baseUrl + _logoutRoute);
+      client ??= _httpClient;
+      Uri url = ApiRoutes.route(ApiRoutes.logoutRoute);
       Response response = await client.post(
         url,
         body: json.encode({
@@ -169,6 +170,7 @@ class ApiService {
         }),
         headers: {'Content-Type': 'application/json'},
       );
+
       if (response.statusCode == 200) {
         _prefs?.remove('token');
         _prefs?.remove('user');

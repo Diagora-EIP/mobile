@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+
 import 'package:http/http.dart' as http;
-import 'package:http/testing.dart';
 import 'dart:convert';
-import 'package:diagora/register.dart';
+import 'package:http/testing.dart';
+
+import 'package:diagora/views/auth/register_view.dart';
+import 'package:diagora/services/api_service.dart';
 
 /// Main that got all the test function of the register page.
 ///
@@ -14,24 +17,28 @@ void main() {
     final client = MockClient((request) async {
       return http.Response('{"message": "error"}', 400);
     });
+    final ApiService api = ApiService.getInstance();
     const name = 'test02';
     const email = 'test02@example.com';
     const password = 'password1234';
 
-    bool res = await registerUser(name, email, password, client);
+    bool res = await api.register(name, email, password, client: client);
 
     expect(res, false);
   });
 
   test('registerUser test succeed', () async {
     final client = MockClient((request) async {
-      return http.Response('{"message": "succeed", "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ODQsIm5hbWUiOiJ0ZXN0MDIiLCJlbWFpbCI6InRlc3QwMkBnbWFpbC5jb20i"}', 201);
+      return http.Response(
+          '{"message": "succeed", "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ODQsIm5hbWUiOiJ0ZXN0MDIiLCJlbWFpbCI6InRlc3QwMkBnbWFpbC5jb20i"}',
+          201);
     });
+    final ApiService api = ApiService.getInstance();
     const name = 'test0Wrong';
     const email = 'test02Wrong@example.com';
     const password = 'password1234Wrong';
 
-    bool res = await registerUser(name, email, password, client);
+    bool res = await api.register(name, email, password, client: client);
 
     expect(res, false);
   });
@@ -86,7 +93,7 @@ void main() {
     expect(response.statusCode, 400);
   });
   testWidgets('AppBar should be displayed', (WidgetTester tester) async {
-    await tester.pumpWidget(const MaterialApp(home: RegisterPage()));
+    await tester.pumpWidget(const MaterialApp(home: RegisterView()));
     // Find the AppBar widget by its key.
     final appBarWidget = find.byType(AppBar);
 
@@ -103,7 +110,7 @@ void main() {
     expect(appBar.title, isA<Text>().having((t) => t.data, 'text', 'Register'));
   });
   testWidgets('Image.asset should be displayed', (WidgetTester tester) async {
-    await tester.pumpWidget(const MaterialApp(home: RegisterPage()));
+    await tester.pumpWidget(const MaterialApp(home: RegisterView()));
 
     final imageWidget = find.byType(Image);
 
@@ -123,9 +130,9 @@ void main() {
     // Expect the Image.asset to have a non-null image provider.
     expect(image.image, isNotNull);
   });
-  testWidgets('RegisterPage has correct UI components',
+  testWidgets('RegisterView has correct UI components',
       (WidgetTester tester) async {
-    await tester.pumpWidget(const MaterialApp(home: RegisterPage()));
+    await tester.pumpWidget(const MaterialApp(home: RegisterView()));
 
     final registerButton = find.widgetWithText(ElevatedButton, 'Register');
     expect(registerButton, findsOneWidget);
@@ -145,14 +152,14 @@ void main() {
   });
 
   testWidgets('Tap on register', (WidgetTester tester) async {
-    await tester.pumpWidget(const MaterialApp(home: RegisterPage()));
+    await tester.pumpWidget(const MaterialApp(home: RegisterView()));
 
     final registerButton = find.widgetWithText(ElevatedButton, 'Register');
     await tester.tap(registerButton);
   });
 
   testWidgets('Tap on Already have an account ?', (WidgetTester tester) async {
-    await tester.pumpWidget(const MaterialApp(home: RegisterPage()));
+    await tester.pumpWidget(const MaterialApp(home: RegisterView()));
 
     expect(find.text('Register'), findsWidgets);
 
@@ -172,7 +179,7 @@ void main() {
 
   testWidgets('Fill register input', (WidgetTester tester) async {
     // Render the widget inside a MaterialApp.
-    await tester.pumpWidget(const MaterialApp(home: RegisterPage()));
+    await tester.pumpWidget(const MaterialApp(home: RegisterView()));
 
     // Fill in the form fields.
     final nameField = find.widgetWithText(TextFormField, 'Name');
@@ -187,7 +194,7 @@ void main() {
 
   testWidgets('Register form validation and navigation',
       (WidgetTester tester) async {
-    await tester.pumpWidget(const MaterialApp(home: RegisterPage()));
+    await tester.pumpWidget(const MaterialApp(home: RegisterView()));
 
     final nameField = find.widgetWithText(TextFormField, 'Name');
     final emailField = find.widgetWithText(TextFormField, 'Email');

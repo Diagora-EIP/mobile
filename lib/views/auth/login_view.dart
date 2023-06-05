@@ -1,54 +1,25 @@
 import 'package:flutter/material.dart';
-import 'home.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+
 import 'package:logger/logger.dart';
-import 'get_token.dart';
 
-/// Takes [String] [email], [String] [password] as input and returns an output value if the login is true or fasle.
-///
-/// The [email], [password] parameter are required and cannot be null.
-/// The output value will be true if the login works.
-/// If [response.statusCode] is not 200 or 201, this function will return false.
-Future<bool> loginUser(String email, String password, http.Client client) async {
-  final Logger logger = Logger();
+import 'package:diagora/home.dart';
+import 'package:diagora/services/api_service.dart';
 
-  final url = Uri.parse('http://localhost:3000/user/login');
-  try {
-    final response = await client.post(
-      url,
-      body: json
-          .encode({'email': email, 'password': password, 'remember': false}),
-      headers: {'Content-Type': 'application/json'},
-    );
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      final responseData = json.decode(response.body);
-      logger.i(responseData);
-      await runToken(responseData["token"]);
-      return true;
-    } else {
-      logger.e('Login failed with status code ${response.statusCode}');
-      return false;
-    }
-  } catch (e) {
-    logger.e('${e.toString()}  : Serveur unreachable');
-    return false;
-  }
-}
-
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+class LoginView extends StatefulWidget {
+  const LoginView({super.key});
 
   @override
   // ignore: library_private_types_in_public_api
-  _LoginPageState createState() => _LoginPageState();
+  _LoginViewState createState() => _LoginViewState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _LoginViewState extends State<LoginView> {
   final Logger logger = Logger();
 
   final _formKey = GlobalKey<FormState>();
   late String _email, _password;
+
+  final ApiService _api = ApiService.getInstance();
 
   @override
   Widget build(BuildContext context) {
@@ -95,7 +66,7 @@ class _LoginPageState extends State<LoginPage> {
                 onPressed: () async {
                   if (_formKey.currentState!.validate()) {
                     _formKey.currentState!.save();
-                    bool returnValue = await loginUser(_email, _password, http.Client());
+                    bool returnValue = await _api.login(_email, _password);
                     if (returnValue) {
                       // ignore: use_build_context_synchronously
                       Navigator.push(
