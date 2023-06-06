@@ -1,3 +1,4 @@
+import 'package:diagora/views/home/order/order_view.dart';
 import 'package:flutter/material.dart';
 import 'calendar.dart';
 import 'map.dart';
@@ -58,6 +59,21 @@ class HomePage extends StatelessWidget {
               textStyle: const TextStyle(fontSize: 30),
             ),
             child: const Text('Profile'),
+          ),
+          const SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const OrderView()),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.redAccent,
+              padding: const EdgeInsets.all(20),
+              textStyle: const TextStyle(fontSize: 30),
+            ),
+            child: const Text('Commandes'),
           ),
         ],
       ),

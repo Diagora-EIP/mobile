@@ -1,7 +1,8 @@
+import 'package:diagora/views/auth/register_view.dart';
 import 'package:flutter/material.dart';
 
 import 'package:diagora/services/api_service.dart';
-import 'package:diagora/views/auth/register_view.dart';
+import 'package:diagora/home.dart';
 
 class LoadingView extends StatefulWidget {
   const LoadingView({
@@ -32,11 +33,19 @@ class LoadingViewState extends State<LoadingView> {
 
   /// Redirige vers la page d'accueil ou d'authentification en fonction de si l'utilisateur est connecté ou non
   void redirect() {
-    if (_api.user == null) {
+    if (_api.token == null) {
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(
           builder: (context) => const RegisterView(),
+        ),
+        (route) => false,
+      );
+    } else {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const HomePage(),
         ),
         (route) => false,
       );

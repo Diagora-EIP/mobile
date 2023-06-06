@@ -16,11 +16,11 @@ class User {
 
   factory User.fromJson(dynamic json) {
     User user = User(
-      id: json['user_id'],
-      email: json['email'],
-      name: json['name'],
-      encryptedPassword: json['password'],
-      createdAt: DateTime.parse(json['created_at']),
+      id: json['user_id'] ?? json['id'] ?? -1,
+      email: json['email'] ?? '',
+      name: json['name'] ?? '',
+      encryptedPassword: json['password'] ?? '',
+      createdAt: DateTime.parse(json['created_at'] ?? DateTime(0).toString()),
     );
     return user;
   }

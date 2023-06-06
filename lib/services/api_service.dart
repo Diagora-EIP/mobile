@@ -58,6 +58,7 @@ class ApiService {
   static User? _user;
   User? get user => _user;
   static String? _token;
+  String? get token => _token; // TODO: Enlever le getter lorsqu'on aura l'User
 
   /// Permet d'obtenir une instance de [ApiService].
   static ApiService getInstance() {
@@ -92,15 +93,19 @@ class ApiService {
       Response response = await client.post(
         url,
         body: json.encode(
-          {'email': email, 'password': password, 'remember': remember},
+          {
+            'email': email.toLowerCase(),
+            'password': password,
+            'remember': remember
+          },
         ),
         headers: {'Content-Type': 'application/json'},
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         dynamic responseData = json.decode(response.body);
-        _logger.i(responseData);
         _prefs?.setString('token', responseData['token']);
+        _logger.i(responseData);
         return true;
       } else {
         _logger.e('Login failed with status code ${response.statusCode}');
@@ -131,7 +136,7 @@ class ApiService {
       Response response = await client.post(
         url,
         body: json.encode(
-          {'name': name, 'email': email, 'password': password},
+          {'email': email.toLowerCase(), 'name': name, 'password': password},
         ),
         headers: {'Content-Type': 'application/json'},
       );
