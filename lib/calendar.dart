@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:table_calendar/table_calendar.dart';
+
 import 'package:intl/intl.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'package:logger/logger.dart';
-import 'get_token.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:http/http.dart' as http;
+import 'package:geocoding/geocoding.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:table_calendar/table_calendar.dart';
+
+import 'dart:convert';
 import 'dart:math';
+
+import 'get_token.dart';
 
 /// Takes [DateTime] [begin], [end] as input and returns an output string if the api call succeed.
 ///
@@ -22,7 +28,7 @@ Future<String> calendarValues(DateTime begin, DateTime end) async {
 
   const id = "31";
   final link =
-      "http://localhost:3000/schedule/$id?begin=$beginTimeStamp&end=$endTimeStamp";
+      "http://localhost:3000/user/$id/schedule?begin=$beginTimeStamp&end=$endTimeStamp";
   final url = Uri.parse(link);
 
   String? token = await getToken();
@@ -34,7 +40,7 @@ Future<String> calendarValues(DateTime begin, DateTime end) async {
       url,
       headers: {
         'Content-Type': 'application/json',
-        "Authorization": "Bearer $token"
+        "Authorization": "Bearer Valorant-35"
       },
     );
     if (response.statusCode == 200 || response.statusCode == 202) {
@@ -162,7 +168,7 @@ class _CalendarPageState extends State<CalendarPage> {
                     })
                   },
               child: const Text("Back to Today")),
-          Expanded(child: MyListWidget(items: calendarList)),
+          Expanded(child: MyListWidget(items: calendarList, today: today)),
         ],
       ),
     );
@@ -174,10 +180,12 @@ class _CalendarPageState extends State<CalendarPage> {
   }
 }
 
+// ignore: must_be_immutable
 class MyListWidget extends StatelessWidget {
   final List<dynamic> items;
+  DateTime today;
 
-  const MyListWidget({super.key, required this.items});
+  MyListWidget({super.key, required this.items, required this.today});
 
   @override
   Widget build(BuildContext context) {
@@ -191,8 +199,13 @@ class MyListWidget extends StatelessWidget {
           children: <Widget>[
             GestureDetector(
               onTap: () {
-                // handle the tap event here
-                print('ListTile $index tapped!');
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        ItemDetailsPage(item: items[index], today: today),
+                  ),
+                );
               },
               child: ListTile(
                 title: Text(items[index][0],
@@ -225,6 +238,63 @@ class MyListWidget extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+}
+
+// ignore: must_be_immutable
+class ItemDetailsPage extends StatelessWidget {
+  final Logger logger = Logger();
+  final List<dynamic> item;
+  DateTime today;
+  LatLng coord = LatLng(0, 0);
+
+  ItemDetailsPage({super.key, required this.item, required this.today});
+
+  Future<LatLng> getLocationFromAddress(String address) async {
+    try {
+      List<Location> locations = await locationFromAddress(address);
+      if (locations.isNotEmpty) {
+        double latitude = locations.first.latitude;
+        double longitude = locations.first.longitude;
+        return LatLng(latitude, longitude);
+      }
+    } catch (e) {
+      logger.e('Error getting location from address: $e');
+    }
+    return LatLng(0, 0); // Default location if address lookup fails
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("On ${DateFormat('EEEE, MMM d, yyyy').format(today)}"),
+      ),
+      body: Center(
+        child: Column(children: [
+          Text(item[0], style: const TextStyle(fontWeight: FontWeight.bold)),
+          Text(item[1]),
+          Text(item[2]),
+          Text(item[3]),
+          SizedBox(
+            height: 600,
+            width: 400,
+            child: FlutterMap(
+              options: MapOptions(
+                center: coord,
+                zoom: 3.2,
+              ),
+              children: [
+                TileLayer(
+                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                  userAgentPackageName: 'com.example.app',
+                ),
+              ],
+            ),
+          ),
+        ]),
+      ),
     );
   }
 }
