@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:http/testing.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:diagora/services/api_service.dart';
 import 'package:diagora/views/auth/login_view.dart';
@@ -12,6 +13,8 @@ import 'package:diagora/views/auth/login_view.dart';
 /// No parameters
 /// No output
 void main() {
+  SharedPreferences.setMockInitialValues({});
+
   test('Testing: login failing', () async {
     final client = MockClient((request) async {
       return http.Response('{"message": "error"}', 400);
@@ -42,8 +45,8 @@ void main() {
     expect(res, true);
   });
 
-
-  testWidgets('Testing: AppBar should be displayed', (WidgetTester tester) async {
+  testWidgets('Testing: AppBar should be displayed',
+      (WidgetTester tester) async {
     await tester.pumpWidget(const MaterialApp(home: LoginView()));
     // Find the AppBar widget by its key.
     final appBarWidget = find.byType(AppBar);
@@ -61,7 +64,8 @@ void main() {
     expect(appBar.title, isA<Text>().having((t) => t.data, 'text', 'Login'));
   });
 
-  testWidgets('Testing: Image.asset should be displayed', (WidgetTester tester) async {
+  testWidgets('Testing: Image.asset should be displayed',
+      (WidgetTester tester) async {
     await tester.pumpWidget(const MaterialApp(home: LoginView()));
 
     final imageWidget = find.byType(Image);

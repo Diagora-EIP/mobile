@@ -1,7 +1,7 @@
 import os
 import time
 
-os.system("flutter test --coverage")
+os.system("flutter test test/main_test.dart --coverage")
 
 time.sleep(2)
 

@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:http/testing.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:diagora/services/api_service.dart';
 import 'package:diagora/views/auth/register_view.dart';
@@ -11,6 +12,8 @@ import 'package:diagora/views/auth/register_view.dart';
 /// No parameters
 /// No output
 void main() {
+  SharedPreferences.setMockInitialValues({});
+
   test('Testing: register failing OK', () async {
     final client = MockClient((request) async {
       return http.Response('{"message": "error"}', 400);
@@ -40,9 +43,7 @@ void main() {
     }
     ''';
     final client = MockClient((request) async {
-      return http.Response(
-        answerString,
-          201);
+      return http.Response(answerString, 201);
     });
     final ApiService api = ApiService.getInstance();
     const name = 'test0Wrong';
@@ -54,7 +55,8 @@ void main() {
     expect(res, true);
   });
 
-  testWidgets('Testing: AppBar should be displayed', (WidgetTester tester) async {
+  testWidgets('Testing: AppBar should be displayed',
+      (WidgetTester tester) async {
     await tester.pumpWidget(const MaterialApp(home: RegisterView()));
     // Find the AppBar widget by its key.
     final appBarWidget = find.byType(AppBar);
@@ -72,7 +74,8 @@ void main() {
     expect(appBar.title, isA<Text>().having((t) => t.data, 'text', 'Register'));
   });
 
-  testWidgets('Testing: Image.asset should be displayed', (WidgetTester tester) async {
+  testWidgets('Testing: Image.asset should be displayed',
+      (WidgetTester tester) async {
     await tester.pumpWidget(const MaterialApp(home: RegisterView()));
 
     final imageWidget = find.byType(Image);
@@ -122,7 +125,8 @@ void main() {
     await tester.tap(registerButton);
   });
 
-  testWidgets('Testing: Tap on Already have an account ?', (WidgetTester tester) async {
+  testWidgets('Testing: Tap on Already have an account ?',
+      (WidgetTester tester) async {
     await tester.pumpWidget(const MaterialApp(home: RegisterView()));
 
     expect(find.text('Register'), findsWidgets);
