@@ -5,8 +5,8 @@ os.system("flutter test --coverage")
 
 time.sleep(2)
 
-os.system("lcov --remove coverage/lcov.info '*/test/*' -o coverage/lcov.info genhtml coverage/lcov.info -o coverage/html")
+os.system("genhtml -o coverage_report coverage/lcov.info")
 
 time.sleep(5)
 
-os.system("open coverage/html/index.html")
+os.system("open coverage_report/index.html")

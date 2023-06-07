@@ -11,8 +11,6 @@ import 'package:table_calendar/table_calendar.dart';
 import 'dart:convert';
 import 'dart:math';
 
-import 'get_token.dart';
-
 /// Takes [DateTime] [begin], [end] as input and returns an output string if the api call succeed.
 ///
 /// The[begin], [end] parameter are required and cannot be null.
@@ -30,10 +28,6 @@ Future<String> calendarValues(DateTime begin, DateTime end) async {
   final link =
       "http://localhost:3000/user/$id/schedule?begin=$beginTimeStamp&end=$endTimeStamp";
   final url = Uri.parse(link);
-
-  String? token = await getToken();
-
-  logger.i(token);
 
   try {
     final response = await http.get(

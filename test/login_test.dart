@@ -1,19 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'dart:convert';
 import 'package:http/testing.dart';
 import 'package:http/http.dart' as http;
 
-import 'package:diagora/views/auth/login_view.dart';
 import 'package:diagora/services/api_service.dart';
+import 'package:diagora/views/auth/login_view.dart';
 
 /// Main that got all the test function of the login page.
 ///
 /// No parameters
 /// No output
 void main() {
-  test('loginUser test failed', () async {
+  test('Testing: login failing', () async {
     final client = MockClient((request) async {
       return http.Response('{"message": "error"}', 400);
     });
@@ -27,56 +26,24 @@ void main() {
     expect(res, false);
   });
 
-  test('loginUser test succeed', () async {
+  test('Testing: login succeeding', () async {
     final client = MockClient((request) async {
       return http.Response(
           '{"message": "succeed", "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ODQsIm5hbWUiOiJ0ZXN0MDIiLCJlbWFpbCI6InRlc3QwMkBnbWFpbC5jb20i"}',
           201);
     });
     final ApiService api = ApiService.getInstance();
-    const email = 'test02Wrong@example.com';
-    const password = 'password1234Wrong';
+
+    const email = 'mobile01@gmail.com';
+    const password = 'mobile01';
 
     bool res = await api.login(email, password, client: client);
 
-    expect(res, false);
+    expect(res, true);
   });
 
-  test('loginUser returns true when registration is successful', () async {
-    final client = MockClient((request) async {
-      return http.Response('{"message": "success"}', 200);
-    });
-    const email = 'john.doe@example.com';
-    const password = 'password';
 
-    final response = await client.post(
-      Uri.parse('http://localhost:3000/user/login'),
-      body: json.encode({
-        'email': email,
-        'password': password,
-      }),
-    );
-
-    expect(response.statusCode, 200);
-  });
-  test('loginUser returns true when registration is fails', () async {
-    final client = MockClient((request) async {
-      return http.Response('{"message": "success"}', 400);
-    });
-    const email = 'john.doe1@example.com';
-    const password = 'password';
-
-    final response = await client.post(
-      Uri.parse('http://localhost:3000/user/login'),
-      body: json.encode({
-        'email': email,
-        'password': password,
-      }),
-    );
-
-    expect(response.statusCode, 400);
-  });
-  testWidgets('AppBar should be displayed', (WidgetTester tester) async {
+  testWidgets('Testing: AppBar should be displayed', (WidgetTester tester) async {
     await tester.pumpWidget(const MaterialApp(home: LoginView()));
     // Find the AppBar widget by its key.
     final appBarWidget = find.byType(AppBar);
@@ -93,7 +60,8 @@ void main() {
     // Expect the AppBar title to be a Text widget with the value 'Login'.
     expect(appBar.title, isA<Text>().having((t) => t.data, 'text', 'Login'));
   });
-  testWidgets('Image.asset should be displayed', (WidgetTester tester) async {
+
+  testWidgets('Testing: Image.asset should be displayed', (WidgetTester tester) async {
     await tester.pumpWidget(const MaterialApp(home: LoginView()));
 
     final imageWidget = find.byType(Image);
@@ -114,7 +82,8 @@ void main() {
     // Expect the Image.asset to have a non-null image provider.
     expect(image.image, isNotNull);
   });
-  testWidgets('LoginView form validation and navigation',
+
+  testWidgets('Testing: LoginView form validation and navigation',
       (WidgetTester tester) async {
     await tester.pumpWidget(const MaterialApp(home: LoginView()));
 

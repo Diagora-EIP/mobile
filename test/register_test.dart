@@ -1,19 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'package:http/testing.dart';
+import 'package:http/http.dart' as http;
 
-import 'package:diagora/views/auth/register_view.dart';
 import 'package:diagora/services/api_service.dart';
+import 'package:diagora/views/auth/register_view.dart';
 
 /// Main that got all the test function of the register page.
-///
 /// No parameters
 /// No output
 void main() {
-  test('registerUser test failed', () async {
+  test('Testing: register failing OK', () async {
     final client = MockClient((request) async {
       return http.Response('{"message": "error"}', 400);
     });
@@ -27,10 +25,23 @@ void main() {
     expect(res, false);
   });
 
-  test('registerUser test succeed', () async {
+  test('Testing: register succeeding OK', () async {
+    String answerString = '''
+    {
+      "user": {
+        "user_id": 1,
+        "email": "test",
+        "name": "test",
+        "password": "test",
+        "created_at": "2023-06-01"
+      },
+      "message": "succeed",
+      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ODQsIm5hbWUiOiJ0ZXN0MDIiLCJlbWFpbCI6InRlc3QwMkBnbWFpbC5jb20i"
+    }
+    ''';
     final client = MockClient((request) async {
       return http.Response(
-          '{"message": "succeed", "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ODQsIm5hbWUiOiJ0ZXN0MDIiLCJlbWFpbCI6InRlc3QwMkBnbWFpbC5jb20i"}',
+        answerString,
           201);
     });
     final ApiService api = ApiService.getInstance();
@@ -40,59 +51,10 @@ void main() {
 
     bool res = await api.register(name, email, password, client: client);
 
-    expect(res, false);
+    expect(res, true);
   });
 
-  test('registerUser returns true when registration is successful', () async {
-    final client = MockClient((request) async {
-      return http.Response('{"message": "success"}', 200);
-    });
-    const name = 'John Doe';
-    const email = 'john.doe@example.com';
-    const password = 'password';
-
-    final response = await client.post(
-      Uri.parse('http://localhost:3000/user/register'),
-      body: json.encode({
-        'name': name,
-        'email': email,
-        'password': password,
-        'permissions': {
-          'isAdmin': false,
-          'isUser': true,
-          'canCreateVehicule': false
-        }
-      }),
-    );
-
-    expect(response.statusCode, 200);
-  });
-
-  test('registerUser returns false when registration fails', () async {
-    final client = MockClient((request) async {
-      return http.Response('{"message": "error"}', 400);
-    });
-    const name = 'test02';
-    const email = 'test02@example.com';
-    const password = 'password1234';
-
-    final response = await client.post(
-      Uri.parse('http://localhost:3000/user/register'),
-      body: json.encode({
-        'name': name,
-        'email': email,
-        'password': password,
-        'permissions': {
-          'isAdmin': false,
-          'isUser': true,
-          'canCreateVehicule': false
-        }
-      }),
-    );
-
-    expect(response.statusCode, 400);
-  });
-  testWidgets('AppBar should be displayed', (WidgetTester tester) async {
+  testWidgets('Testing: AppBar should be displayed', (WidgetTester tester) async {
     await tester.pumpWidget(const MaterialApp(home: RegisterView()));
     // Find the AppBar widget by its key.
     final appBarWidget = find.byType(AppBar);
@@ -109,7 +71,8 @@ void main() {
     // Expect the AppBar title to be a Text widget with the value 'Login'.
     expect(appBar.title, isA<Text>().having((t) => t.data, 'text', 'Register'));
   });
-  testWidgets('Image.asset should be displayed', (WidgetTester tester) async {
+
+  testWidgets('Testing: Image.asset should be displayed', (WidgetTester tester) async {
     await tester.pumpWidget(const MaterialApp(home: RegisterView()));
 
     final imageWidget = find.byType(Image);
@@ -130,7 +93,8 @@ void main() {
     // Expect the Image.asset to have a non-null image provider.
     expect(image.image, isNotNull);
   });
-  testWidgets('RegisterView has correct UI components',
+
+  testWidgets('Testing: RegisterView has correct UI components',
       (WidgetTester tester) async {
     await tester.pumpWidget(const MaterialApp(home: RegisterView()));
 
@@ -151,14 +115,14 @@ void main() {
     expect(passwordField, findsOneWidget);
   });
 
-  testWidgets('Tap on register', (WidgetTester tester) async {
+  testWidgets('Testing: Tap on register', (WidgetTester tester) async {
     await tester.pumpWidget(const MaterialApp(home: RegisterView()));
 
     final registerButton = find.widgetWithText(ElevatedButton, 'Register');
     await tester.tap(registerButton);
   });
 
-  testWidgets('Tap on Already have an account ?', (WidgetTester tester) async {
+  testWidgets('Testing: Tap on Already have an account ?', (WidgetTester tester) async {
     await tester.pumpWidget(const MaterialApp(home: RegisterView()));
 
     expect(find.text('Register'), findsWidgets);
@@ -177,7 +141,7 @@ void main() {
     expect(find.text('Register'), findsWidgets);
   });
 
-  testWidgets('Fill register input', (WidgetTester tester) async {
+  testWidgets('Testing: Fill register input', (WidgetTester tester) async {
     // Render the widget inside a MaterialApp.
     await tester.pumpWidget(const MaterialApp(home: RegisterView()));
 
@@ -192,7 +156,7 @@ void main() {
     await tester.enterText(passwordField, 'password123');
   });
 
-  testWidgets('Register form validation and navigation',
+  testWidgets('Testing: Register form validation and navigation',
       (WidgetTester tester) async {
     await tester.pumpWidget(const MaterialApp(home: RegisterView()));
 
