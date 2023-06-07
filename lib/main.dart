@@ -1,5 +1,7 @@
-import 'package:diagora/register.dart';
 import 'package:flutter/material.dart';
+
+import 'package:diagora/views/loading/loading_view.dart';
+
 void main() {
   runApp(const MyApp());
 }
@@ -7,7 +9,7 @@ void main() {
 class MyApp extends StatelessWidget {
   final primaryColor = const Color.fromARGB(255, 66, 147, 147);
 
-  const  MyApp({super.key});
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +33,7 @@ class MyApp extends StatelessWidget {
           },
         ),
       ),
-      home: const RegisterPage(),
+      home: const LoadingView(),
     );
   }
 }
