@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "206897169781",
+    "project_id": "diagora---mobile",
+    "storage_bucket": "diagora---mobile.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:206897169781:android:b75a5b8b8ba9dcddddff3c",
+        "android_client_info": {
+          "package_name": "com.example.diagora"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "206897169781-m3hh6kta3j6gtopk69brj04via5jki0r.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAmoLV3Jd14xrA3DDwSB6qvw4gJcJqnGXQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "206897169781-m3hh6kta3j6gtopk69brj04via5jki0r.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "206897169781-182rmicrkc5vivg6b99ood96e1fjkvbt.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.diagora"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
