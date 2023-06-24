@@ -1,11 +1,50 @@
-import 'package:flutter/material.dart';
+import 'dart:ui';
 
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'firebase_options.dart';
+
+import 'package:flutter/material.dart';
 import 'package:diagora/views/loading/loading_view.dart';
 
-void main() {
-  runApp(const MyApp());
+/// Fonction principale de l'application.
+///
+/// Cette fonction initialise Firebase, puis lance l'application.
+void main() async {
+  // Firebase initialization
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  // Firebase Analytics
+  FirebaseAnalytics analytics = FirebaseAnalytics.instance;
+  analytics.setAnalyticsCollectionEnabled(true);
+  analytics.logAppOpen().ignore();
+
+  // Firebase Crashlytics
+  FirebaseCrashlytics crashlytics = FirebaseCrashlytics.instance;
+  crashlytics.setCrashlyticsCollectionEnabled(true);
+  FlutterError.onError = (errorDetails) {
+    // Permet d'envoyer les erreurs de Flutter à Crashlytics
+    FirebaseCrashlytics.instance.recordFlutterFatalError(errorDetails);
+  };
+  PlatformDispatcher.instance.onError = (error, stack) {
+    // Permet d'envoyer les erreurs de l'application à Crashlytics
+    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+    return true;
+  };
+
+  // Run the application
+  runApp(
+    const MyApp(),
+  );
 }
 
+/// Classe principale de l'application.
+///
+/// Cette classe initialise le thème de l'application, puis lance la vue de chargement.
 class MyApp extends StatelessWidget {
   final primaryColor = const Color.fromARGB(255, 66, 147, 147);
 

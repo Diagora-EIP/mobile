@@ -33,7 +33,7 @@ class LoadingViewState extends State<LoadingView> {
 
   /// Redirige vers la page d'accueil ou d'authentification en fonction de si l'utilisateur est connecté ou non
   void redirect() {
-    if (_api.token == null) {
+    if (_api.user == null) {
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(

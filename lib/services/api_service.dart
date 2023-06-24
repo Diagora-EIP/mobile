@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:diagora/services/performance_client.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:http/http.dart';
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -44,10 +46,12 @@ class ApiRoutes {
 /// Service qui permet de communiquer avec l'API.
 /// Ce service est un singleton, pour l'instancier, il faut utiliser la méthode [getInstance].
 class ApiService {
+  static FirebaseAnalytics analytics = FirebaseAnalytics.instance;
+
   // Attributs généraux
   bool get isInitialized => _prefs != null;
   static SharedPreferences? _prefs;
-  static final Client _httpClient = Client();
+  static final Client _httpClient = PerformanceHttpClient();
   static final Logger _logger = Logger();
   static const ApiService _instance = ApiService();
 
@@ -58,7 +62,6 @@ class ApiService {
   static User? _user;
   User? get user => _user;
   static String? _token;
-  String? get token => _token; // TODO: Enlever le getter lorsqu'on aura l'User
 
   /// Permet d'obtenir une instance de [ApiService].
   static ApiService getInstance() {
@@ -105,7 +108,11 @@ class ApiService {
       if (response.statusCode == 200 || response.statusCode == 201) {
         dynamic responseData = json.decode(response.body);
         _prefs?.setString('token', responseData['token']);
+        _token = responseData['token'];
+        _prefs?.setString('user', json.encode(responseData['user'][0]));
+        _user = User.fromJson(responseData['user'][0]);
         _logger.i(responseData);
+        analytics.logLogin(loginMethod: 'email').ignore();
         return true;
       } else {
         _logger.e('Login failed with status code ${response.statusCode}');
@@ -143,9 +150,10 @@ class ApiService {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         dynamic responseData = json.decode(response.body);
-        _logger.i(responseData);
         _prefs?.setString('user', json.encode(responseData['user']));
         _user = User.fromJson(responseData['user']);
+        analytics.logSignUp(signUpMethod: 'email').ignore();
+        _logger.i(responseData);
         return true;
       } else {
         _logger.e('Register failed with status code ${response.statusCode}');
@@ -180,6 +188,9 @@ class ApiService {
         _prefs?.remove('token');
         _prefs?.remove('user');
         _user = null;
+        _token = null;
+        _logger.i('Logout successful');
+        analytics.logEvent(name: 'logout').ignore();
         return true;
       } else {
         _logger.e('Logout failed with status code ${response.statusCode}');
