@@ -100,10 +100,9 @@ class _RegisterViewState extends State<RegisterView> {
               ),
               TextButton(
                 onPressed: () {
-                  Navigator.pushAndRemoveUntil(
+                  Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const LoginView()),
-                    (route) => false,
+                    MaterialPageRoute(builder: (context) => const LoginView())
                   );
                 },
                 child: const Text('Already have an account? Login'),
