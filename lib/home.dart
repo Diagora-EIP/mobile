@@ -1,11 +1,21 @@
-import 'package:diagora/views/home/order/order_view.dart';
 import 'package:flutter/material.dart';
-import 'calendar.dart';
-import 'map.dart';
-import 'profile.dart';
+import 'package:diagora/views/home/order/order_view.dart';
 
-class HomePage extends StatelessWidget {
+import 'package:diagora/map.dart';
+import 'package:diagora/profile.dart';
+import 'package:diagora/calendar.dart';
+import 'package:diagora/services/api_service.dart';
+import 'package:diagora/views/auth/register_view.dart';
+
+class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  final ApiService _api = ApiService.getInstance();
 
   @override
   Widget build(BuildContext context) {
@@ -74,6 +84,22 @@ class HomePage extends StatelessWidget {
               textStyle: const TextStyle(fontSize: 30),
             ),
             child: const Text('Commandes'),
+          ),
+          const SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: () {
+              _api.logout();
+              Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => const RegisterView()),
+                  (route) => false);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.redAccent,
+              padding: const EdgeInsets.all(20),
+              textStyle: const TextStyle(fontSize: 30),
+            ),
+            child: const Text('logout'),
           ),
         ],
       ),

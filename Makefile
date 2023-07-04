@@ -29,6 +29,11 @@ build-prod-bundle:
 install:
 	flutter install --release
 
+test_fluter:
+	flutter test test/main_test.dart --coverage
+	genhtml -o coverage_report coverage/lcov.info
+	open coverage_report/index.html
+
 clean:
 	$(RM) -rf build
 	flutter clean

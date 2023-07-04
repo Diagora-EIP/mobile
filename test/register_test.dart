@@ -12,12 +12,20 @@ import 'package:diagora/views/auth/register_view.dart';
 /// No parameters
 /// No output
 void main() {
+
   SharedPreferences.setMockInitialValues({});
 
-  test('Testing: register failing OK', () async {
+  test('Testing: register failing', () async {
+    String answerString = '''
+      {
+          "statusCode": 409,
+          "error": "User already exists"
+      }
+    ''';
     final client = MockClient((request) async {
-      return http.Response('{"message": "error"}', 400);
+      return http.Response(answerString, 400);
     });
+
     final ApiService api = ApiService.getInstance();
     const name = 'test02';
     const email = 'test02@example.com';
@@ -28,18 +36,19 @@ void main() {
     expect(res, false);
   });
 
-  test('Testing: register succeeding OK', () async {
+  test('Testing: register succeeding', () async {
     String answerString = '''
     {
+      "statusCode": 201,
+      "message": "User created",
       "user": {
-        "user_id": 1,
-        "email": "test",
-        "name": "test",
-        "password": "test",
-        "created_at": "2023-06-01"
-      },
-      "message": "succeed",
-      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ODQsIm5hbWUiOiJ0ZXN0MDIiLCJlbWFpbCI6InRlc3QwMkBnbWFpbC5jb20i"
+            "user_id": 205,
+            "email": "email1@gmail.com",
+            "name": "name",
+            "password": "password1234Wrong",
+            "created_at": "2023-07-04T13:09:42.703487+00:00",
+            "reset-password": null
+      }
     }
     ''';
     final client = MockClient((request) async {

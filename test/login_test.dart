@@ -13,6 +13,7 @@ import 'package:diagora/views/auth/login_view.dart';
 /// No parameters
 /// No output
 void main() {
+
   SharedPreferences.setMockInitialValues({});
 
   test('Testing: login failing', () async {
@@ -30,10 +31,26 @@ void main() {
   });
 
   test('Testing: login succeeding', () async {
-    final client = MockClient((request) async {
-      return http.Response(
-          '{"message": "succeed", "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ODQsIm5hbWUiOiJ0ZXN0MDIiLCJlbWFpbCI6InRlc3QwMkBnbWFpbC5jb20i"}',
-          201);
+final client = MockClient((request) async {
+  const jsonResponse = '''
+    {
+      "statusCode": 201,
+      "message": "User logged",
+      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjgsImVtYWlsIjoidGVzdEBlcGl0ZWNoLmV1IiwiaWF0IjoxNjcwNDIxMTM3LCJleHAiOjE2ODMzODExMzd9.1W5RW7YNm9AlFGpsakTBpNqSXOAcD5l9FQTjtYICqSY",
+      "user": [
+        {
+          "user_id": 28,
+          "email": "test@epitech.eu",
+          "name": "zebi",
+          "password": "mobile01",
+          "created_at": "2022-12-06T14:48:10.903944+00:00",
+          "reset-password": null
+        }
+      ]
+    }
+  ''';
+
+  return http.Response(jsonResponse, 201);
     });
     final ApiService api = ApiService.getInstance();
 
