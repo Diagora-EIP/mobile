@@ -1,16 +1,19 @@
 import 'dart:convert';
 
-import 'package:diagora/services/performance_client.dart';
-import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:intl/intl.dart';
 import 'package:http/http.dart';
 import 'package:logger/logger.dart';
+import 'package:diagora/services/performance_client.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:diagora/models/user_model.dart';
 
 /// Classe qui contient toutes les routes de l'API. Utilisez [route] pour créer une Uri.
 class ApiRoutes {
-  static const String baseUrl = 'http://localhost:3000';
+  // static const String baseUrl = 'http://localhost:3000';
+  static const String baseUrl = 'http://20.111.8.106:3000';
+
   // Authentification
   static const String loginRoute = '/user/login'; // POST
   static const String registerRoute = '/user/register'; // POST
@@ -36,6 +39,9 @@ class ApiRoutes {
   // Itinéraire(s)
   static const String itinerariesUserRoute = '/itinerary/:user_id'; // GET, POST
   static const String itinerariesRoute = '/itinerary/:id'; // PATCH, DELETE
+
+  // Calendrier
+  static const String calendrierValues = 'user/:user_id/';
 
   /// Permet de créer l'URL complète d'une route.
   ///
@@ -199,6 +205,55 @@ class ApiService {
     } catch (e) {
       _logger.e(e.toString());
       return false;
+    }
+  }
+
+  /// Takes [DateTime] [begin], [end] as input and returns an output string if the api call succeed.
+  ///
+  /// The[begin], [end] parameter are required and cannot be null.
+  /// The output value will be the shipment date if the call succeed.
+  /// If [response.statusCode] is not 200 or 202, this function will return "false".
+  Future<String> calendarValues(
+    DateTime begin,
+    DateTime end,
+    int userId, {
+    Client? client,
+  }) async {
+    String beginTimeStamp =
+        DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(begin.toUtc());
+    String endTimeStamp =
+        DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(end.toUtc());
+    client ??= _httpClient;
+
+    String id;
+    if (userId == -1) {
+      id = '31';
+    } else {
+      id = userId.toString();
+    }
+
+    Uri url = ApiRoutes.route(
+        "/user/$id/schedule?begin=$beginTimeStamp&end=$endTimeStamp");
+
+    try {
+      final response = await client.get(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          "Authorization": "Bearer Valorant-35"
+        },
+      );
+      if (response.body ==
+         "\"failed to parse filter (in.))\" (line 1, column 4)") {
+        return ("false");
+      }
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        return (response.body);
+      } else {
+        return "false";
+      }
+    } catch (e) {
+      return "false";
     }
   }
 }

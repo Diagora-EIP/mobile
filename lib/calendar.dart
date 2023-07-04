@@ -1,54 +1,15 @@
 import 'package:flutter/material.dart';
 
 import 'package:intl/intl.dart';
-import 'package:logger/logger.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:http/http.dart' as http;
-import 'package:geocoding/geocoding.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:table_calendar/table_calendar.dart';
 
+import 'package:diagora/services/api_service.dart';
+
 import 'dart:convert';
 import 'dart:math';
-
-/// Takes [DateTime] [begin], [end] as input and returns an output string if the api call succeed.
-///
-/// The[begin], [end] parameter are required and cannot be null.
-/// The output value will be the shipment date if the call succeed.
-/// If [response.statusCode] is not 200 or 202, this function will return "false".
-Future<String> calendarValues(DateTime begin, DateTime end) async {
-  final Logger logger = Logger();
-
-  String beginTimeStamp =
-      DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(begin.toUtc());
-  String endTimeStamp =
-      DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(end.toUtc());
-
-  const id = "31";
-  final link =
-      "http://localhost:3000/user/$id/schedule?begin=$beginTimeStamp&end=$endTimeStamp";
-  final url = Uri.parse(link);
-
-  try {
-    final response = await http.get(
-      url,
-      headers: {
-        'Content-Type': 'application/json',
-        "Authorization": "Bearer Valorant-35"
-      },
-    );
-    if (response.statusCode == 200 || response.statusCode == 202) {
-      logger.i(response.body);
-      return (response.body);
-    } else {
-      logger.e('Login failed with status code ${response.statusCode}');
-      return "false";
-    }
-  } catch (e) {
-    logger.e('${e.toString()}  : Serveur unreachable');
-    return "false";
-  }
-}
 
 class CalendarPage extends StatefulWidget {
   const CalendarPage({super.key});
@@ -59,32 +20,46 @@ class CalendarPage extends StatefulWidget {
 }
 
 class _CalendarPageState extends State<CalendarPage> {
+  final ApiService _api = ApiService.getInstance();
   CalendarFormat _calendarFormat = CalendarFormat.month;
-  final noShipment = "No shipment set up";
-  var shipment = true;
 
   DateTime today = DateTime.now();
   DateTime end = DateTime.now();
-  String calValue = "";
+
   List<dynamic> calendarList = [];
   List<dynamic> scheduleList = [];
 
+  late DateTime todayDate;
+  late DateTime todayStart;
+  late DateTime todayEnd;
+
+  String todayValueString = "";
+  late Future<String> allTodaysValues;
+
+  bool deliveryToday = true;
+  int userId = -1;
+
   @override
   void initState() {
-    final todayValues = DateTime.parse(today.toString());
-    DateTime todayStart =
-        DateTime(todayValues.year, todayValues.month, todayValues.day, 1);
-    DateTime todayEnd =
-        DateTime(todayValues.year, todayValues.month, todayValues.day, 23);
-    Future<String> calValues = calendarValues(todayStart, todayEnd);
-    calValues.then((value) {
+    super.initState();
+    todayDate = DateTime.parse(today.toString());
+    todayStart = DateTime(todayDate.year, todayDate.month, todayDate.day, 1);
+    todayEnd = DateTime(todayDate.year, todayDate.month, todayDate.day, 23);
+
+    userId = _api.user!.getUserId();
+    allTodaysValues = _api.calendarValues(todayStart, todayEnd, userId);
+    allTodaysValues.then((value) {
       setState(() {
-        calValue = value;
-        scheduleList = json.decode(calValue);
+        todayValueString = value;
+        deliveryToday = true;
+        scheduleList = json.decode(todayValueString);
         _shipmentOfTheDay(scheduleList);
       });
+    }).catchError((error) {
+      setState(() {
+        deliveryToday = false;
+      });
     });
-    super.initState();
   }
 
   void _onDaySelected(DateTime day, DateTime focusDay) {
@@ -92,12 +67,18 @@ class _CalendarPageState extends State<CalendarPage> {
         DateTime(focusDay.year, focusDay.month, focusDay.day, 1);
     DateTime todayEnd =
         DateTime(focusDay.year, focusDay.month, focusDay.day, 23);
-    Future<String> calValues = calendarValues(todayStart, todayEnd);
-    calValues.then((value) {
+    Future<String> allTodaysValues =
+        _api.calendarValues(todayStart, todayEnd, userId);
+    allTodaysValues.then((value) {
       setState(() {
-        calValue = value;
-        scheduleList = json.decode(calValue);
+        todayValueString = value;
+        deliveryToday = true;
+        scheduleList = json.decode(todayValueString);
         _shipmentOfTheDay(scheduleList);
+      });
+    }).catchError((error) {
+      setState(() {
+        deliveryToday = false;
       });
     });
     setState(() {
@@ -162,7 +143,11 @@ class _CalendarPageState extends State<CalendarPage> {
                     })
                   },
               child: const Text("Back to Today")),
-          Expanded(child: MyListWidget(items: calendarList, today: today)),
+          Expanded(
+            child: deliveryToday
+                ? MyListWidget(items: calendarList, today: today)
+                : const Text("No delivery for today"),
+          )
         ],
       ),
     );
@@ -236,58 +221,162 @@ class MyListWidget extends StatelessWidget {
   }
 }
 
+Future<Map<String, dynamic>?> getCoordinates(String address) async {
+  final response = await http.get(Uri.parse(
+      'https://nominatim.openstreetmap.org/search?q=$address&format=json&limit=1'));
+
+  if (response.statusCode == 200) {
+    final data = json.decode(response.body);
+    if (data.isNotEmpty) {
+      final lat = data[0]['lat'];
+      final lon = data[0]['lon'];
+      return {'latitude': lat, 'longitude': lon};
+    }
+  }
+
+  return null;
+}
+
 // ignore: must_be_immutable
-class ItemDetailsPage extends StatelessWidget {
-  final Logger logger = Logger();
+class ItemDetailsPage extends StatefulWidget {
   final List<dynamic> item;
   DateTime today;
+
+  ItemDetailsPage({Key? key, required this.item, required this.today})
+      : super(key: key);
+
+  @override
+  // ignore: library_private_types_in_public_api
+  _ItemDetailsPageState createState() => _ItemDetailsPageState();
+}
+
+class _ItemDetailsPageState extends State<ItemDetailsPage> {
   LatLng coord = LatLng(0, 0);
 
-  ItemDetailsPage({super.key, required this.item, required this.today});
+  Future<LatLng> fetchCoordinates(String givenAddress) async {
+    final address = givenAddress;
+    final coordinates = await getCoordinates(address);
 
-  Future<LatLng> getLocationFromAddress(String address) async {
-    try {
-      List<Location> locations = await locationFromAddress(address);
-      if (locations.isNotEmpty) {
-        double latitude = locations.first.latitude;
-        double longitude = locations.first.longitude;
-        return LatLng(latitude, longitude);
-      }
-    } catch (e) {
-      logger.e('Error getting location from address: $e');
+    if (coordinates != null) {
+      final latitude = coordinates['latitude'];
+      final longitude = coordinates['longitude'];
+      return LatLng(double.parse(latitude), double.parse(longitude));
     }
-    return LatLng(0, 0); // Default location if address lookup fails
+    return LatLng(0, 0);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("On ${DateFormat('EEEE, MMM d, yyyy').format(today)}"),
-      ),
-      body: Center(
-        child: Column(children: [
-          Text(item[0], style: const TextStyle(fontWeight: FontWeight.bold)),
-          Text(item[1]),
-          Text(item[2]),
-          Text(item[3]),
-          SizedBox(
-            height: 600,
-            width: 400,
-            child: FlutterMap(
-              options: MapOptions(
-                center: coord,
-                zoom: 3.2,
-              ),
-              children: [
-                TileLayer(
-                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                  userAgentPackageName: 'com.example.app',
-                ),
-              ],
-            ),
+        title: Text(
+          "On ${DateFormat('EEEE, MMM d, yyyy').format(widget.today)}",
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
           ),
-        ]),
+        ),
+      ),
+      body: FutureBuilder<LatLng>(
+        future: fetchCoordinates(widget.item[1]),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          } else if (snapshot.hasError) {
+            return const Center(
+              child: Text(
+                'Error fetching location',
+                style: TextStyle(
+                  color: Colors.red,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            );
+          } else {
+            coord = snapshot.data!;
+            const zoomLevel = 10.0; // Adjust the zoom level as desired
+
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      widget.item[0].toUpperCase(),
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      widget.item[1],
+                      style: const TextStyle(fontSize: 18),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          widget.item[2],
+                          style: const TextStyle(fontSize: 18),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(width: 8),
+                        const Icon(
+                          Icons.arrow_forward,
+                          size: 18,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          widget.item[3],
+                          style: const TextStyle(fontSize: 18),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                    SizedBox(
+                      height: 400,
+                      child: FlutterMap(
+                        options: MapOptions(
+                          center: coord,
+                          zoom: zoomLevel,
+                        ),
+                        children: [
+                          TileLayer(
+                            urlTemplate:
+                                'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                            userAgentPackageName: 'com.example.app',
+                          ),
+                          MarkerLayer(
+                            markers: [
+                              Marker(
+                                width: 80.0,
+                                height: 80.0,
+                                point: coord,
+                                builder: (ctx) => const Icon(
+                                  Icons.location_on,
+                                  color: Colors.red,
+                                  size: 48,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+        },
       ),
     );
   }
