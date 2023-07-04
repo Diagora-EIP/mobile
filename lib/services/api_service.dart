@@ -11,9 +11,7 @@ import 'package:diagora/models/user_model.dart';
 
 /// Classe qui contient toutes les routes de l'API. Utilisez [route] pour créer une Uri.
 class ApiRoutes {
-  // static const String baseUrl = 'http://localhost:3000';
   static const String baseUrl = 'http://20.111.8.106:3000';
-
   // Authentification
   static const String loginRoute = '/user/login'; // POST
   static const String registerRoute = '/user/register'; // POST
@@ -180,12 +178,13 @@ class ApiService {
     Client? client,
   }) async {
     try {
+      if (_token == null || _token!.isEmpty) return false;
       client ??= _httpClient;
       Uri url = ApiRoutes.route(ApiRoutes.logoutRoute);
       Response response = await client.post(
         url,
         body: json.encode({
-          'id': _user?.id,
+          'token': _token,
         }),
         headers: {'Content-Type': 'application/json'},
       );
@@ -244,7 +243,7 @@ class ApiService {
         },
       );
       if (response.body ==
-         "\"failed to parse filter (in.))\" (line 1, column 4)") {
+          "\"failed to parse filter (in.))\" (line 1, column 4)") {
         return ("false");
       }
       if (response.statusCode == 200 || response.statusCode == 202) {
