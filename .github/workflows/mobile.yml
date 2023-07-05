@@ -1,67 +1,78 @@
-name: main
-# Trigger the workflow manually or after push a commit
-on: [push, workflow_dispatch]
-# 2 jobs are configured.
-# The first one runs tests on iOS devices.
-# The second runs tests on Android devices
+# Diagora | Mobile - CI
+name: Diagora | Mobile - CI
+
+# Controls when the action will run. Triggers the workflow on push or pull request events
+# but only for the CI branch
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
 jobs:
-  # job responsible for running Flutter tests on iOS devices
-  ios:
-    # Creates a build matrix for your jobs. You can define different variations of an environment to run each job
-    strategy:
-      matrix:
-        device:
-          # The available simulators are listed by the "xcrun xctrace list devices" command
-          - "iPhone 11 Simulator (15.2)" # the name of the simulator could be different depending on the macos version you are using
-      # if one of the jobs in the matrix expansion fails, the rest of the jobs will be cancelled
-      fail-fast: true
-    runs-on: macos-11 # or macos-latest if you prefer, but be aware that the available simulators could be different if you run a different version
+  # Execute the tests
+  # Run condition: push or pull request on the CI branch
+  tests:
+    name: Diagora | Mobile - Tests
+    runs-on: ubuntu-20.04
+
     steps:
-      - name: "List all simulators"
-        run: "xcrun xctrace list devices"
-      - name: "Start Simulator"
-        # the command "xcrun simctl boot" expects a device identifier
-        # the assignment of the UDID variable consists of retrieving the ID of the simulator
-        # by extracting it from the command "xcrun xctrace list devices"
-        run: |
-          UDID=$(xcrun xctrace list devices | grep "^${{ matrix.device }}" | awk '{gsub(/[()]/,""); print $NF}')
-          echo $UDID
-          xcrun simctl boot "${UDID:?No Simulator with this name found}"
-      - uses: actions/checkout@v3
-      - name: Setup Flutter SDK
-        uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-          # instead of "channel: stable", you could be more precise by specifying the exact version of Flutter you're using:
-          # flutter-version: '<FLUTTER_VERSION>'
-      - name: Install Flutter dependencies
-        run: flutter pub get
-      - name: Run integration tests
-        run: flutter test integration_test --verbose
-  # job responsible for running Flutter tests on Android devices
-  android:
-    runs-on: macos-11
-    strategy:
-      matrix:
-        api-level:
-          - 29
-          # you can add more API level if you want to run your tests on different API
-      fail-fast: true
+    - name: Checkout
+      uses: actions/checkout@v3
+    
+    - name: Setup flutter
+      uses: subosito/flutter-action@v1
+
+    - name: Run Test
+      id: tested
+      run: flutter test
+  
+  # Build and push the docker image
+  # Run condition: push or pull request on the CI branch and tests job is successful
+  Docker:
+    name: Build and Push Docker
+    runs-on: ubuntu-latest
+    needs: tests
+
     steps:
-      - uses: actions/checkout@v3
-      - name: Setup Flutter SDK
-        uses: subosito/flutter-action@v2
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
         with:
-          channel: stable
-          # instead of "channel: stable", you could be more precise by specifying the exact version of Flutter you're using:
-          # flutter-version: '<FLUTTER_VERSION>'
-      - name: Install Flutter dependencies
-        run: flutter pub get
-      - name: Run integration tests
-        # more info on https://github.com/ReactiveCircus/android-emulator-runner
-        uses: reactivecircus/android-emulator-runner@v2
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v4
         with:
-          api-level: ${{ matrix.api-level }}
-          arch: x86_64
-          profile: Nexus 6
-          script: flutter test integration_test --verbose
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/frontend_react:latest
+  
+  # Send a notification on Discord of the triggered error
+  # Run condition: push or pull request on the CI branch and tests job is failed
+  Discord:
+    name: Discord Notification
+    runs-on: ubuntu-latest
+    needs: tests
+    if: |
+      always() &&
+      needs.tests.result == 'failure'
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Action Discord Alert
+      uses: ErnaneJ/action-discord-alerts@main
+      with:
+        webhook: ${{ secrets.DISCORD_WEBHOOK }}
+        color: '16711680'
+        description: 'An error occured during the test of the project or the required coverage is not met'
+        title: 'Diagora - Mobile'
