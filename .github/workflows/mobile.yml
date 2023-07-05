@@ -3,13 +3,14 @@ name: Diagora | Mobile - CI
 
 # Controls when the action will run. Triggers the workflow on push or pull request events
 # but only for the CI branch
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+on: [push]
+#     branches:
+#       - main
+#       - CI
+#   pull_request:
+#     branches:
+#       - main
+#       - CI
 
 jobs:
   # Execute the tests
