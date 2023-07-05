@@ -28,7 +28,7 @@ jobs:
 
     - name: Run Test
       id: tested
-      run: flutter test
+      run: flutter test --coverage
   
   # Build and push the docker image
   # Run condition: push or pull request on the CI branch and tests job is successful
