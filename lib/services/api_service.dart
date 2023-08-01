@@ -255,4 +255,50 @@ class ApiService {
       return "false";
     }
   }
+
+
+  /// Takes [DateTime] [begin], [end] as input and returns an output string if the api call succeed.
+  ///
+  /// The[begin], [end] parameter are required and cannot be null.
+  /// The output value will be the shipment date if the call succeed.
+  /// If [response.statusCode] is not 200 or 202, this function will return "false".
+  Future<String> mapValues(
+    DateTime begin,
+    DateTime end,
+    int userId, {
+    Client? client,
+  }) async {
+    String beginTimeStamp =
+        DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(begin.toUtc());
+    String endTimeStamp =
+        DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(end.toUtc());
+    client ??= _httpClient;
+
+    String id;
+    if (userId == -1) {
+      id = '31';
+    } else {
+      id = userId.toString();
+    }
+
+    Uri url = ApiRoutes.route(
+        "/user/$id/itinary?begin=$beginTimeStamp&end=$endTimeStamp");
+
+    try {
+      final response = await client.get(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          "Authorization": "Bearer Valorant-35"
+        },
+      );
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        return (response.body);
+      } else {
+        return "false";
+      }
+    } catch (e) {
+      return "false";
+    }
+  }
 }

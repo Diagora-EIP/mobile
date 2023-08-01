@@ -1,8 +1,8 @@
-import 'package:diagora/views/auth/register_view.dart';
 import 'package:flutter/material.dart';
 
+import 'package:diagora/views/home/home.dart';
 import 'package:diagora/services/api_service.dart';
-import 'package:diagora/home.dart';
+import 'package:diagora/views/auth/register_view.dart';
 
 class LoadingView extends StatefulWidget {
   const LoadingView({

@@ -8,8 +8,8 @@ import 'package:table_calendar/table_calendar.dart';
 
 import 'package:diagora/services/api_service.dart';
 
-import 'dart:convert';
 import 'dart:math';
+import 'dart:convert';
 
 class CalendarPage extends StatefulWidget {
   const CalendarPage({super.key});
@@ -222,18 +222,22 @@ class MyListWidget extends StatelessWidget {
 }
 
 Future<Map<String, dynamic>?> getCoordinates(String address) async {
-  final response = await http.get(Uri.parse(
-      'https://nominatim.openstreetmap.org/search?q=$address&format=json&limit=1'));
+  try {
+    final response = await http.get(Uri.parse(
+        'https://nominatim.openstreetmap.org/search?q=$address&format=json&limit=1'));
 
-  if (response.statusCode == 200) {
-    final data = json.decode(response.body);
-    if (data.isNotEmpty) {
-      final lat = data[0]['lat'];
-      final lon = data[0]['lon'];
-      return {'latitude': lat, 'longitude': lon};
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      if (data.isNotEmpty) {
+        final lat = data[0]['lat'];
+        final lon = data[0]['lon'];
+        return {'latitude': lat, 'longitude': lon};
+      }
     }
+  } catch (e) {
+      // ignore: avoid_print
+      print('Error getting coordinates: $e');
   }
-
   return null;
 }
 
@@ -255,12 +259,20 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
 
   Future<LatLng> fetchCoordinates(String givenAddress) async {
     final address = givenAddress;
-    final coordinates = await getCoordinates(address);
+    try {
+      final coordinates = await getCoordinates(address);
 
-    if (coordinates != null) {
-      final latitude = coordinates['latitude'];
-      final longitude = coordinates['longitude'];
-      return LatLng(double.parse(latitude), double.parse(longitude));
+
+      if (coordinates != null) {
+        final latitude = coordinates['latitude'];
+        final longitude = coordinates['longitude'];
+        // return LatLng(double.parse(latitude), double.parse(longitude));
+        return LatLng(latitude, longitude);
+
+      }
+    } catch (e) {
+      // ignore: avoid_print
+      print('Error fetching coordinates: $e');
     }
     return LatLng(0, 0);
   }
