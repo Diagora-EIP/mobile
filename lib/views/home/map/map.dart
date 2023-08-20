@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:http/http.dart' as http;
 import 'package:flutter_map/flutter_map.dart';
-import 'package:table_calendar/table_calendar.dart';
 
 import 'package:diagora/services/api_service.dart';
 
@@ -21,7 +18,9 @@ class MapPage extends StatefulWidget {
 class _MapPageState extends State<MapPage> {
   final ApiService _api = ApiService.getInstance();
   List<Polyline> polylines = [];
+  List<Marker> markerCoord = [];
   List<LatLng> coordinates = [];
+  List<LatLng> markerCoordinates = [];
   double long = 0;
   double lat = 0;
   double lastLat = 0;
@@ -31,80 +30,71 @@ class _MapPageState extends State<MapPage> {
   DateTime today = DateTime.now();
   DateTime end = DateTime.now();
   String todayValueString = "";
-  late Future<String> allTodaysTrajValues;
   List<dynamic> calendarList = [];
   List<dynamic> scheduleList = [];
   late DateTime todayDate;
   late DateTime todayStart;
   late DateTime todayEnd;
+  LatLng coord = LatLng(0, 0);
   int userId = -1;
   bool deliveryToday = true;
 
   @override
   void initState() {
-    Random random = Random();
-
-    todayDate = DateTime.parse(today.toString());
+    // Random random = Random();
+    todayDate =
+        DateTime.now(); // Use DateTime.now() to get the current date and time.
     todayStart = DateTime(todayDate.year, todayDate.month, todayDate.day, 1);
     todayEnd = DateTime(todayDate.year, todayDate.month, todayDate.day, 23);
-    userId = _api.user!.getUserId();
-    allTodaysTrajValues = _api.mapValues(todayStart, todayEnd, userId);
+    userId = _api.user!
+        .getUserId(); // Replace this with your actual way of getting the user ID.
 
-    allTodaysTrajValues.then((value) {
-          setState(() {
-            todayValueString = value;
-            deliveryToday = true;
-            scheduleList = json.decode(todayValueString);
-            _shipmentOfTheDay(scheduleList);
-          });
-        }).catchError((error) {
-          setState(() {
-            deliveryToday = false;
-          });
-        });
-    setState(() {
-      for (int i = 0; i < 3; i++) {
-        lastLong = 0;
-        lastLat = 0;
+    // Make sure _api.mapValues returns a Future<String>.
+    Future<String> allTodaysTrajValues =
+        _api.mapValues(todayStart, todayEnd, userId);
+
+    allTodaysTrajValues.then((response) {
+      List<dynamic> responseData = json.decode(response);
+
+      // CHECK OUT LIGNE 65: dynamic traj = responseData[i]['path'][0]['path']; -> [0] MIGHT NEED TO BE IN A LOOP TO GET ALL THE TRAJ OF THE DAY AND NOT JUST THE FIRST ONE
+      for (int i = 0; i < responseData.length; i++) {
+        coordinates = [];
+        dynamic trajId = responseData[i]['id'];
+        print(trajId);
+        dynamic traj = responseData[i]['path'][0]['path'];
+        int len = traj.length - 1;
+        for (int a = 0; a < traj.length; a++) {
+          coordinates.add(LatLng(traj[a]['lat'], traj[a]['lon']));
+        }
         final color = Color((Random().nextDouble() * 0xFFFFFF).toInt() << 0)
             .withOpacity(1.0);
-        coordinates = [];
-        for (int a = 0; a < 5; a++) {
-          int val = 6;
-          int randomLat = random.nextInt(val);
-          int randomLong = random.nextInt(val);
-          lat = 43.611015 + lastLat;
-          long = 3.877160 + lastLong;
-          lastLong = randomLong / 10;
-          lastLat = randomLat / 10;
-          coordinates.add(LatLng(lat, long));
-        }
+        coord = LatLng(traj[len]['lat'], traj[len]['lon']);
+        markerCoord.add(Marker(
+            width: 80.0,
+            height: 80.0,
+            point: coord,
+            builder: (ctx) => GestureDetector(
+                  onTap: () {
+                    print('Marker clicked ${coord} ${trajId} !');
+                  },
+                  child: const Icon(
+                    Icons.location_on,
+                    color: Colors.black,
+                    size: 48,
+                  ),
+                )));
         polylines.add(Polyline(
           points: coordinates,
           color: color,
           strokeWidth: 2.0,
         ));
       }
+    }).catchError((error) {
+      // ignore: avoid_print
+      print("error in map values: $error ");
     });
+
     super.initState();
-  }
-
-  void _shipmentOfTheDay(List<dynamic> scheduleListVal) {
-    List<dynamic> newCalendarList = [];
-
-    for (var schedule in scheduleListVal) {
-      DateTime dateTimeBegin = DateTime.parse(schedule["begin"]);
-      DateTime dateTimeEnd = DateTime.parse(schedule["end"]);
-      newCalendarList.add([
-        schedule["name"],
-        schedule["address"],
-        DateFormat('hh:mm aaa').format(dateTimeBegin),
-        DateFormat('hh:mm aaa').format(dateTimeEnd)
-      ]);
-    }
-    setState(() {
-      calendarList = newCalendarList;
-    });
   }
 
   @override
@@ -133,13 +123,7 @@ class _MapPageState extends State<MapPage> {
                 userAgentPackageName: 'com.example.app',
               ),
               PolylineLayer(polylines: polylines),
-              GestureDetector(
-                onTap: () {
-                  // Handle polyline tap
-                  // ignore: avoid_print
-                  print('Polyline tapped!');
-                },
-              )
+              MarkerLayer(markers: markerCoord)
             ],
           ),
         ],

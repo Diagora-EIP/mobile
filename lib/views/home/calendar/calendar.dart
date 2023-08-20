@@ -221,7 +221,8 @@ class MyListWidget extends StatelessWidget {
   }
 }
 
-Future<Map<String, dynamic>?> getCoordinates(String address) async {
+Future<Map<String, double>> getCoordinates(String address) async {
+  Map<String, double> locationMap = {'lat': 0.0, 'long': 0.0};
   try {
     final response = await http.get(Uri.parse(
         'https://nominatim.openstreetmap.org/search?q=$address&format=json&limit=1'));
@@ -229,16 +230,19 @@ Future<Map<String, dynamic>?> getCoordinates(String address) async {
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       if (data.isNotEmpty) {
-        final lat = data[0]['lat'];
-        final lon = data[0]['lon'];
-        return {'latitude': lat, 'longitude': lon};
+        double latitude = double.tryParse(data[0]['lat'] ?? '') ?? 0.0;
+        double longitude = double.tryParse(data[0]['lon'] ?? '') ?? 0.0;
+
+        locationMap['lat'] = latitude;
+        locationMap['long'] = longitude;
+        return locationMap;
       }
     }
   } catch (e) {
-      // ignore: avoid_print
-      print('Error getting coordinates: $e');
+    // ignore: avoid_print
+    print('Error getting coordinates: $e');
   }
-  return null;
+  return locationMap;
 }
 
 // ignore: must_be_immutable
@@ -262,14 +266,9 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
     try {
       final coordinates = await getCoordinates(address);
 
-
-      if (coordinates != null) {
-        final latitude = coordinates['latitude'];
-        final longitude = coordinates['longitude'];
-        // return LatLng(double.parse(latitude), double.parse(longitude));
-        return LatLng(latitude, longitude);
-
-      }
+      final latitude = coordinates['lat'];
+      final longitude = coordinates['long'];
+      return LatLng(latitude!, longitude!);
     } catch (e) {
       // ignore: avoid_print
       print('Error fetching coordinates: $e');
@@ -373,8 +372,8 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
                                 height: 80.0,
                                 point: coord,
                                 builder: (ctx) => const Icon(
-                                  Icons.location_on,
-                                  color: Colors.red,
+                                  Icons.place,
+                                  color: Colors.black,
                                   size: 48,
                                 ),
                               ),

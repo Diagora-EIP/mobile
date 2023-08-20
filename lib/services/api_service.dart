@@ -256,7 +256,6 @@ class ApiService {
     }
   }
 
-
   /// Takes [DateTime] [begin], [end] as input and returns an output string if the api call succeed.
   ///
   /// The[begin], [end] parameter are required and cannot be null.
@@ -268,10 +267,19 @@ class ApiService {
     int userId, {
     Client? client,
   }) async {
+
+////////////////////////// test
+    String dateString1 = '2023-01-01 01:00:00.000';
+    DateTime begin = DateTime.parse(dateString1);
+  
+    String dateString = '2023-07-30 23:00:00.000';
+    DateTime end = DateTime.parse(dateString);
+////////////////////////// end test
+
     String beginTimeStamp =
-        DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(begin.toUtc());
+        DateFormat("yyyy-MM-dd").format(begin.toUtc());
     String endTimeStamp =
-        DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(end.toUtc());
+        DateFormat("yyyy-MM-dd").format(end.toUtc());
     client ??= _httpClient;
 
     String id;
