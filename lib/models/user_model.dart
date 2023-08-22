@@ -38,4 +38,12 @@ class User {
   int getUserId() {
     return id;
   }
+
+  String getUserName() {
+    return name;
+  }
+
+  String getUserEmail() {
+    return email;
+  }
 }

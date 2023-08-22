@@ -63,7 +63,7 @@ class _MapPageState extends State<MapPage> {
                   text: 'End Time: ',
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
-                TextSpan(text: '$end'),
+                TextSpan(text: end),
               ],
             ),
           ),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:diagora/views/home/home.dart';
+import 'package:diagora/views/bottomBar/bottom_bar.dart';
 import 'package:diagora/services/api_service.dart';
 import 'package:diagora/views/auth/register_view.dart';
 
@@ -45,7 +45,7 @@ class LoadingViewState extends State<LoadingView> {
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(
-          builder: (context) => const HomePage(),
+          builder: (context) => const BottomNavBarPage(),
         ),
         (route) => false,
       );

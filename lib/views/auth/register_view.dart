@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:logger/logger.dart';
 
-import 'package:diagora/views/home/home.dart';
+import 'package:diagora/views/bottomBar/bottom_bar.dart';
 import 'package:diagora/services/api_service.dart';
 import 'package:diagora/views/auth/login_view.dart';
 
@@ -84,7 +84,7 @@ class _RegisterViewState extends State<RegisterView> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => const HomePage()),
+                            builder: (context) => const BottomNavBarPage()),
                       );
                     } else {
                       // ignore: use_build_context_synchronously
