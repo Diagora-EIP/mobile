@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 // import 'package:cached_network_image/cached_network_image.dart';
 
 import 'package:diagora/services/api_service.dart';
+import 'package:diagora/views/bottomBar/profile/change_password.dart';
 
 import 'dart:convert';
 
@@ -76,7 +77,7 @@ class _ProfilePageState extends State<ProfilePage> {
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: () {
-                
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const ChangePassword()));
               },
               child: const Text('Change Password'),
             ),

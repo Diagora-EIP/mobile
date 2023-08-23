@@ -21,7 +21,6 @@ class _BottomNavBarPageState extends State<BottomNavBarPage> {
     const MapPage(),
     const HomePage(),
     const ProfilePage(),
-    const ProfilePage(),
     const OrderView(),
   ];
 
