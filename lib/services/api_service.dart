@@ -207,6 +207,11 @@ class ApiService {
     }
   }
 
+  /// Récupère les permissions du user.
+  ///
+  /// Peut prendre en paramètre un [client] qui est un [Client].
+  ///
+  /// Retourne la permission sous forme de String
   Future<String> getPermissions(
     int userId, {
     Client? client,

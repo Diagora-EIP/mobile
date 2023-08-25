@@ -4,17 +4,16 @@ import 'package:logger/logger.dart';
 
 import 'package:diagora/services/api_service.dart';
 import 'package:diagora/views/bottomBar/bottom_bar.dart';
-import 'package:diagora/views/auth/password_forgotten_view.dart';
 
-class LoginView extends StatefulWidget {
-  const LoginView({super.key});
+class PasswordForgottenView extends StatefulWidget {
+  const PasswordForgottenView({super.key});
 
   @override
   // ignore: library_private_types_in_public_api
-  _LoginViewState createState() => _LoginViewState();
+  _PasswordForgottenViewState createState() => _PasswordForgottenViewState();
 }
 
-class _LoginViewState extends State<LoginView> {
+class _PasswordForgottenViewState extends State<PasswordForgottenView> {
   final Logger logger = Logger();
 
   final _formKey = GlobalKey<FormState>();
@@ -26,7 +25,7 @@ class _LoginViewState extends State<LoginView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Login'),
+        title: const Text('Password forgotten'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -52,17 +51,6 @@ class _LoginViewState extends State<LoginView> {
                 },
                 onSaved: (value) => _email = value!,
               ),
-              TextFormField(
-                decoration: const InputDecoration(labelText: 'Password'),
-                obscureText: true,
-                validator: (value) {
-                  if (value!.isEmpty) {
-                    return 'Please enter your password';
-                  }
-                  return null;
-                },
-                onSaved: (value) => _password = value!,
-              ),
               ElevatedButton(
                 onPressed: () async {
                   if (_formKey.currentState!.validate()) {
@@ -87,16 +75,7 @@ class _LoginViewState extends State<LoginView> {
                     }
                   }
                 },
-                child: const Text('Login'),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const PasswordForgottenView()));
-                },
-                child: const Text('Forgot your password ?'),
+                child: const Text('Submit'),
               ),
             ],
           ),

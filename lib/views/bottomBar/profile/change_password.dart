@@ -56,7 +56,6 @@ class _ChangePasswordState extends State<ChangePassword> {
                     _formKey.currentState!.save();
                     print("Changing password: $_oldPassword -> $_newPassword");
                   }
-                  // Add your password change logic here
                 },
                 child: const Text('Change Password'),
               ),

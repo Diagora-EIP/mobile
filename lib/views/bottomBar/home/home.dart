@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
+
 import 'package:diagora/views/bottomBar/map/map.dart';
 import 'package:diagora/views/bottomBar/profile/profile.dart';
 import 'package:diagora/views/bottomBar/order/order_view.dart';
 import 'package:diagora/views/bottomBar/calendar/calendar.dart';
+
+import 'package:diagora/views/auth/register_view.dart';
+
+import 'package:diagora/services/api_service.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -12,6 +17,8 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final ApiService _api = ApiService.getInstance();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -33,6 +40,10 @@ class _HomePageState extends State<HomePage> {
             }),
             _buildNavigationButton("Orders", () {
               Navigator.push(context, MaterialPageRoute(builder: (context) => const OrderView()));
+            }),
+            _buildNavigationButton("Logout", () {
+              _api.logout();
+              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const RegisterView()));
             }),
             // _buildNavigationButton("Parameters", () {
             //   Navigator.push(context, MaterialPageRoute(builder: (context) => const ParametersPage()));
