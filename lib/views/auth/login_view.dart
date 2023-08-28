@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-
 import 'package:logger/logger.dart';
 
-import 'package:diagora/views/home/home.dart';
 import 'package:diagora/services/api_service.dart';
+import 'package:diagora/views/wrapper/wrapper_view.dart';
 import 'package:diagora/views/auth/password_forgotten_view.dart';
 
 class LoginView extends StatefulWidget {
@@ -73,7 +72,7 @@ class _LoginViewState extends State<LoginView> {
                       Navigator.pushAndRemoveUntil(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const HomeView(),
+                          builder: (context) => const WrapperView(),
                         ),
                         (route) => false,
                       );
