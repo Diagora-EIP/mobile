@@ -4,8 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:diagora/services/api_service.dart';
 import 'package:diagora/views/home/profile/change_password.dart';
 
-import 'dart:convert';
-
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
@@ -40,7 +38,7 @@ class _ProfilePageState extends State<ProfilePage> {
     email = userData['email'];
 
     permissionsData = _api.permissions?.toJson();
-    permissions = permissionsData['permissions'];
+    permissions = permissionsData['permissions'] ?? 'null';
   }
 
   @override
