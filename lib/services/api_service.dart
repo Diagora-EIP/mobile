@@ -250,6 +250,44 @@ class ApiService {
     }
   }
 
+  /// Permet changer de mot de passe.
+  ///
+  /// Prend en paramètre un [email].
+  ///
+  /// Peut prendre en paramètre un [client] qui est un [Client]
+  ///
+  /// Retourne un [bool] qui indique si la connexion a réussi.
+  Future<bool> resetPassword(
+    String email, {
+    Client? client,
+  }) async {
+    try {
+      client ??= _httpClient;
+      Uri url = ApiRoutes.route(ApiRoutes.resetPasswordRoute);
+      Response response = await client.post(
+        url,
+        body: json.encode(
+          {
+            'email': email.toLowerCase(),
+          },
+        ),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        dynamic responseData = json.decode(response.body);
+        _logger.i(responseData);
+        return true;
+      } else {
+        _logger.e('Login failed with status code ${response.statusCode}');
+        return false;
+      }
+    } catch (e) {
+      _logger.e(e.toString());
+      return false;
+    }
+  }
+
   /// Takes [DateTime] [begin], [end] as input and returns an output string if the api call succeed.
   ///
   /// The[begin], [end] parameter are required and cannot be null.
