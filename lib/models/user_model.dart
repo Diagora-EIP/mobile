@@ -34,8 +34,4 @@ class User {
       'created_at': createdAt?.toIso8601String(),
     };
   }
-
-  int getUserId() {
-    return id;
-  }
 }

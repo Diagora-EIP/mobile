@@ -2,23 +2,22 @@ import 'package:flutter/material.dart';
 
 import 'package:logger/logger.dart';
 
-import 'package:diagora/views/home/home.dart';
 import 'package:diagora/services/api_service.dart';
-import 'package:diagora/views/auth/login_view.dart';
+import 'package:diagora/views/home/home.dart';
 
-class RegisterView extends StatefulWidget {
-  const RegisterView({super.key});
+class PasswordForgottenView extends StatefulWidget {
+  const PasswordForgottenView({super.key});
 
   @override
   // ignore: library_private_types_in_public_api
-  _RegisterViewState createState() => _RegisterViewState();
+  _PasswordForgottenViewState createState() => _PasswordForgottenViewState();
 }
 
-class _RegisterViewState extends State<RegisterView> {
-  final _formKey = GlobalKey<FormState>();
-  late String _name, _email, _password;
-
+class _PasswordForgottenViewState extends State<PasswordForgottenView> {
   final Logger logger = Logger();
+
+  final _formKey = GlobalKey<FormState>();
+  late String _email;
 
   final ApiService _api = ApiService.getInstance();
 
@@ -26,10 +25,10 @@ class _RegisterViewState extends State<RegisterView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Register'),
+        title: const Text('Password forgotten'),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
           child: Column(
@@ -43,16 +42,6 @@ class _RegisterViewState extends State<RegisterView> {
                 ),
               ),
               TextFormField(
-                decoration: const InputDecoration(labelText: 'Name'),
-                validator: (value) {
-                  if (value!.isEmpty) {
-                    return 'Please enter your name';
-                  }
-                  return null;
-                },
-                onSaved: (value) => _name = value!,
-              ),
-              TextFormField(
                 decoration: const InputDecoration(labelText: 'Email'),
                 validator: (value) {
                   if (value!.isEmpty) {
@@ -62,50 +51,32 @@ class _RegisterViewState extends State<RegisterView> {
                 },
                 onSaved: (value) => _email = value!,
               ),
-              TextFormField(
-                decoration: const InputDecoration(labelText: 'Password'),
-                obscureText: true,
-                validator: (value) {
-                  if (value!.isEmpty) {
-                    return 'Please enter your password';
-                  }
-                  return null;
-                },
-                onSaved: (value) => _password = value!,
-              ),
               ElevatedButton(
                 onPressed: () async {
                   if (_formKey.currentState!.validate()) {
                     _formKey.currentState!.save();
-                    bool returnValue =
-                        await _api.register(_name, _email, _password);
+                    // bool returnValue = await _api.resetPassword(_email);
+                    bool returnValue = false;
                     if (returnValue) {
                       // ignore: use_build_context_synchronously
-                      Navigator.push(
+                      Navigator.pushAndRemoveUntil(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => const HomeView()),
+                          builder: (context) => const HomeView(),
+                        ),
+                        (route) => false,
                       );
                     } else {
                       // ignore: use_build_context_synchronously
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('Register failed'),
+                          content: Text('Login failed'),
                         ),
                       );
                     }
                   }
                 },
-                child: const Text('Register'),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const LoginView())
-                  );
-                },
-                child: const Text('Already have an account? Login'),
+                child: const Text('Submit'),
               ),
             ],
           ),

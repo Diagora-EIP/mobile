@@ -1,9 +1,9 @@
-import 'package:diagora/views/wrapper/wrapper_view.dart';
 import 'package:flutter/material.dart';
-
 import 'package:logger/logger.dart';
 
 import 'package:diagora/services/api_service.dart';
+import 'package:diagora/views/wrapper/wrapper_view.dart';
+import 'package:diagora/views/auth/password_forgotten_view.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -87,6 +87,15 @@ class _LoginViewState extends State<LoginView> {
                   }
                 },
                 child: const Text('Login'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const PasswordForgottenView()));
+                },
+                child: const Text('Forgot your password ?'),
               ),
             ],
           ),
