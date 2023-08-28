@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+
 import 'package:diagora/services/api_service.dart';
+
 import 'package:diagora/views/auth/register_view.dart';
 import 'package:diagora/views/settings/settings_view.dart';
-import 'package:diagora/home.dart';
-import 'package:diagora/profile.dart';
+import 'package:diagora/views/home/profile/profile.dart';
+import 'package:diagora/views/home/home.dart';
 
 class WrapperView extends StatefulWidget {
   const WrapperView({
@@ -20,7 +22,7 @@ class WrapperViewState extends State<WrapperView> {
 
   /// Les états de chaque vues des onglets pour un utilisateur par défaut.
   late final List<Widget> _basicTabs = [
-    const HomePage(), // Index 0
+    const HomeView(), // Index 0
     const ProfilePage(), // Index 1
     SettingsView(
       logout: logout,
