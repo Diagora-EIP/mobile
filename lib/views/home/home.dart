@@ -1,13 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'package:diagora/views/home/map/map.dart';
-import 'package:diagora/views/home/profile/profile.dart';
 import 'package:diagora/views/home/order/order_view.dart';
 import 'package:diagora/views/home/calendar/calendar.dart';
-
-import 'package:diagora/views/auth/register_view.dart';
-
-import 'package:diagora/services/api_service.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({Key? key}) : super(key: key);
@@ -17,8 +12,6 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> {
-  final ApiService _api = ApiService.getInstance();
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -30,20 +23,18 @@ class _HomeViewState extends State<HomeView> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             _buildNavigationButton("Calendar", () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const CalendarPage()));
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const CalendarPage()));
             }),
             _buildNavigationButton("Map", () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const MapPage()));
-            }),
-            _buildNavigationButton("Profile", () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfilePage()));
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => const MapPage()));
             }),
             _buildNavigationButton("Orders", () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const OrderView()));
-            }),
-            _buildNavigationButton("Logout", () {
-              _api.logout();
-              Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const RegisterView()));
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => const OrderView()));
             }),
             // _buildNavigationButton("Parameters", () {
             //   Navigator.push(context, MaterialPageRoute(builder: (context) => const ParametersPage()));

@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 
 import 'package:diagora/services/api_service.dart';
+import 'package:diagora/models/permissions_model.dart';
 
-import 'package:diagora/views/auth/register_view.dart';
-import 'package:diagora/views/settings/settings_view.dart';
-import 'package:diagora/views/home/profile/profile.dart';
 import 'package:diagora/views/home/home.dart';
+import 'package:diagora/views/auth/register_view.dart';
+import 'package:diagora/views/admin/admin_view.dart';
+import 'package:diagora/views/manage/manage_view.dart';
+import 'package:diagora/views/home/profile/profile.dart';
+import 'package:diagora/views/settings/settings_view.dart';
 
 class WrapperView extends StatefulWidget {
   const WrapperView({
@@ -22,11 +25,31 @@ class WrapperViewState extends State<WrapperView> {
 
   /// Les états de chaque vues des onglets pour un utilisateur par défaut.
   late final List<Widget> _basicTabs = [
-    const HomeView(), // Index 0
-    const ProfilePage(), // Index 1
+    const HomeView(),
+    const ProfilePage(),
     SettingsView(
       logout: logout,
-    ), // Index 2
+    ),
+  ];
+
+  /// Les états de chaque vues des onglets pour un administrateur.
+  late final List<Widget> _adminTabs = [
+    const HomeView(),
+    const AdminView(),
+    const ProfilePage(),
+    SettingsView(
+      logout: logout,
+    ),
+  ];
+
+  /// Les états de chaque vues des onglets pour un manager.
+  late final List<Widget> _managerTabs = [
+    const HomeView(),
+    const ManageView(),
+    const ProfilePage(),
+    SettingsView(
+      logout: logout,
+    ),
   ];
 
   // Les onglets finaux utilisés par l'utilisateur. Les onglets sont ajoutés en fonction de l'utilisateur.
@@ -35,7 +58,17 @@ class WrapperViewState extends State<WrapperView> {
   @override
   void initState() {
     super.initState();
-    _finalTabs.addAll(_basicTabs);
+    switch (_api.permissions?.permissions) {
+      case PermissionType.admin:
+        _finalTabs.addAll(_adminTabs);
+        break;
+      case PermissionType.manager:
+        _finalTabs.addAll(_managerTabs);
+        break;
+      default:
+        _finalTabs.addAll(_basicTabs);
+        break;
+    }
   }
 
   void logout() {
@@ -82,16 +115,28 @@ class WrapperViewState extends State<WrapperView> {
           selectedItemColor: Theme.of(context).primaryColor,
           selectedFontSize: 13,
           unselectedFontSize: 13,
-          items: const [
-            BottomNavigationBarItem(
+          items: [
+            const BottomNavigationBarItem(
               icon: Icon(Icons.home),
               label: 'Home',
             ),
-            BottomNavigationBarItem(
+            if (_api.permissions!.permissions == PermissionType.admin) ...[
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.admin_panel_settings),
+                label: 'Admin',
+              ),
+            ],
+            if (_api.permissions!.permissions == PermissionType.manager) ...[
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.manage_accounts),
+                label: 'Manage',
+              ),
+            ],
+            const BottomNavigationBarItem(
               icon: Icon(Icons.person),
               label: 'Profile',
             ),
-            BottomNavigationBarItem(
+            const BottomNavigationBarItem(
               icon: Icon(Icons.settings),
               label: 'Settings',
             ),

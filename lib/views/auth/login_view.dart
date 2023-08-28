@@ -68,6 +68,7 @@ class _LoginViewState extends State<LoginView> {
                     _formKey.currentState!.save();
                     bool returnValue = await _api.login(_email, _password);
                     if (returnValue) {
+                      await _api.fetchPermissions(_api.user!.id);
                       // ignore: use_build_context_synchronously
                       Navigator.pushAndRemoveUntil(
                         context,

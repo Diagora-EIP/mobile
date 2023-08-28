@@ -1,18 +1,23 @@
+enum PermissionType {
+  admin,
+  manager,
+  user,
+}
+
 /// Modèle de donnée pour les permissions d'un utilisateur.
 class Permissions {
   final int id;
   final DateTime? createdAt;
   final bool isAdmin;
   final bool isUser;
-  final dynamic
-      permissions; // TODO: Connaître le type de la variable, nous reçevons null lors des tests
+  final PermissionType? permissions;
 
   Permissions({
     this.id = -1,
     this.createdAt,
     this.isAdmin = false,
     this.isUser = false,
-    this.permissions = '',
+    this.permissions,
   });
 
   factory Permissions.fromJson(dynamic json) {
@@ -21,7 +26,7 @@ class Permissions {
       createdAt: DateTime.parse(json['created_at'] ?? DateTime(0).toString()),
       isAdmin: json['isAdmin'] ?? false,
       isUser: json['isUser'] ?? false,
-      permissions: json['permissions'],
+      permissions: _parsePermissionType(json['permissions']),
     );
     return permissions;
   }
@@ -32,7 +37,22 @@ class Permissions {
       'created_at': createdAt?.toIso8601String(),
       'isAdmin': isAdmin,
       'isUser': isUser,
-      'permissions': permissions,
+      'permissions': permissions?.toString().split('.').last,
     };
+  }
+
+  static PermissionType? _parsePermissionType(String? value) {
+    if (value == null) return null;
+
+    switch (value) {
+      case 'admin':
+        return PermissionType.admin;
+      case 'manager':
+        return PermissionType.manager;
+      case 'user':
+        return PermissionType.user;
+      default:
+        return null; // Invalid value
+    }
   }
 }
