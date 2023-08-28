@@ -1,8 +1,8 @@
-import 'package:diagora/views/auth/register_view.dart';
 import 'package:flutter/material.dart';
 
+import 'package:diagora/views/auth/register_view.dart';
+import 'package:diagora/views/wrapper/wrapper_view.dart';
 import 'package:diagora/services/api_service.dart';
-import 'package:diagora/home.dart';
 
 class LoadingView extends StatefulWidget {
   const LoadingView({
@@ -45,7 +45,7 @@ class LoadingViewState extends State<LoadingView> {
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(
-          builder: (context) => const HomePage(),
+          builder: (context) => const WrapperView(),
         ),
         (route) => false,
       );
