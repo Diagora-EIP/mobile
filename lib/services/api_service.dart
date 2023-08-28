@@ -17,6 +17,7 @@ class ApiRoutes {
   static const String loginRoute = '/user/login'; // POST
   static const String registerRoute = '/user/register'; // POST
   static const String logoutRoute = '/user/logout'; // POST
+  static const String resetPasswordRoute = '/user/reset-password'; // POST
   // User(s)
   static const String usersRoute = '/user'; // GET
   static const String userRoute = '/user/:id'; // GET, PATCH, DELETE
@@ -288,6 +289,57 @@ class ApiService {
           "\"failed to parse filter (in.))\" (line 1, column 4)") {
         return ("false");
       }
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        return (response.body);
+      } else {
+        return "false";
+      }
+    } catch (e) {
+      return "false";
+    }
+  }
+
+  /// Takes [DateTime] [begin], [end] as input and returns an output string if the api call succeed.
+  ///
+  /// The[begin], [end] parameter are required and cannot be null.
+  /// The output value will be the shipment date if the call succeed.
+  /// If [response.statusCode] is not 200 or 202, this function will return "false".
+  Future<String> mapValues(
+    DateTime begin,
+    DateTime end,
+    int userId, {
+    Client? client,
+  }) async {
+////////////////////////// test
+    String dateString1 = '2023-01-01 01:00:00.000';
+    DateTime begin = DateTime.parse(dateString1);
+
+    String dateString = '2023-07-30 23:00:00.000';
+    DateTime end = DateTime.parse(dateString);
+////////////////////////// end test
+
+    String beginTimeStamp = DateFormat("yyyy-MM-dd").format(begin.toUtc());
+    String endTimeStamp = DateFormat("yyyy-MM-dd").format(end.toUtc());
+    client ??= _httpClient;
+
+    String id;
+    if (userId == -1) {
+      id = '31';
+    } else {
+      id = userId.toString();
+    }
+
+    Uri url = ApiRoutes.route(
+        "/user/$id/itinary?begin=$beginTimeStamp&end=$endTimeStamp");
+
+    try {
+      final response = await client.get(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          "Authorization": "Bearer Valorant-35"
+        },
+      );
       if (response.statusCode == 200 || response.statusCode == 202) {
         return (response.body);
       } else {

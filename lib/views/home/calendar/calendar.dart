@@ -8,8 +8,8 @@ import 'package:table_calendar/table_calendar.dart';
 
 import 'package:diagora/services/api_service.dart';
 
-import 'dart:convert';
 import 'dart:math';
+import 'dart:convert';
 
 class CalendarPage extends StatefulWidget {
   const CalendarPage({super.key});
@@ -38,6 +38,7 @@ class _CalendarPageState extends State<CalendarPage> {
 
   bool deliveryToday = true;
   int userId = -1;
+  dynamic userData;
 
   @override
   void initState() {
@@ -46,7 +47,8 @@ class _CalendarPageState extends State<CalendarPage> {
     todayStart = DateTime(todayDate.year, todayDate.month, todayDate.day, 1);
     todayEnd = DateTime(todayDate.year, todayDate.month, todayDate.day, 23);
 
-    userId = _api.user!.getUserId();
+    userData = _api.user?.toJson();
+    userId = userData['user_id'];
     allTodaysValues = _api.calendarValues(todayStart, todayEnd, userId);
     allTodaysValues.then((value) {
       setState(() {
@@ -221,20 +223,28 @@ class MyListWidget extends StatelessWidget {
   }
 }
 
-Future<Map<String, dynamic>?> getCoordinates(String address) async {
-  final response = await http.get(Uri.parse(
-      'https://nominatim.openstreetmap.org/search?q=$address&format=json&limit=1'));
+Future<Map<String, double>> getCoordinates(String address) async {
+  Map<String, double> locationMap = {'lat': 0.0, 'long': 0.0};
+  try {
+    final response = await http.get(Uri.parse(
+        'https://nominatim.openstreetmap.org/search?q=$address&format=json&limit=1'));
 
-  if (response.statusCode == 200) {
-    final data = json.decode(response.body);
-    if (data.isNotEmpty) {
-      final lat = data[0]['lat'];
-      final lon = data[0]['lon'];
-      return {'latitude': lat, 'longitude': lon};
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      if (data.isNotEmpty) {
+        double latitude = double.tryParse(data[0]['lat'] ?? '') ?? 0.0;
+        double longitude = double.tryParse(data[0]['lon'] ?? '') ?? 0.0;
+
+        locationMap['lat'] = latitude;
+        locationMap['long'] = longitude;
+        return locationMap;
+      }
     }
+  } catch (e) {
+    // ignore: avoid_print
+    print('Error getting coordinates: $e');
   }
-
-  return null;
+  return locationMap;
 }
 
 // ignore: must_be_immutable
@@ -255,12 +265,15 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
 
   Future<LatLng> fetchCoordinates(String givenAddress) async {
     final address = givenAddress;
-    final coordinates = await getCoordinates(address);
+    try {
+      final coordinates = await getCoordinates(address);
 
-    if (coordinates != null) {
-      final latitude = coordinates['latitude'];
-      final longitude = coordinates['longitude'];
-      return LatLng(double.parse(latitude), double.parse(longitude));
+      final latitude = coordinates['lat'];
+      final longitude = coordinates['long'];
+      return LatLng(latitude!, longitude!);
+    } catch (e) {
+      // ignore: avoid_print
+      print('Error fetching coordinates: $e');
     }
     return LatLng(0, 0);
   }
@@ -361,8 +374,8 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
                                 height: 80.0,
                                 point: coord,
                                 builder: (ctx) => const Icon(
-                                  Icons.location_on,
-                                  color: Colors.red,
+                                  Icons.place,
+                                  color: Colors.black,
                                   size: 48,
                                 ),
                               ),

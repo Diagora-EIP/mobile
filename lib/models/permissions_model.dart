@@ -12,7 +12,7 @@ class Permissions {
     this.createdAt,
     this.isAdmin = false,
     this.isUser = false,
-    this.permissions,
+    this.permissions = '',
   });
 
   factory Permissions.fromJson(dynamic json) {
@@ -21,7 +21,7 @@ class Permissions {
       createdAt: DateTime.parse(json['created_at'] ?? DateTime(0).toString()),
       isAdmin: json['isAdmin'] ?? false,
       isUser: json['isUser'] ?? false,
-      permissions: json['permissions'] ?? null,
+      permissions: json['permissions'],
     );
     return permissions;
   }

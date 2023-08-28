@@ -1,8 +1,9 @@
-import 'package:diagora/views/auth/register_view.dart';
 import 'package:flutter/material.dart';
 
+import 'package:diagora/views/home/home.dart';
 import 'package:diagora/services/api_service.dart';
-import 'package:diagora/home.dart';
+import 'package:diagora/views/auth/register_view.dart';
+
 
 class LoadingView extends StatefulWidget {
   const LoadingView({
@@ -44,14 +45,16 @@ class LoadingViewState extends State<LoadingView> {
     } else {
       await _api.fetchPermissions(_api.user!.id);
       if (_api.permissions != null) {
+        // ignore: use_build_context_synchronously
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(
-            builder: (context) => const HomePage(),
+            builder: (context) => const HomeView(),
           ),
           (route) => false,
         );
       } else {
+        // ignore: use_build_context_synchronously
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
