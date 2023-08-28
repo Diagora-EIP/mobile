@@ -17,7 +17,7 @@ class _PasswordForgottenViewState extends State<PasswordForgottenView> {
   final Logger logger = Logger();
 
   final _formKey = GlobalKey<FormState>();
-  late String _email, _password;
+  late String _email;
 
   final ApiService _api = ApiService.getInstance();
 
@@ -55,7 +55,7 @@ class _PasswordForgottenViewState extends State<PasswordForgottenView> {
                 onPressed: () async {
                   if (_formKey.currentState!.validate()) {
                     _formKey.currentState!.save();
-                    bool returnValue = await _api.login(_email, _password);
+                    bool returnValue = await _api.resetPassword(_email);
                     if (returnValue) {
                       // ignore: use_build_context_synchronously
                       Navigator.pushAndRemoveUntil(

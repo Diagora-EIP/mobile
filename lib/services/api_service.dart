@@ -16,6 +16,7 @@ class ApiRoutes {
   static const String loginRoute = '/user/login'; // POST
   static const String registerRoute = '/user/register'; // POST
   static const String logoutRoute = '/user/logout'; // POST
+  static const String resetPasswordRoute = '/user/reset-password'; // POST
   // User(s)
   static const String usersRoute = '/user'; // GET
   static const String userRoute = '/user/:id'; // GET, PATCH, DELETE
@@ -199,6 +200,50 @@ class ApiService {
         return true;
       } else {
         _logger.e('Logout failed with status code ${response.statusCode}');
+        return false;
+      }
+    } catch (e) {
+      _logger.e(e.toString());
+      return false;
+    }
+  }
+
+  /// Permet de se connecter à l'application.
+  ///
+  /// Prend en paramètre un [email] et un [password].
+  ///
+  /// Peut prendre en paramètre un [client] qui est un [Client] et un [remember] qui est un [bool].
+  ///
+  /// Retourne un [bool] qui indique si la connexion a réussi.
+  Future<bool> resetPassword(
+    String email,
+    {
+    Client? client,
+  }) async {
+    try {
+      client ??= _httpClient;
+      Uri url = ApiRoutes.route(ApiRoutes.resetPasswordRoute);
+      Response response = await client.post(
+        url,
+        body: json.encode(
+          {
+            'email': email.toLowerCase(),
+          },
+        ),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        dynamic responseData = json.decode(response.body);
+        _prefs?.setString('token', responseData['token']);
+        _token = responseData['token'];
+        _prefs?.setString('user', json.encode(responseData['user'][0]));
+        _user = User.fromJson(responseData['user'][0]);
+        _logger.i(responseData);
+        analytics.logLogin(loginMethod: 'email').ignore();
+        return true;
+      } else {
+        _logger.e('resetPassword failed with status code ${response.statusCode}');
         return false;
       }
     } catch (e) {
