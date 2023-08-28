@@ -37,6 +37,7 @@ class _MapPageState extends State<MapPage> {
   late DateTime todayStart;
   late DateTime todayEnd;
   int userId = -1;
+  dynamic userData;
   bool deliveryToday = true;
 
   void _showMarkerInfo(String address, String begin, String end) {
@@ -85,8 +86,8 @@ class _MapPageState extends State<MapPage> {
     todayDate = DateTime.now();
     todayStart = DateTime(todayDate.year, todayDate.month, todayDate.day, 1);
     todayEnd = DateTime(todayDate.year, todayDate.month, todayDate.day, 23);
-    userId = _api.user!.getUserId();
-
+    userData = _api.user?.toJson();
+    userId = userData['user_id'];
     Future<String> allTodaysTrajValues =
         _api.mapValues(todayStart, todayEnd, userId);
 

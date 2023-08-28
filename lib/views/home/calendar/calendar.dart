@@ -38,6 +38,7 @@ class _CalendarPageState extends State<CalendarPage> {
 
   bool deliveryToday = true;
   int userId = -1;
+  dynamic userData;
 
   @override
   void initState() {
@@ -46,7 +47,8 @@ class _CalendarPageState extends State<CalendarPage> {
     todayStart = DateTime(todayDate.year, todayDate.month, todayDate.day, 1);
     todayEnd = DateTime(todayDate.year, todayDate.month, todayDate.day, 23);
 
-    userId = _api.user!.getUserId();
+    userData = _api.user?.toJson();
+    userId = userData['user_id'];
     allTodaysValues = _api.calendarValues(todayStart, todayEnd, userId);
     allTodaysValues.then((value) {
       setState(() {

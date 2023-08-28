@@ -1,22 +1,22 @@
 import 'package:flutter/material.dart';
 
-import 'package:diagora/views/bottomBar/map/map.dart';
-import 'package:diagora/views/bottomBar/profile/profile.dart';
-import 'package:diagora/views/bottomBar/order/order_view.dart';
-import 'package:diagora/views/bottomBar/calendar/calendar.dart';
+import 'package:diagora/views/home/map/map.dart';
+import 'package:diagora/views/home/profile/profile.dart';
+import 'package:diagora/views/home/order/order_view.dart';
+import 'package:diagora/views/home/calendar/calendar.dart';
 
 import 'package:diagora/views/auth/register_view.dart';
 
 import 'package:diagora/services/api_service.dart';
 
-class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+class HomeView extends StatefulWidget {
+  const HomeView({Key? key}) : super(key: key);
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<HomeView> createState() => _HomeViewState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomeViewState extends State<HomeView> {
   final ApiService _api = ApiService.getInstance();
 
   @override

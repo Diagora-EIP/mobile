@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 
 import 'package:diagora/services/api_service.dart';
-import 'package:diagora/views/bottomBar/bottom_bar.dart';
+import 'package:diagora/views/home/home.dart';
 
 class PasswordForgottenView extends StatefulWidget {
   const PasswordForgottenView({super.key});
@@ -55,13 +55,14 @@ class _PasswordForgottenViewState extends State<PasswordForgottenView> {
                 onPressed: () async {
                   if (_formKey.currentState!.validate()) {
                     _formKey.currentState!.save();
-                    bool returnValue = await _api.resetPassword(_email);
+                    // bool returnValue = await _api.resetPassword(_email);
+                    bool returnValue = false;
                     if (returnValue) {
                       // ignore: use_build_context_synchronously
                       Navigator.pushAndRemoveUntil(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const BottomNavBarPage(),
+                          builder: (context) => const HomeView(),
                         ),
                         (route) => false,
                       );

@@ -8,6 +8,7 @@ import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:diagora/models/user_model.dart';
+import 'package:diagora/models/permissions_model.dart';
 
 /// Classe qui contient toutes les routes de l'API. Utilisez [route] pour créer une Uri.
 class ApiRoutes {
@@ -63,9 +64,11 @@ class ApiService {
   // Constructeur par défaut
   const ApiService();
 
-  // Utilisateur connecté
+  // Informations sur l'utilisateur connecté
   static User? _user;
   User? get user => _user;
+  static Permissions? _permissions;
+  Permissions? get permissions => _permissions;
   static String? _token;
 
   /// Permet d'obtenir une instance de [ApiService].
@@ -194,6 +197,7 @@ class ApiService {
         _prefs?.remove('token');
         _prefs?.remove('user');
         _user = null;
+        _permissions = null;
         _token = null;
         _logger.i('Logout successful');
         analytics.logEvent(name: 'logout').ignore();
@@ -208,56 +212,14 @@ class ApiService {
     }
   }
 
-  /// Permet de se connecter à l'application.
+  /// Permet de récupérer les permissions d'un utilisateur.
   ///
-  /// Prend en paramètre un [email] et un [password].
-  ///
-  /// Peut prendre en paramètre un [client] qui est un [Client] et un [remember] qui est un [bool].
-  ///
-  /// Retourne un [bool] qui indique si la connexion a réussi.
-  Future<bool> resetPassword(
-    String email,
-    {
-    Client? client,
-  }) async {
-    try {
-      client ??= _httpClient;
-      Uri url = ApiRoutes.route(ApiRoutes.resetPasswordRoute);
-      Response response = await client.post(
-        url,
-        body: json.encode(
-          {
-            'email': email.toLowerCase(),
-          },
-        ),
-        headers: {'Content-Type': 'application/json'},
-      );
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        dynamic responseData = json.decode(response.body);
-        _prefs?.setString('token', responseData['token']);
-        _token = responseData['token'];
-        _prefs?.setString('user', json.encode(responseData['user'][0]));
-        _user = User.fromJson(responseData['user'][0]);
-        _logger.i(responseData);
-        analytics.logLogin(loginMethod: 'email').ignore();
-        return true;
-      } else {
-        _logger.e('resetPassword failed with status code ${response.statusCode}');
-        return false;
-      }
-    } catch (e) {
-      _logger.e(e.toString());
-      return false;
-    }
-  }
-
-  /// Récupère les permissions du user.
+  /// Prend en paramètre un [userId] qui est un [int].
   ///
   /// Peut prendre en paramètre un [client] qui est un [Client].
   ///
-  /// Retourne la permission sous forme de String
-  Future<String> getPermissions(
+  /// Retourne un [Permissions] qui est le modèle de données des permissions. Si la requête échoue, retourne null.
+  Future<Permissions?> fetchPermissions(
     int userId, {
     Client? client,
   }) async {
@@ -273,15 +235,18 @@ class ApiService {
         },
       );
       if (response.statusCode == 200 || response.statusCode == 202) {
-        return (response.body);
+        dynamic responseData = json.decode(response.body);
+        _permissions = Permissions.fromJson(responseData);
+        _logger.i(responseData);
+        return (_permissions);
       } else {
-        _logger
-            .e('getPermissions failed with status code ${response.statusCode}');
-        return ("false");
+        _logger.e(
+            'fetchPermissions failed with status code ${response.statusCode}');
+        return (null);
       }
     } catch (e) {
       _logger.e(e.toString());
-      return ("false");
+      return (null);
     }
   }
 

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 // import 'package:cached_network_image/cached_network_image.dart';
 
 import 'package:diagora/services/api_service.dart';
-import 'package:diagora/views/bottomBar/profile/change_password.dart';
+import 'package:diagora/views/home/profile/change_password.dart';
 
 import 'dart:convert';
 
@@ -21,6 +21,8 @@ class _ProfilePageState extends State<ProfilePage> {
   String username = '';
   String email = '';
   String permissions = '';
+  dynamic permissionsData;
+  dynamic userData;
 
   String capitalizeFirstLetter(String input) {
     if (input.isEmpty) {
@@ -32,16 +34,13 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   void initState() {
     super.initState();
-    userId = _api.user!.getUserId();
-    username = capitalizeFirstLetter(_api.user!.getUserName());
-    email = _api.user!.getUserEmail();
-    Future<String> permissionsValue = _api.getPermissions(userId);
-    permissionsValue.then((value) {
-      setState(() {
-        var responseData = json.decode(value);
-        permissions = responseData['permissions'];
-      });
-    });
+    userData = _api.user?.toJson();
+    userId = userData['user_id'];
+    username = capitalizeFirstLetter(userData['name']);
+    email = userData['email'];
+
+    permissionsData = _api.permissions?.toJson();
+    permissions = permissionsData['permissions'];
   }
 
   @override
@@ -77,7 +76,10 @@ class _ProfilePageState extends State<ProfilePage> {
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => const ChangePassword()));
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const ChangePassword()));
               },
               child: const Text('Change Password'),
             ),

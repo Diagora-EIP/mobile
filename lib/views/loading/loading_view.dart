@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
-import 'package:diagora/views/bottomBar/bottom_bar.dart';
+import 'package:diagora/views/home/home.dart';
 import 'package:diagora/services/api_service.dart';
 import 'package:diagora/views/auth/register_view.dart';
+
 
 class LoadingView extends StatefulWidget {
   const LoadingView({
@@ -32,7 +33,7 @@ class LoadingViewState extends State<LoadingView> {
   }
 
   /// Redirige vers la page d'accueil ou d'authentification en fonction de si l'utilisateur est connecté ou non
-  void redirect() {
+  void redirect() async {
     if (_api.user == null) {
       Navigator.pushAndRemoveUntil(
         context,
@@ -42,13 +43,37 @@ class LoadingViewState extends State<LoadingView> {
         (route) => false,
       );
     } else {
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const BottomNavBarPage(),
-        ),
-        (route) => false,
-      );
+      await _api.fetchPermissions(_api.user!.id);
+      if (_api.permissions != null) {
+        // ignore: use_build_context_synchronously
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const HomeView(),
+          ),
+          (route) => false,
+        );
+      } else {
+        // ignore: use_build_context_synchronously
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Erreur'),
+            content: const Text(
+              'Une erreur est survenue lors de la connexion à l\'application. Veuillez réessayer.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  redirect();
+                },
+                child: const Text('Réessayer'),
+              ),
+            ],
+          ),
+        );
+      }
     }
   }
 
