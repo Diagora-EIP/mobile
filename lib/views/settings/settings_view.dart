@@ -1,3 +1,4 @@
+import 'package:diagora/views/settings/display/theme/theme_view.dart';
 import 'package:flutter/material.dart';
 
 class SettingsView extends StatefulWidget {
@@ -37,6 +38,33 @@ class SettingsViewState extends State<SettingsView> {
                 ),
               ),
               const Divider(),
+              ListTile(
+                leading: const Icon(Icons.person),
+                title: const Text('My account'),
+                onTap: () {},
+              ),
+              const Align(
+                alignment: Alignment.centerLeft,
+                child: Padding(
+                  padding: EdgeInsets.only(left: 16.0, top: 16.0),
+                  child: Text(
+                    "Display",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.left,
+                  ),
+                ),
+              ),
+              const Divider(),
+              ListTile(
+                leading: const Icon(Icons.color_lens),
+                title: const Text('Theme'),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ThemeView(),
+                  ),
+                ),
+              ),
               const Align(
                 alignment: Alignment.centerLeft,
                 child: Padding(
