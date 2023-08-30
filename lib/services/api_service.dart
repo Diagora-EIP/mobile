@@ -250,6 +250,80 @@ class ApiService {
     }
   }
 
+  /// Permet de récupérer les informations d'un utilisateur.
+  ///
+  /// Prend en paramètre optionnel un [userId] qui est un [int]. Si non spécifié, l'utilisateur connecté sera utilisé.
+  ///
+  /// Peut prendre en paramètre un [client] qui est un [Client].
+  ///
+  /// Retourne un [User]. Si la requête échoue, retourne null.
+  Future<User?> fetchUser({
+    int? userId,
+    Client? client,
+  }) async {
+    try {
+      userId ??= _user?.id;
+      client ??= _httpClient;
+      Uri url = ApiRoutes.route(
+          ApiRoutes.userRoute.replaceAll(':id', userId.toString()));
+      Response response = await client.get(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          "Authorization": "Bearer Valorant-35"
+        },
+      );
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        dynamic responseData = json.decode(response.body);
+        User user = User.fromJson(responseData["user"]);
+        _logger.i(responseData);
+        return (user);
+      } else {
+        _logger.e('fetchUser failed with status code ${response.statusCode}');
+        return (null);
+      }
+    } catch (e) {
+      _logger.e(e.toString());
+      return (null);
+    }
+  }
+
+  /// Permet de PATCH un utilisateur.
+  ///
+  /// Prend en paramètre un [userId] (optionnel) qui est un [int] et un [user] qui est un [User]. Si [userId] n'est pas spécifié, l'utilisateur connecté sera utilisé.
+  ///
+  /// Peut prendre en paramètre un [client] qui est un [Client].
+  ///
+  /// Retourne un [bool] qui indique si la requête a réussi.
+  Future<bool> patchUser(
+    User userData, {
+    int? userId,
+    Client? client,
+  }) async {
+    try {
+      userId ??= _user?.id;
+      client ??= _httpClient;
+      Uri url = ApiRoutes.route(
+          ApiRoutes.userRoute.replaceAll(':id', userId.toString()));
+      Response response = await client.patch(
+        url,
+        headers: {"Authorization": "Bearer Valorant-35"},
+        body: json.encode(userData.toJson()), // TODO: Fix la requête
+      );
+      if (response.statusCode == 200) {
+        dynamic responseData = json.decode(response.body);
+        _logger.i(responseData);
+        return (true);
+      } else {
+        _logger.e('patchUser failed with status code ${response.statusCode}');
+        return (false);
+      }
+    } catch (e) {
+      _logger.e(e.toString());
+      return (false);
+    }
+  }
+
   /// Takes [DateTime] [begin], [end] as input and returns an output string if the api call succeed.
   ///
   /// The[begin], [end] parameter are required and cannot be null.

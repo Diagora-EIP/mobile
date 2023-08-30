@@ -95,16 +95,17 @@ class ThemeViewState extends State<ThemeView> {
           },
         ),
         actions: <Widget>[
-          TextButton(
-            onPressed: loading ? null : () => _submitForm(context),
-            child: const Text(
-              'Submit',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
+          loading == true
+              ? const IconButton(
+                  icon: Icon(Icons.check),
+                  onPressed: null,
+                )
+              : IconButton(
+                  icon: const Icon(Icons.check),
+                  onPressed: () {
+                    _submitForm(context);
+                  },
+                ),
         ],
       ),
       body: Form(
@@ -154,6 +155,7 @@ class ThemeViewState extends State<ThemeView> {
                     ],
                   ),
                 ),
+                const SizedBox(height: 20),
               ],
             ),
           ),

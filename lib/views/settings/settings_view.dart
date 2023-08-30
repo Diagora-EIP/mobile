@@ -1,5 +1,6 @@
-import 'package:diagora/views/settings/display/theme/theme_view.dart';
 import 'package:flutter/material.dart';
+import 'package:diagora/views/settings/general/my_account/my_account_view.dart';
+import 'package:diagora/views/settings/display/theme/theme_view.dart';
 
 class SettingsView extends StatefulWidget {
   final Function() logout;
@@ -41,7 +42,12 @@ class SettingsViewState extends State<SettingsView> {
               ListTile(
                 leading: const Icon(Icons.person),
                 title: const Text('My account'),
-                onTap: () {},
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const MyAccountView(),
+                  ),
+                ),
               ),
               const Align(
                 alignment: Alignment.centerLeft,
