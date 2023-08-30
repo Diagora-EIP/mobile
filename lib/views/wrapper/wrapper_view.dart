@@ -23,52 +23,48 @@ class WrapperViewState extends State<WrapperView> {
   final ApiService _api = ApiService.getInstance();
   int _currentTabIndex = 0;
 
-  /// Les états de chaque vues des onglets pour un utilisateur par défaut.
-  late final List<Widget> _basicTabs = [
-    const HomeView(),
-    const ProfilePage(),
-    SettingsView(
-      logout: logout,
-    ),
-  ];
-
-  /// Les états de chaque vues des onglets pour un administrateur.
-  late final List<Widget> _adminTabs = [
-    const HomeView(),
-    const AdminView(),
-    const ProfilePage(),
-    SettingsView(
-      logout: logout,
-    ),
-  ];
-
-  /// Les états de chaque vues des onglets pour un manager.
-  late final List<Widget> _managerTabs = [
-    const HomeView(),
-    const ManageView(),
-    const ProfilePage(),
-    SettingsView(
-      logout: logout,
-    ),
-  ];
-
-  // Les onglets finaux utilisés par l'utilisateur. Les onglets sont ajoutés en fonction de l'utilisateur.
+  /// Les onglets utilisés par l'utilisateur. Les onglets sont ajoutés en fonction des permissions de l'utilisateur dans la fonction [initViews].
   final List<Widget> _finalTabs = [];
+
+  /// Initialise les onglets en fonction des permissions de l'utilisateur pour remplir la liste [_finalTabs].
+  void initViews() {
+    switch (_api.permissions?.permissions) {
+      case PermissionType.admin: // Si l'utilisateur est un admin
+        _finalTabs.addAll([
+          const HomeView(),
+          const AdminView(),
+          const ProfilePage(),
+          SettingsView(
+            logout: logout,
+          ),
+        ]);
+        break;
+      case PermissionType.manager: // Si l'utilisateur est un manager
+        _finalTabs.addAll([
+          const HomeView(),
+          const ManageView(),
+          const ProfilePage(),
+          SettingsView(
+            logout: logout,
+          ),
+        ]);
+        break;
+      default: // Si l'utilisateur est un utilisateur normal
+        _finalTabs.addAll([
+          const HomeView(),
+          const ProfilePage(),
+          SettingsView(
+            logout: logout,
+          ),
+        ]);
+        break;
+    }
+  }
 
   @override
   void initState() {
     super.initState();
-    switch (_api.permissions?.permissions) {
-      case PermissionType.admin:
-        _finalTabs.addAll(_adminTabs);
-        break;
-      case PermissionType.manager:
-        _finalTabs.addAll(_managerTabs);
-        break;
-      default:
-        _finalTabs.addAll(_basicTabs);
-        break;
-    }
+    initViews();
   }
 
   void logout() {
@@ -121,12 +117,14 @@ class WrapperViewState extends State<WrapperView> {
               label: 'Home',
             ),
             if (_api.permissions!.permissions == PermissionType.admin) ...[
+              // Si l'utilisateur est un admin
               const BottomNavigationBarItem(
                 icon: Icon(Icons.admin_panel_settings),
                 label: 'Admin',
               ),
             ],
             if (_api.permissions!.permissions == PermissionType.manager) ...[
+              // Si l'utilisateur est un manager
               const BottomNavigationBarItem(
                 icon: Icon(Icons.manage_accounts),
                 label: 'Manage',
