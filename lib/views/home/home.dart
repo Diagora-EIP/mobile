@@ -19,7 +19,12 @@ class _HomeViewState extends State<HomeView> {
   dynamic userData;
   String username = '';
   String formattedBegin = '';
-  late DateTime today;
+  late DateTime todayDate;
+  late DateTime todayStart;
+  late DateTime todayEnd;
+
+  late Future<int> getNbDeliveryToday;
+  late int nbDeliveryToday;
 
   String capitalizeFirstLetter(String input) {
     if (input.isEmpty) {
@@ -30,12 +35,21 @@ class _HomeViewState extends State<HomeView> {
 
   @override
   void initState() {
-    super.initState();
     userData = _api.user?.toJson();
     username = capitalizeFirstLetter(userData['name']);
-    today = DateTime.now();
+
+    todayDate = DateTime.now();
+    todayStart = DateTime(todayDate.year, todayDate.month, todayDate.day, 1);
+    todayEnd = DateTime(todayDate.year, todayDate.month, todayDate.day, 23);
+
     DateFormat outputFormat = DateFormat('MM/dd/yyyy');
-    formattedBegin = outputFormat.format(today);
+    formattedBegin = outputFormat.format(todayDate);
+
+    super.initState();
+  }
+
+  Future<int> fetchNbDeliveryToday() async {
+    return _api.nbDeliveryToday(todayStart, todayEnd, userData['user_id']);
   }
 
   @override
@@ -44,48 +58,60 @@ class _HomeViewState extends State<HomeView> {
       appBar: AppBar(
         title: const Text('Home'),
       ),
-      body: Column(
-        children: [
-          Image.asset(
-            'assets/images/diagora.png',
-            width: 200,
-            height: 200,
-          ),
-          const SizedBox(height: 20), // Add space before the first Text widget
-          Text(
-            "Hello $username !",
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
-          ),
-          const SizedBox(
-              height:
-                  10), // Add more space between the second Text widget and buttons
-          Text(
-            "Today $formattedBegin, you have 0 delivery.",
-            style: const TextStyle(
-              fontSize: 16,
-              color: Colors.grey,
-            ),
-          ),
-          const SizedBox(
-              height:
-                  20), // Add more space between the second Text widget and buttons
-          _buildNavigationButton("Calendar", () {
-            Navigator.push(context,
-                MaterialPageRoute(builder: (context) => const CalendarPage()));
-          }),
-          _buildNavigationButton("Map", () {
-            Navigator.push(context,
-                MaterialPageRoute(builder: (context) => const MapPage()));
-          }),
-          _buildNavigationButton("Orders", () {
-            Navigator.push(context,
-                MaterialPageRoute(builder: (context) => const OrderView()));
-          }),
-        ],
+      body: FutureBuilder<int>(
+        future: fetchNbDeliveryToday(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Text('Error: ${snapshot.error}');
+          } else {
+            int nbDeliveryToday = snapshot.data ?? 0;
+            return Column(
+              children: [
+                Image.asset(
+                  'assets/images/diagora.png',
+                  width: 200,
+                  height: 200,
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  "Hello $username !",
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  "Today $formattedBegin, you have $nbDeliveryToday delivery.",
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                _buildNavigationButton("Calendar", () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const CalendarPage()));
+                }),
+                _buildNavigationButton("Map", () {
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => const MapPage()));
+                }),
+                _buildNavigationButton("Orders", () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const OrderView()));
+                }),
+              ],
+            );
+          }
+        },
       ),
     );
   }

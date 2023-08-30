@@ -426,7 +426,7 @@ class ApiService {
     String dateString1 = '2023-01-01 01:00:00.000';
     DateTime begin = DateTime.parse(dateString1);
 
-    String dateString = '2023-07-30 23:00:00.000';
+    String dateString = '2023-02-30 23:00:00.000';
     DateTime end = DateTime.parse(dateString);
 ////////////////////////// end test
 
@@ -459,6 +459,63 @@ class ApiService {
       }
     } catch (e) {
       return "false";
+    }
+  }
+
+  /// Takes [DateTime] [begin], [end] as input and returns an output string if the api call succeed.
+  ///
+  /// The[begin], [end] parameter are required and cannot be null.
+  /// The output value will be the shipment date if the call succeed.
+  /// If [response.statusCode] is not 200 or 202, this function will return "false".
+  Future<int> nbDeliveryToday(
+    DateTime begin,
+    DateTime end,
+    int userId, {
+    Client? client,
+  }) async {
+////////////////////////// test
+    String dateString1 = '2023-01-01 01:00:00.000';
+    DateTime begin = DateTime.parse(dateString1);
+
+    String dateString = '2023-02-30 23:00:00.000';
+    DateTime end = DateTime.parse(dateString);
+////////////////////////// end test
+
+    String beginTimeStamp = DateFormat("yyyy-MM-dd").format(begin.toUtc());
+    String endTimeStamp = DateFormat("yyyy-MM-dd").format(end.toUtc());
+    client ??= _httpClient;
+
+    String id;
+    if (userId == -1) {
+      id = '31';
+    } else {
+      id = userId.toString();
+    }
+
+    Uri url = ApiRoutes.route(
+        "/user/$id/itinary?begin=$beginTimeStamp&end=$endTimeStamp");
+
+    try {
+      final response = await client.get(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          "Authorization": "Bearer Valorant-35"
+        },
+      );
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        List<dynamic> responseData = json.decode(response.body);
+        int tt = 0;
+        for (int i = 0; i < responseData.length; i++) {
+          int nbStopPoints = responseData[i]['stop_point'].length;
+          tt += nbStopPoints;
+        }
+        return (tt);
+      } else {
+        return -1;
+      }
+    } catch (e) {
+      return -1;
     }
   }
 }
