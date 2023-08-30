@@ -1,3 +1,4 @@
+import 'package:diagora/views/admin/users/users_view.dart';
 import 'package:flutter/material.dart';
 
 class AdminView extends StatefulWidget {
@@ -16,18 +17,31 @@ class AdminViewState extends State<AdminView> {
       appBar: AppBar(
         title: const Text('Admin'),
       ),
-      body: const Scrollbar(
+      body: Scrollbar(
         child: SingleChildScrollView(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Center(
+              const Align(
+                alignment: Alignment.centerLeft,
                 child: Padding(
-                  padding: EdgeInsets.only(left: 0, top: 16.0),
+                  padding: EdgeInsets.only(left: 16.0, top: 16.0),
                   child: Text(
-                    "Admin",
+                    "Users management",
                     style: TextStyle(fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.left,
+                  ),
+                ),
+              ),
+              const Divider(),
+              ListTile(
+                title: const Text('Users'),
+                leading: const Icon(Icons.people),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const UsersView(),
                   ),
                 ),
               ),

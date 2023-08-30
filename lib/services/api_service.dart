@@ -324,6 +324,42 @@ class ApiService {
     }
   }
 
+  /// Permet de récupérer tout les utilisateurs.
+  ///
+  /// Peut prendre en paramètre un [client] qui est un [Client].
+  ///
+  /// Retourne une [List] de [User]. Si la requête échoue, retourne null.
+  Future<List<User>?> fetchUsers({
+    Client? client,
+  }) async {
+    try {
+      client ??= _httpClient;
+      Uri url = ApiRoutes.route(ApiRoutes.usersRoute);
+      Response response = await client.get(
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer Valorant-35",
+        },
+      );
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        dynamic responseData = json.decode(response.body);
+        List<User> users = [];
+        for (var user in responseData["users"]) {
+          users.add(User.fromJson(user));
+        }
+        _logger.i(responseData);
+        return (users);
+      } else {
+        _logger.e('patchUser failed with status code ${response.statusCode}');
+        return (null);
+      }
+    } catch (e) {
+      _logger.e(e.toString());
+      return (null);
+    }
+  }
+
   /// Takes [DateTime] [begin], [end] as input and returns an output string if the api call succeed.
   ///
   /// The[begin], [end] parameter are required and cannot be null.
