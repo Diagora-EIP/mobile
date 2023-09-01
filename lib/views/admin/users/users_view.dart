@@ -132,12 +132,14 @@ class UsersViewState extends State<UsersView> {
                         style: const TextStyle(color: Colors.white),
                       ),
                     ),
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => UserView(user: user),
-                      ),
-                    ),
+                    onTap: _apiService.user?.id == user.id
+                        ? null
+                        : () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => UserView(user: user),
+                              ),
+                            ),
                   ),
                 ],
               ] else ...[

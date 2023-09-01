@@ -27,15 +27,19 @@ class UserViewState extends State<UserView> {
   String creationDate = ''; // Final: "Account created the dd/mm/yyyy"
 
   void fetchUser(int id) {
-    setState(() {
-      loading = true;
-    });
+    if (mounted) {
+      setState(() {
+        loading = true;
+      });
+    }
     _apiService.fetchUser(userId: id).then((user) {
       if (user != null) {
-        setState(() {
-          _user = user;
-        });
-        fetchUserPermissions(id);
+        if (mounted) {
+          setState(() {
+            _user = user;
+          });
+          fetchUserPermissions(id);
+        }
       } else {
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
@@ -49,22 +53,26 @@ class UserViewState extends State<UserView> {
   }
 
   void fetchUserPermissions(int id) {
-    setState(() {
-      loading = true;
-    });
-    _apiService.fetchPermissions(userId: id).then((permissions) {
+    if (mounted) {
       setState(() {
-        loading = false;
-        _permissions = permissions;
-        _nameController.text = _user.name;
-        _emailController.text = _user.email;
-        _permissionController.text =
-            _permissions?.permissions.toString() ?? 'null';
-        if (_user.createdAt != null) {
-          creationDate =
-              'Account created the ${_user.createdAt!.day.toString().padLeft(2, '0')}/${_user.createdAt!.month.toString().padLeft(2, '0')}/${_user.createdAt!.year}';
-        }
+        loading = true;
       });
+    }
+    _apiService.fetchPermissions(userId: id).then((permissions) {
+      if (mounted) {
+        setState(() {
+          loading = false;
+          _permissions = permissions;
+          _nameController.text = _user.name;
+          _emailController.text = _user.email;
+          _permissionController.text =
+              _permissions?.permissions.toString() ?? 'null';
+          if (_user.createdAt != null) {
+            creationDate =
+                'Account created the ${_user.createdAt!.day.toString().padLeft(2, '0')}/${_user.createdAt!.month.toString().padLeft(2, '0')}/${_user.createdAt!.year}';
+          }
+        });
+      }
     });
   }
 
@@ -84,9 +92,11 @@ class UserViewState extends State<UserView> {
 
   void _submitForm(context) {
     if (_formKey.currentState!.validate()) {
-      setState(() {
-        loading = true;
-      });
+      if (mounted) {
+        setState(() {
+          loading = true;
+        });
+      }
       _apiService.patchUser(_user).then((succeed) {
         if (succeed) {
           if (_permissions == null) {
@@ -123,9 +133,11 @@ class UserViewState extends State<UserView> {
                     duration: Duration(seconds: 2),
                   ),
                 );
-                setState(() {
-                  loading = false;
-                });
+                if (mounted) {
+                  setState(() {
+                    loading = false;
+                  });
+                }
               }
             });
           }
@@ -136,9 +148,11 @@ class UserViewState extends State<UserView> {
               duration: Duration(seconds: 2),
             ),
           );
-          setState(() {
-            loading = false;
-          });
+          if (mounted) {
+            setState(() {
+              loading = false;
+            });
+          }
         }
       });
     }
@@ -232,10 +246,12 @@ class UserViewState extends State<UserView> {
                               : (value) {
                                   if (value == null) return;
                                   if (mounted) {
-                                    setState(() {
-                                      _permissionController.text =
-                                          value.toString();
-                                    });
+                                    if (mounted) {
+                                      setState(() {
+                                        _permissionController.text =
+                                            value.toString();
+                                      });
+                                    }
                                   }
                                 },
                         ),
