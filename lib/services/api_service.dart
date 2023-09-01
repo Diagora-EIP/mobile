@@ -12,7 +12,7 @@ import 'package:diagora/models/permissions_model.dart';
 
 /// Classe qui contient toutes les routes de l'API. Utilisez [route] pour créer une Uri.
 class ApiRoutes {
-  static const String baseUrl = 'http://20.111.8.106:3000';
+  static const String baseUrl = 'http://localhost:3000';
   // Authentification
   static const String loginRoute = '/user/login'; // POST
   static const String registerRoute = '/user/register'; // POST
@@ -214,16 +214,17 @@ class ApiService {
 
   /// Permet de récupérer les permissions d'un utilisateur.
   ///
-  /// Prend en paramètre un [userId] qui est un [int].
+  /// Prend en paramètre optionnel un [userId] qui est un [int]. Si non spécifié, l'utilisateur connecté sera utilisé.
   ///
   /// Peut prendre en paramètre un [client] qui est un [Client].
   ///
   /// Retourne un [Permissions] qui est le modèle de données des permissions. Si la requête échoue, retourne null.
-  Future<Permissions?> fetchPermissions(
-    int userId, {
+  Future<Permissions?> fetchPermissions({
+    int? userId,
     Client? client,
   }) async {
     try {
+      userId ??= _user?.id;
       client ??= _httpClient;
       Uri url = ApiRoutes.route(
           ApiRoutes.permissionRoute.replaceAll(':id', userId.toString()));
@@ -247,6 +248,43 @@ class ApiService {
     } catch (e) {
       _logger.e(e.toString());
       return (null);
+    }
+  }
+
+  /// Permet de PATCH les permissions d'un utilisateur.
+  ///
+  /// Prend en paramètre un [userId] (optionnel) qui est un [int] et un [permissions] qui est un [Permissions]. Si [userId] n'est pas spécifié, l'utilisateur connecté sera utilisé.
+  ///
+  /// Peut prendre en paramètre un [client] qui est un [Client].
+  ///
+  /// Retourne un [bool] qui indique si la requête a réussi.
+  Future<bool> patchPermissions(
+    Permissions permissionData, {
+    int? userId,
+    Client? client,
+  }) async {
+    try {
+      userId ??= _user?.id;
+      client ??= _httpClient;
+      Uri url = ApiRoutes.route(
+          ApiRoutes.permissionRoute.replaceAll(':id', userId.toString()));
+      Response response = await client.patch(
+        url,
+        headers: {"Authorization": "Bearer Valorant-35"},
+        body: json.encode(permissionData.toJson()),
+      );
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        dynamic responseData = json.decode(response.body);
+        _logger.i(responseData);
+        return (true);
+      } else {
+        _logger.e(
+            'patchPermissions failed with status code ${response.statusCode}');
+        return (false);
+      }
+    } catch (e) {
+      _logger.e(e.toString());
+      return (false);
     }
   }
 
@@ -308,7 +346,7 @@ class ApiService {
       Response response = await client.patch(
         url,
         headers: {"Authorization": "Bearer Valorant-35"},
-        body: json.encode(userData.toJson()), // TODO: Fix la requête
+        body: json.encode(userData.toJson()),
       );
       if (response.statusCode == 200) {
         dynamic responseData = json.decode(response.body);

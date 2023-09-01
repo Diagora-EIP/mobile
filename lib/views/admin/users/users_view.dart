@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:diagora/services/api_service.dart';
 import 'package:diagora/models/user_model.dart';
+import 'package:diagora/views/admin/users/user/user_view.dart';
 
 class UsersView extends StatefulWidget {
   const UsersView({
@@ -30,11 +31,11 @@ class UsersViewState extends State<UsersView> {
     _apiService.fetchUsers().then((users) {
       if (users != null) {
         setState(() {
-          loading = false;
           this.users = users;
           this.users.sort(
               (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
           filteredUsers = this.users;
+          loading = false;
         });
       } else {
         Navigator.of(context).pop();
@@ -127,11 +128,16 @@ class UsersViewState extends State<UsersView> {
                         CircleAvatar(
                       backgroundColor: Colors.grey,
                       child: Text(
-                        user.name[0].toUpperCase(),
+                        user.name[0].toUpperCase() + user.name[1].toUpperCase(),
                         style: const TextStyle(color: Colors.white),
                       ),
                     ),
-                    onTap: null,
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => UserView(user: user),
+                      ),
+                    ),
                   ),
                 ],
               ] else ...[

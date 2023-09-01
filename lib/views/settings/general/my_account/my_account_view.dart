@@ -87,7 +87,7 @@ class MyAccountViewState extends State<MyAccountView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My account'),
+        title: Text(loading ? 'Loading...' : 'My account'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios),
           onPressed: () {

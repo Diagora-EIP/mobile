@@ -42,7 +42,7 @@ class LoadingViewState extends State<LoadingView> {
         (route) => false,
       );
     } else {
-      await _api.fetchPermissions(_api.user!.id);
+      await _api.fetchPermissions(userId: _api.user!.id);
       if (_api.permissions != null) {
         // ignore: use_build_context_synchronously
         Navigator.pushAndRemoveUntil(
