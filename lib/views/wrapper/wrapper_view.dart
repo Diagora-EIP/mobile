@@ -22,6 +22,8 @@ class WrapperView extends StatefulWidget {
 class WrapperViewState extends State<WrapperView> {
   final ApiService _api = ApiService.getInstance();
   int _currentTabIndex = 0;
+  bool showAdmin = false;
+  bool showManage = false;
 
   /// Les onglets utilisés par l'utilisateur. Les onglets sont ajoutés en fonction des permissions de l'utilisateur dans la fonction [initViews].
   final List<Widget> _finalTabs = [];
@@ -38,6 +40,7 @@ class WrapperViewState extends State<WrapperView> {
             logout: logout,
           ),
         ]);
+        showAdmin = true;
         break;
       case PermissionType.manager: // Si l'utilisateur est un manager
         _finalTabs.addAll([
@@ -48,6 +51,7 @@ class WrapperViewState extends State<WrapperView> {
             logout: logout,
           ),
         ]);
+        showManage = true;
         break;
       default: // Si l'utilisateur est un utilisateur normal
         _finalTabs.addAll([
@@ -116,14 +120,14 @@ class WrapperViewState extends State<WrapperView> {
               icon: Icon(Icons.home),
               label: 'Home',
             ),
-            if (_api.permissions!.permissions == PermissionType.admin) ...[
+            if (showAdmin) ...[
               // Si l'utilisateur est un admin
               const BottomNavigationBarItem(
                 icon: Icon(Icons.admin_panel_settings),
                 label: 'Admin',
               ),
             ],
-            if (_api.permissions!.permissions == PermissionType.manager) ...[
+            if (showManage) ...[
               // Si l'utilisateur est un manager
               const BottomNavigationBarItem(
                 icon: Icon(Icons.manage_accounts),
