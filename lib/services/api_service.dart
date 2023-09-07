@@ -237,7 +237,9 @@ class ApiService {
       );
       if (response.statusCode == 200 || response.statusCode == 202) {
         dynamic responseData = json.decode(response.body);
-        _permissions = Permissions.fromJson(responseData);
+        if (user != null && userId == _user?.id) {
+          _permissions = Permissions.fromJson(responseData);
+        }
         _logger.i(responseData);
         return (_permissions);
       } else {
