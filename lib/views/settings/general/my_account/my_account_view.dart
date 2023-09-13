@@ -21,21 +21,25 @@ class MyAccountViewState extends State<MyAccountView> {
   String creationDate = ''; // Final: "Account created the dd/mm/yyyy"
 
   void fetchCurrentUser() {
-    setState(() {
-      loading = true;
-    });
+    if (mounted) {
+      setState(() {
+        loading = true;
+      });
+    }
     _apiService.fetchUser().then((user) {
       if (user != null) {
-        setState(() {
-          loading = false;
-          _user = user;
-          _nameController.text = user.name;
-          _emailController.text = user.email;
-          if (user.createdAt != null) {
-            creationDate =
-                'Account created the ${user.createdAt!.day.toString().padLeft(2, '0')}/${user.createdAt!.month.toString().padLeft(2, '0')}/${user.createdAt!.year}';
-          }
-        });
+        if (mounted) {
+          setState(() {
+            loading = false;
+            _user = user;
+            _nameController.text = user.name;
+            _emailController.text = user.email;
+            if (user.createdAt != null) {
+              creationDate =
+                  'Account created the ${user.createdAt!.day.toString().padLeft(2, '0')}/${user.createdAt!.month.toString().padLeft(2, '0')}/${user.createdAt!.year}';
+            }
+          });
+        }
       } else {
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
@@ -62,9 +66,11 @@ class MyAccountViewState extends State<MyAccountView> {
 
   void _submitForm(context) {
     if (_formKey.currentState!.validate()) {
-      setState(() {
-        loading = true;
-      });
+      if (mounted) {
+        setState(() {
+          loading = true;
+        });
+      }
       _apiService.patchUser(_user).then((succeed) {
         if (succeed) {
           Navigator.of(context).pop(true);
@@ -75,9 +81,11 @@ class MyAccountViewState extends State<MyAccountView> {
               duration: Duration(seconds: 2),
             ),
           );
-          setState(() {
-            loading = false;
-          });
+          if (mounted) {
+            setState(() {
+              loading = false;
+            });
+          }
         }
       });
     }
@@ -87,7 +95,7 @@ class MyAccountViewState extends State<MyAccountView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My account'),
+        title: Text(loading ? 'Loading...' : 'My account'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios),
           onPressed: () {
