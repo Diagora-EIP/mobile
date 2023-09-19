@@ -12,7 +12,8 @@ import 'package:diagora/models/permissions_model.dart';
 
 /// Classe qui contient toutes les routes de l'API. Utilisez [route] pour créer une Uri.
 class ApiRoutes {
-  static const String baseUrl = 'http://20.111.8.106:3000';
+  // static const String baseUrl = 'http://20.111.8.106:3000';
+  static const String baseUrl = 'http://localhost:3000';
   // Authentification
   static const String loginRoute = '/user/login'; // POST
   static const String registerRoute = '/user/register'; // POST
