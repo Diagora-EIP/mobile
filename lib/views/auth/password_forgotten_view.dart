@@ -55,7 +55,7 @@ class _PasswordForgottenViewState extends State<PasswordForgottenView> {
                 onPressed: () async {
                   if (_formKey.currentState!.validate()) {
                     _formKey.currentState!.save();
-                    bool returnValue = await _api.resetPassword(_email);
+                    bool returnValue = false;
                     if (returnValue) {
                       // ignore: use_build_context_synchronously
                       Navigator.pushAndRemoveUntil(

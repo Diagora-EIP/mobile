@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'package:diagora/services/api_service.dart';
+import 'package:diagora/views/home/profile/profile.dart';
+
 class ChangePassword extends StatefulWidget {
   const ChangePassword({super.key});
 
@@ -10,6 +13,19 @@ class ChangePassword extends StatefulWidget {
 class _ChangePasswordState extends State<ChangePassword> {
   final _formKey = GlobalKey<FormState>();
   late String _oldPassword, _newPassword;
+  late int _userId;
+  late String _email;
+  dynamic userData;
+
+  final ApiService _api = ApiService.getInstance();
+
+  @override
+  void initState() {
+    userData = _api.user?.toJson();
+    _userId = userData['user_id'];
+    _email = userData['email'];
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +70,25 @@ class _ChangePasswordState extends State<ChangePassword> {
                 onPressed: () async {
                   if (_formKey.currentState!.validate()) {
                     _formKey.currentState!.save();
-                    print("Changing password: $_oldPassword -> $_newPassword");
+                    bool returnValue = await _api.resetPasswordConnected(
+                        _email, _newPassword, _userId);
+                    if (returnValue) {
+                      // ignore: use_build_context_synchronously
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ProfilePage(),
+                        ),
+                        (route) => false,
+                      );
+                    } else {
+                      // ignore: use_build_context_synchronously
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Cannot change the password'),
+                        ),
+                      );
+                    }
                   }
                 },
                 child: const Text('Change Password'),

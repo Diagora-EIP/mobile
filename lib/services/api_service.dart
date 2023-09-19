@@ -12,6 +12,7 @@ import 'package:diagora/models/permissions_model.dart';
 
 /// Classe qui contient toutes les routes de l'API. Utilisez [route] pour créer une Uri.
 class ApiRoutes {
+  // static const String baseUrl = 'http://20.111.8.106:3000';
   static const String baseUrl = 'http://20.111.8.106:3000';
   // Authentification
   static const String loginRoute = '/user/login'; // POST
@@ -237,7 +238,9 @@ class ApiService {
       );
       if (response.statusCode == 200 || response.statusCode == 202) {
         dynamic responseData = json.decode(response.body);
-        _permissions = Permissions.fromJson(responseData);
+        if (user != null && userId == _user?.id) {
+          _permissions = Permissions.fromJson(responseData);
+        }
         _logger.i(responseData);
         return (_permissions);
       } else {
@@ -405,8 +408,10 @@ class ApiService {
   /// Peut prendre en paramètre un [client] qui est un [Client]
   ///
   /// Retourne un [bool] qui indique si la connexion a réussi.
-  Future<bool> resetPassword(
-    String email, {
+  Future<bool> resetPasswordConnected(
+    String email,
+    String newPassword,
+    int userId, {
     Client? client,
   }) async {
     try {
@@ -417,6 +422,8 @@ class ApiService {
         body: json.encode(
           {
             'email': email.toLowerCase(),
+            'password': newPassword,
+            'userId': userId,
           },
         ),
         headers: {'Content-Type': 'application/json'},
