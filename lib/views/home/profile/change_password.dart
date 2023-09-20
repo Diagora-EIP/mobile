@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:diagora/services/api_service.dart';
-import 'package:diagora/views/home/profile/profile.dart';
+import 'package:diagora/views/home/profile/profile_view.dart';
 
 class ChangePassword extends StatefulWidget {
   const ChangePassword({super.key});
@@ -77,7 +77,7 @@ class _ChangePasswordState extends State<ChangePassword> {
                       Navigator.pushAndRemoveUntil(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const ProfilePage(),
+                          builder: (context) => const ProfileView(),
                         ),
                         (route) => false,
                       );
