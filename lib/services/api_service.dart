@@ -18,7 +18,8 @@ class ApiRoutes {
   static const String loginRoute = '/user/login'; // POST
   static const String registerRoute = '/user/register'; // POST
   static const String logoutRoute = '/user/logout'; // POST
-  static const String resetPasswordRoute = '/user/reset-password'; // POST
+  static const String resetPasswordWithTokenRoute =
+      '/user/reset-password/:token'; // POST
   // User(s)
   static const String usersRoute = '/user'; // GET
   static const String userRoute = '/user/:id'; // GET, PATCH, DELETE
@@ -113,13 +114,12 @@ class ApiService {
         ),
         headers: {'Content-Type': 'application/json'},
       );
-
       if (response.statusCode == 200 || response.statusCode == 201) {
         dynamic responseData = json.decode(response.body);
         _prefs?.setString('token', responseData['token']);
         _token = responseData['token'];
-        _prefs?.setString('user', json.encode(responseData['user'][0]));
-        _user = User.fromJson(responseData['user'][0]);
+        _prefs?.setString('user', json.encode(responseData['user']));
+        _user = User.fromJson(responseData['user']);
         _logger.i(responseData);
         analytics.logLogin(loginMethod: 'email').ignore();
         return true;
@@ -408,27 +408,27 @@ class ApiService {
   /// Peut prendre en paramètre un [client] qui est un [Client]
   ///
   /// Retourne un [bool] qui indique si la connexion a réussi.
-  Future<bool> resetPasswordConnected(
-    String email,
-    String newPassword,
-    int userId, {
+  Future<bool> resetPasswordWithToken(
+    String newPassword, {
     Client? client,
   }) async {
     try {
       client ??= _httpClient;
-      Uri url = ApiRoutes.route(ApiRoutes.resetPasswordRoute);
+      Uri url = ApiRoutes.route(
+          ApiRoutes.resetPasswordWithTokenRoute.replaceAll(':token', _token!));
       Response response = await client.post(
         url,
         body: json.encode(
           {
-            'email': email.toLowerCase(),
             'password': newPassword,
-            'userId': userId,
           },
         ),
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'MAILJET_API_KEY': 'a9ed23123ce9013f301d2c6c7b038105',
+          'MAILJET_API_SECRET': 'c1582325f03a0be32490c4af7c012350'
+        },
       );
-
       if (response.statusCode == 200 || response.statusCode == 201) {
         dynamic responseData = json.decode(response.body);
         _logger.i(responseData);

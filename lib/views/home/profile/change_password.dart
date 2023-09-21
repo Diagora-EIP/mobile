@@ -12,20 +12,9 @@ class ChangePassword extends StatefulWidget {
 
 class _ChangePasswordState extends State<ChangePassword> {
   final _formKey = GlobalKey<FormState>();
-  late String _oldPassword, _newPassword;
-  late int _userId;
-  late String _email;
-  dynamic userData;
+  late String _newPassword, _newPasswordConfirm;
 
   final ApiService _api = ApiService.getInstance();
-
-  @override
-  void initState() {
-    userData = _api.user?.toJson();
-    _userId = userData['user_id'];
-    _email = userData['email'];
-    super.initState();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +39,7 @@ class _ChangePasswordState extends State<ChangePassword> {
                   }
                   return null;
                 },
-                onSaved: (value) => _oldPassword = value!,
+                onSaved: (value) => _newPassword = value!,
               ),
               const SizedBox(height: 20),
               const Text("Enter Your New Password"),
@@ -63,15 +52,14 @@ class _ChangePasswordState extends State<ChangePassword> {
                   }
                   return null;
                 },
-                onSaved: (value) => _newPassword = value!,
+                onSaved: (value) => _newPasswordConfirm = value!,
               ),
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () async {
-                  if (_formKey.currentState!.validate()) {
+                  if (_formKey.currentState!.validate() && _newPassword == _newPasswordConfirm) {
                     _formKey.currentState!.save();
-                    bool returnValue = await _api.resetPasswordConnected(
-                        _email, _newPassword, _userId);
+                    bool returnValue = await _api.resetPasswordWithToken(_newPasswordConfirm);
                     if (returnValue) {
                       // ignore: use_build_context_synchronously
                       Navigator.pushAndRemoveUntil(
