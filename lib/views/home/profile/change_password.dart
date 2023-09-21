@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'package:diagora/services/api_service.dart';
+import 'package:diagora/views/home/profile/profile_view.dart';
+
 class ChangePassword extends StatefulWidget {
   const ChangePassword({super.key});
 
@@ -9,7 +12,9 @@ class ChangePassword extends StatefulWidget {
 
 class _ChangePasswordState extends State<ChangePassword> {
   final _formKey = GlobalKey<FormState>();
-  late String _oldPassword, _newPassword;
+  late String _newPassword, _newPasswordConfirm;
+
+  final ApiService _api = ApiService.getInstance();
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +39,7 @@ class _ChangePasswordState extends State<ChangePassword> {
                   }
                   return null;
                 },
-                onSaved: (value) => _oldPassword = value!,
+                onSaved: (value) => _newPassword = value!,
               ),
               const SizedBox(height: 20),
               const Text("Enter Your New Password"),
@@ -47,14 +52,31 @@ class _ChangePasswordState extends State<ChangePassword> {
                   }
                   return null;
                 },
-                onSaved: (value) => _newPassword = value!,
+                onSaved: (value) => _newPasswordConfirm = value!,
               ),
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () async {
-                  if (_formKey.currentState!.validate()) {
+                  if (_formKey.currentState!.validate() && _newPassword == _newPasswordConfirm) {
                     _formKey.currentState!.save();
-                    print("Changing password: $_oldPassword -> $_newPassword");
+                    bool returnValue = await _api.resetPasswordWithToken(_newPasswordConfirm);
+                    if (returnValue) {
+                      // ignore: use_build_context_synchronously
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ProfileView(),
+                        ),
+                        (route) => false,
+                      );
+                    } else {
+                      // ignore: use_build_context_synchronously
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Cannot change the password'),
+                        ),
+                      );
+                    }
                   }
                 },
                 child: const Text('Change Password'),

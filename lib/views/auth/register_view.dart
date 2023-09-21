@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 
 import 'package:logger/logger.dart';
 
-import 'package:diagora/views/home/home.dart';
 import 'package:diagora/services/api_service.dart';
 import 'package:diagora/views/auth/login_view.dart';
+import 'package:diagora/views/wrapper/wrapper_view.dart';
 
 class RegisterView extends StatefulWidget {
   const RegisterView({super.key});
@@ -81,10 +81,12 @@ class _RegisterViewState extends State<RegisterView> {
                         await _api.register(_name, _email, _password);
                     if (returnValue) {
                       // ignore: use_build_context_synchronously
-                      Navigator.push(
+                      Navigator.pushAndRemoveUntil(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => const HomeView()),
+                            builder: (context) => const WrapperView(),
+                          ),
+                        (route) => false,
                       );
                     } else {
                       // ignore: use_build_context_synchronously

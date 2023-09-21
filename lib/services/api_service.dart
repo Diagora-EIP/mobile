@@ -18,7 +18,8 @@ class ApiRoutes {
   static const String loginRoute = '/user/login'; // POST
   static const String registerRoute = '/user/register'; // POST
   static const String logoutRoute = '/user/logout'; // POST
-  static const String resetPasswordRoute = '/user/reset-password'; // POST
+  static const String resetPasswordWithTokenRoute =
+      '/user/reset-password/:token'; // POST
   // User(s)
   static const String usersRoute = '/user'; // GET
   static const String userRoute = '/user/:id'; // GET, PATCH, DELETE
@@ -113,13 +114,12 @@ class ApiService {
         ),
         headers: {'Content-Type': 'application/json'},
       );
-
       if (response.statusCode == 200 || response.statusCode == 201) {
         dynamic responseData = json.decode(response.body);
         _prefs?.setString('token', responseData['token']);
         _token = responseData['token'];
-        _prefs?.setString('user', json.encode(responseData['user'][0]));
-        _user = User.fromJson(responseData['user'][0]);
+        _prefs?.setString('user', json.encode(responseData['user']));
+        _user = User.fromJson(responseData['user']);
         _logger.i(responseData);
         analytics.logLogin(loginMethod: 'email').ignore();
         return true;
@@ -401,6 +401,48 @@ class ApiService {
     }
   }
 
+  /// Permet changer de mot de passe.
+  ///
+  /// Prend en paramètre un [email].
+  ///
+  /// Peut prendre en paramètre un [client] qui est un [Client]
+  ///
+  /// Retourne un [bool] qui indique si la connexion a réussi.
+  Future<bool> resetPasswordWithToken(
+    String newPassword, {
+    Client? client,
+  }) async {
+    try {
+      client ??= _httpClient;
+      Uri url = ApiRoutes.route(
+          ApiRoutes.resetPasswordWithTokenRoute.replaceAll(':token', _token!));
+      Response response = await client.post(
+        url,
+        body: json.encode(
+          {
+            'password': newPassword,
+          },
+        ),
+        headers: {
+          'Content-Type': 'application/json',
+          'MAILJET_API_KEY': 'a9ed23123ce9013f301d2c6c7b038105',
+          'MAILJET_API_SECRET': 'c1582325f03a0be32490c4af7c012350'
+        },
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        dynamic responseData = json.decode(response.body);
+        _logger.i(responseData);
+        return true;
+      } else {
+        _logger.e('Login failed with status code ${response.statusCode}');
+        return false;
+      }
+    } catch (e) {
+      _logger.e(e.toString());
+      return false;
+    }
+  }
+
   /// Takes [DateTime] [begin], [end] as input and returns an output string if the api call succeed.
   ///
   /// The[begin], [end] parameter are required and cannot be null.
@@ -465,7 +507,7 @@ class ApiService {
     String dateString1 = '2023-01-01 01:00:00.000';
     DateTime begin = DateTime.parse(dateString1);
 
-    String dateString = '2023-07-30 23:00:00.000';
+    String dateString = '2023-02-30 23:00:00.000';
     DateTime end = DateTime.parse(dateString);
 ////////////////////////// end test
 
@@ -498,6 +540,63 @@ class ApiService {
       }
     } catch (e) {
       return "false";
+    }
+  }
+
+  /// Takes [DateTime] [begin], [end] as input and returns an output string if the api call succeed.
+  ///
+  /// The[begin], [end] parameter are required and cannot be null.
+  /// The output value will be the shipment date if the call succeed.
+  /// If [response.statusCode] is not 200 or 202, this function will return "false".
+  Future<int> nbDeliveryToday(
+    DateTime begin,
+    DateTime end,
+    int userId, {
+    Client? client,
+  }) async {
+////////////////////////// test
+    String dateString1 = '2023-01-01 01:00:00.000';
+    DateTime begin = DateTime.parse(dateString1);
+
+    String dateString = '2023-02-30 23:00:00.000';
+    DateTime end = DateTime.parse(dateString);
+////////////////////////// end test
+
+    String beginTimeStamp = DateFormat("yyyy-MM-dd").format(begin.toUtc());
+    String endTimeStamp = DateFormat("yyyy-MM-dd").format(end.toUtc());
+    client ??= _httpClient;
+
+    String id;
+    if (userId == -1) {
+      id = '31';
+    } else {
+      id = userId.toString();
+    }
+
+    Uri url = ApiRoutes.route(
+        "/user/$id/itinary?begin=$beginTimeStamp&end=$endTimeStamp");
+
+    try {
+      final response = await client.get(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          "Authorization": "Bearer Valorant-35"
+        },
+      );
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        List<dynamic> responseData = json.decode(response.body);
+        int tt = 0;
+        for (int i = 0; i < responseData.length; i++) {
+          int nbStopPoints = responseData[i]['stop_point'].length;
+          tt += nbStopPoints;
+        }
+        return (tt);
+      } else {
+        return -1;
+      }
+    } catch (e) {
+      return -1;
     }
   }
 }

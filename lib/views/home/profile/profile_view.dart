@@ -1,17 +1,20 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
-// import 'package:cached_network_image/cached_network_image.dart';
+
+import 'package:image_picker/image_picker.dart';
 
 import 'package:diagora/services/api_service.dart';
 import 'package:diagora/views/home/profile/change_password.dart';
 
-class ProfilePage extends StatefulWidget {
-  const ProfilePage({super.key});
+class ProfileView extends StatefulWidget {
+  const ProfileView({super.key});
 
   @override
-  State<ProfilePage> createState() => _ProfilePageState();
+  State<ProfileView> createState() => _ProfileViewState();
 }
 
-class _ProfilePageState extends State<ProfilePage> {
+class _ProfileViewState extends State<ProfileView> {
   final ApiService _api = ApiService.getInstance();
 
   final String profilePictureUrl1 = 'assets/images/PdP.jpeg';
@@ -21,6 +24,19 @@ class _ProfilePageState extends State<ProfilePage> {
   String permissions = '';
   dynamic permissionsData;
   dynamic userData;
+  File? _image;
+
+  Future<void> _pickImage() async {
+    final imagePicker = ImagePicker();
+    final pickedImage =
+        await imagePicker.pickImage(source: ImageSource.gallery);
+
+    if (pickedImage != null) {
+      setState(() {
+        _image = File(pickedImage.path);
+      });
+    }
+  }
 
   String capitalizeFirstLetter(String input) {
     if (input.isEmpty) {
@@ -52,9 +68,21 @@ class _ProfilePageState extends State<ProfilePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             CircleAvatar(
-              radius: 50,
-              // backgroundImage: CachedNetworkImageProvider(profilePictureUrl),
-              backgroundImage: AssetImage(profilePictureUrl1),
+              radius: 80,
+              backgroundColor: Colors.grey,
+              backgroundImage: _image != null ? FileImage(_image!) : null,
+              child: _image == null
+                  ? const Icon(
+                      Icons.person,
+                      size: 80,
+                      color: Colors.white,
+                    )
+                  : null,
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _pickImage,
+              child: const Text('Change Profile Picture'),
             ),
             const SizedBox(height: 16),
             Text(
