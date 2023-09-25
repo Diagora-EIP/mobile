@@ -92,6 +92,9 @@ class _MapPageState extends State<MapPage> {
         _api.mapValues(todayStart, todayEnd, userId);
 
     allTodaysTrajValues.then((response) {
+      if (response == 'false') {
+        return;
+      }
       List<dynamic> responseData = json.decode(response);
 
       // CHECK OUT LIGNE 65: dynamic traj = responseData[i]['path'][0]['path']; -> [0] MIGHT NEED TO BE IN A LOOP TO GET ALL THE TRAJ OF THE DAY AND NOT JUST THE FIRST ONE

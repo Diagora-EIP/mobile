@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:diagora/services/api_service.dart';
-import 'package:diagora/views/home/profile/profile_view.dart';
+import 'package:diagora/views/profile/profile_view.dart';
 
 class ChangePassword extends StatefulWidget {
   const ChangePassword({super.key});
@@ -12,9 +12,23 @@ class ChangePassword extends StatefulWidget {
 
 class _ChangePasswordState extends State<ChangePassword> {
   final _formKey = GlobalKey<FormState>();
-  late String _newPassword, _newPasswordConfirm;
+  late String _newPassword = "";
+  late String _newPasswordConfirm = "";
+  int _userId = -1;
+  late String _email = "";
+  dynamic userData;
 
   final ApiService _api = ApiService.getInstance();
+
+  @override
+  initState() {
+    super.initState();
+    userData = _api.user?.toJson();
+    setState(() {
+      _userId = userData['user_id'];
+      _email = userData['email'];
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,9 +43,13 @@ class _ChangePasswordState extends State<ChangePassword> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const Text("Enter Your Current Password"),
+              const Text("Enter Your New Password"),
               TextFormField(
-                decoration: const InputDecoration(labelText: 'Old Password'),
+                decoration: const InputDecoration(
+                  labelText: 'New Password',
+                  // margin left = 10
+                  contentPadding: EdgeInsets.only(left: 10),
+                ),
                 obscureText: true,
                 validator: (value) {
                   if (value!.isEmpty) {
@@ -42,9 +60,10 @@ class _ChangePasswordState extends State<ChangePassword> {
                 onSaved: (value) => _newPassword = value!,
               ),
               const SizedBox(height: 20),
-              const Text("Enter Your New Password"),
+              const Text("Confirm Your New Password"),
               TextFormField(
-                decoration: const InputDecoration(labelText: 'New Password'),
+                decoration:
+                    const InputDecoration(labelText: 'Confirm New Password'),
                 obscureText: true,
                 validator: (value) {
                   if (value!.isEmpty) {
@@ -57,9 +76,11 @@ class _ChangePasswordState extends State<ChangePassword> {
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () async {
-                  if (_formKey.currentState!.validate() && _newPassword == _newPasswordConfirm) {
+                  if (_formKey.currentState!.validate() &&
+                      _newPassword == _newPasswordConfirm) {
                     _formKey.currentState!.save();
-                    bool returnValue = await _api.resetPasswordWithToken(_newPasswordConfirm);
+                    bool returnValue = await _api.resetPasswordWithoutToken(
+                        _email, _newPasswordConfirm, _userId);
                     if (returnValue) {
                       // ignore: use_build_context_synchronously
                       Navigator.pushAndRemoveUntil(

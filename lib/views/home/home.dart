@@ -49,7 +49,11 @@ class _HomeViewState extends State<HomeView> {
   }
 
   Future<int> fetchNbDeliveryToday() async {
-    return _api.nbDeliveryToday(todayStart, todayEnd, userData['user_id']);
+    int nbDeliv = await _api.nbDeliveryToday(todayStart, todayEnd, userData['user_id']);
+    if (nbDeliv == -1) {
+      nbDeliv = 0;
+    }
+    return nbDeliv;
   }
 
   @override
