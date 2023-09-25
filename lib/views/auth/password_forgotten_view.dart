@@ -69,7 +69,7 @@ class _PasswordForgottenViewState extends State<PasswordForgottenView> {
                       // ignore: use_build_context_synchronously
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('Login failed'),
+                          content: Text('Email not known'),
                         ),
                       );
                     }

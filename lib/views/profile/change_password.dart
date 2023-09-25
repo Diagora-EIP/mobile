@@ -47,7 +47,6 @@ class _ChangePasswordState extends State<ChangePassword> {
               TextFormField(
                 decoration: const InputDecoration(
                   labelText: 'New Password',
-                  // margin left = 10
                   contentPadding: EdgeInsets.only(left: 10),
                 ),
                 obscureText: true,

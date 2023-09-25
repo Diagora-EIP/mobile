@@ -507,7 +507,7 @@ class ApiService {
 
     String id;
     if (userId == -1) {
-      id = '31';
+        return "false";
     } else {
       id = userId.toString();
     }
@@ -520,19 +520,17 @@ class ApiService {
         url,
         headers: {
           'Content-Type': 'application/json',
-          "Authorization": "Bearer Valorant-35"
+          "Authorization": 'Bearer Valorant-35'
         },
       );
-      if (response.body ==
-          "\"failed to parse filter (in.))\" (line 1, column 4)") {
-        return ("false");
-      }
       if (response.statusCode == 200 || response.statusCode == 202) {
         return (response.body);
       } else {
+        _logger.e("calendarValues failed with status code ${response.statusCode}");
         return "false";
       }
     } catch (e) {
+      _logger.e(e.toString());
       return "false";
     }
   }
@@ -581,9 +579,11 @@ class ApiService {
       if (response.statusCode == 200 || response.statusCode == 202) {
         return (response.body);
       } else {
+        _logger.e("map value ${response.statusCode}: ${response.body}");
         return "false";
       }
     } catch (e) {
+      _logger.e(e.toString());
       return "false";
     }
   }
@@ -638,9 +638,11 @@ class ApiService {
         }
         return (tt);
       } else {
+        _logger.e("nbDelivery ${response.statusCode}: ${response.body}");
         return -1;
       }
     } catch (e) {
+      _logger.e(e.toString());
       return -1;
     }
   }
