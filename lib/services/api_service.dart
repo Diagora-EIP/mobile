@@ -31,10 +31,12 @@ class ApiRoutes {
   static const String companiesRoute = '/company'; // GET, POST
   static const String companyRoute = '/company/:id'; // GET, PATCH, DELETE
   // Événement(s)
-  static const String userScheduleRoute = '/schedule/:user_id'; // GET, POST
-  static const String scheduleRoute = '/schedule/:id'; // PATCH, DELETE
-  static const String scheduleSlotsRoute =
-      '/schedule/avalaibleSlots/:event_id'; // GET
+  static const String userScheduleRoute =
+      '/user/:user_id/schedule'; // GET, PATCH, DELETE
+  static const String scheduleRoute =
+      '/schedule/:schedule_id'; // GET, PATCH, DELETE
+  static const String scheduleAvailableSlotsRoute =
+      '/schedule/avalaibleSlots/:user_id'; // GET
   // Véhicule(s)
   static const String vehiclesRoute = '/vehicle'; // GET, POST
   static const String vehicleRoute = '/vehicle/:id'; // GET, PATCH, DELETE
@@ -194,14 +196,14 @@ class ApiService {
         headers: {'Content-Type': 'application/json'},
       );
 
+      _prefs?.remove('token');
+      _prefs?.remove('user');
+      _user = null;
+      _permissions = null;
+      _token = null;
+      analytics.logEvent(name: 'logout').ignore();
       if (response.statusCode == 200) {
-        _prefs?.remove('token');
-        _prefs?.remove('user');
-        _user = null;
-        _permissions = null;
-        _token = null;
         _logger.i('Logout successful');
-        analytics.logEvent(name: 'logout').ignore();
         return true;
       } else {
         _logger.e('Logout failed with status code ${response.statusCode}');
@@ -273,7 +275,7 @@ class ApiService {
           ApiRoutes.permissionRoute.replaceAll(':id', userId.toString()));
       Response response = await client.patch(
         url,
-        headers: {"Authorization": "Bearer Valorant-35"},
+        headers: {"Authorization": "Bearer Valorant-35", "Content-Type": "application/json"},
         body: json.encode(permissionData.toJson()),
       );
       if (response.statusCode == 200 || response.statusCode == 202) {
@@ -348,7 +350,7 @@ class ApiService {
           ApiRoutes.userRoute.replaceAll(':id', userId.toString()));
       Response response = await client.patch(
         url,
-        headers: {"Authorization": "Bearer Valorant-35"},
+        headers: {"Authorization": "Bearer $_token", "Content-Type": "application/json"},
         body: json.encode(userData.toJson()),
       );
       if (response.statusCode == 200) {

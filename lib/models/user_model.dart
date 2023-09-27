@@ -1,10 +1,11 @@
 /// Modèle de données pour un utilisateur.
 class User {
-  final int id;
-  final String email;
-  final String name;
-  final String encryptedPassword;
-  final DateTime? createdAt;
+  int id;
+  String email;
+  String name;
+  String encryptedPassword;
+  DateTime? createdAt;
+  String? resetPassword;
 
   User({
     this.id = -1,
@@ -12,6 +13,7 @@ class User {
     this.name = '',
     this.encryptedPassword = '',
     this.createdAt,
+    this.resetPassword = '',
   });
 
   factory User.fromJson(dynamic json) {
@@ -21,6 +23,7 @@ class User {
       name: json['name'] ?? '',
       encryptedPassword: json['password'] ?? '',
       createdAt: DateTime.parse(json['created_at'] ?? DateTime(0).toString()),
+      resetPassword: json['reset-password'] ?? '',
     );
     return user;
   }
@@ -32,6 +35,7 @@ class User {
       'name': name,
       'password': encryptedPassword,
       'created_at': createdAt?.toIso8601String(),
+      'reset-password': resetPassword,
     };
   }
 }

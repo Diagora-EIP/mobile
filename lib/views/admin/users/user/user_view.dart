@@ -1,4 +1,5 @@
 import 'package:diagora/models/permissions_model.dart';
+import 'package:diagora/views/admin/users/user/schedules/shedules_view.dart';
 import 'package:flutter/material.dart';
 import 'package:diagora/services/api_service.dart';
 import 'package:diagora/models/user_model.dart';
@@ -97,6 +98,7 @@ class UserViewState extends State<UserView> {
           loading = true;
         });
       }
+      _user.name = _nameController.text;
       _apiService.patchUser(_user).then((succeed) {
         if (succeed) {
           if (_permissions == null) {
@@ -255,6 +257,26 @@ class UserViewState extends State<UserView> {
                                   }
                                 },
                         ),
+                      ),
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text("Manage schedules",
+                            style: loading
+                                ? const TextStyle(color: Colors.grey)
+                                : null),
+                        // Button to open schedules view
+                        trailing: loading
+                            ? null
+                            : IconButton(
+                                icon: const Icon(Icons.arrow_forward_ios),
+                                onPressed: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (context) => SchedulesView(_user.id),
+                                    ),
+                                  );
+                                },
+                              ),
                       ),
                     ],
                   ),
