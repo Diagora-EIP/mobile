@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 
 import 'package:diagora/services/api_service.dart';
-import 'package:diagora/views/home/home.dart';
+import 'package:diagora/views/auth/login_view.dart';
 
 class PasswordForgottenView extends StatefulWidget {
   const PasswordForgottenView({super.key});
@@ -55,13 +55,13 @@ class _PasswordForgottenViewState extends State<PasswordForgottenView> {
                 onPressed: () async {
                   if (_formKey.currentState!.validate()) {
                     _formKey.currentState!.save();
-                    bool returnValue = false;
+                    bool returnValue = await _api.generatePasswordToken(_email);
                     if (returnValue) {
                       // ignore: use_build_context_synchronously
                       Navigator.pushAndRemoveUntil(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const HomeView(),
+                          builder: (context) => const EnterToken(),
                         ),
                         (route) => false,
                       );
@@ -69,7 +69,87 @@ class _PasswordForgottenViewState extends State<PasswordForgottenView> {
                       // ignore: use_build_context_synchronously
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('Login failed'),
+                          content: Text('Email not known'),
+                        ),
+                      );
+                    }
+                  }
+                },
+                child: const Text('Submit'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class EnterToken extends StatefulWidget {
+  const EnterToken({super.key});
+
+  @override
+  State<EnterToken> createState() => _EnterTokenState();
+}
+
+class _EnterTokenState extends State<EnterToken> {
+  final _formKey = GlobalKey<FormState>();
+  String _token = "";
+  String _newPassword = "";
+  final ApiService _api = ApiService.getInstance();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Enter token'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              TextFormField(
+                decoration: const InputDecoration(labelText: 'Token'),
+                validator: (value) {
+                  if (value!.isEmpty) {
+                    return 'Please enter your token';
+                  }
+                  return null;
+                },
+                onSaved: (value) => _token = value!,
+              ),
+              TextFormField(
+                decoration: const InputDecoration(labelText: 'New Password'),
+                validator: (value) {
+                  if (value!.isEmpty) {
+                    return 'Please enter your new password';
+                  }
+                  return null;
+                },
+                onSaved: (value) => _newPassword = value!,
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  if (_formKey.currentState!.validate()) {
+                    _formKey.currentState!.save();
+                    bool returnValue =
+                        await _api.resetPasswordWithToken(_token, _newPassword);
+                    if (returnValue) {
+                      // ignore: use_build_context_synchronously
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const LoginView(),
+                        ),
+                        (route) => false,
+                      );
+                    } else {
+                      // ignore: use_build_context_synchronously
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Error'),
                         ),
                       );
                     }

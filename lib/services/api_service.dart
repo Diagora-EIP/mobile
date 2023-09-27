@@ -20,6 +20,11 @@ class ApiRoutes {
   static const String logoutRoute = '/user/logout'; // POST
   static const String resetPasswordWithTokenRoute =
       '/user/reset-password/:token'; // POST
+  static const String resetPasswordWithoutTokenRoute =
+      '/user/reset-password'; // POST
+  static const String resetPasswordGenerateToken =
+      '/user/reset-password-generate';
+
   // User(s)
   static const String usersRoute = '/user'; // GET
   static const String userRoute = '/user/:id'; // GET, PATCH, DELETE
@@ -394,7 +399,8 @@ class ApiService {
         _logger.i(responseData);
         return (users);
       } else {
-        _logger.e('patchUser failed with status code ${response.statusCode}');
+        _logger.e(
+            'patchUser failed with status code ${response.statusCode}: ${response.body}');
         return (null);
       }
     } catch (e) {
@@ -410,19 +416,104 @@ class ApiService {
   /// Peut prendre en paramètre un [client] qui est un [Client]
   ///
   /// Retourne un [bool] qui indique si la connexion a réussi.
+  Future<bool> resetPasswordWithoutToken(
+    String email,
+    String newPassword,
+    int userId, {
+    Client? client,
+  }) async {
+    try {
+      client ??= _httpClient;
+      Uri url = ApiRoutes.route(ApiRoutes.resetPasswordWithoutTokenRoute);
+      Response response = await client.post(
+        url,
+        body: json.encode(
+          {"email": email, 'password': newPassword, "user_id": userId},
+        ),
+        headers: {
+          'Content-Type': 'application/json',
+          'MAILJET_API_KEY': 'a9ed23123ce9013f301d2c6c7b038105',
+          'MAILJET_API_SECRET': 'c1582325f03a0be32490c4af7c012350'
+        },
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        dynamic responseData = json.decode(response.body);
+        _logger.i(responseData);
+        return true;
+      } else {
+        _logger.e(
+            'Login failed with status code ${response.statusCode}: ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      _logger.e(e.toString());
+      return false;
+    }
+  }
+
+  /// Permet changer de mot de passe.
+  ///
+  /// Prend en paramètre un [email].
+  ///
+  /// Peut prendre en paramètre un [client] qui est un [Client]
+  ///
+  /// Retourne un [bool] qui indique si la connexion a réussi.
+  Future<bool> generatePasswordToken(
+    String email, {
+    Client? client,
+  }) async {
+    try {
+      client ??= _httpClient;
+      Uri url = ApiRoutes.route(ApiRoutes.resetPasswordGenerateToken);
+      Response response = await client.post(
+        url,
+        body: json.encode(
+          {
+            'email': email,
+          },
+        ),
+        headers: {
+          'Content-Type': 'application/json',
+          'MAILJET_API_KEY': 'a9ed23123ce9013f301d2c6c7b038105',
+          'MAILJET_API_SECRET': 'c1582325f03a0be32490c4af7c012350'
+        },
+      );
+      if (response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 204) {
+        // dynamic responseData = json.decode(response.body);
+        // _logger.i(responseData);
+        return true;
+      } else {
+        _logger.e(
+            'Login failed with status code ${response.statusCode}: ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      _logger.e(e.toString());
+      return false;
+    }
+  }
+
+  /// Permet changer de mot de passe.
+  ///
+  /// Prend en paramètre un [email].
+  ///
+  /// Peut prendre en paramètre un [client] qui est un [Client]
+  ///
+  /// Retourne un [bool] qui indique si la connexion a réussi.
   Future<bool> resetPasswordWithToken(
+    String token,
     String newPassword, {
     Client? client,
   }) async {
     try {
       client ??= _httpClient;
       Uri url = ApiRoutes.route(
-          ApiRoutes.resetPasswordWithTokenRoute.replaceAll(':token', _token!));
+          ApiRoutes.resetPasswordWithTokenRoute.replaceAll(":token", token));
       Response response = await client.post(
         url,
         body: json.encode(
           {
-            'password': newPassword,
+            'password': newPassword
           },
         ),
         headers: {
@@ -436,7 +527,8 @@ class ApiService {
         _logger.i(responseData);
         return true;
       } else {
-        _logger.e('Login failed with status code ${response.statusCode}');
+        _logger.e(
+            'Login failed with status code ${response.statusCode}: ${response.body}');
         return false;
       }
     } catch (e) {
@@ -464,7 +556,7 @@ class ApiService {
 
     String id;
     if (userId == -1) {
-      id = '31';
+        return "false";
     } else {
       id = userId.toString();
     }
@@ -477,19 +569,18 @@ class ApiService {
         url,
         headers: {
           'Content-Type': 'application/json',
-          "Authorization": "Bearer Valorant-35"
+          "Authorization": 'Bearer Valorant-35'
         },
       );
-      if (response.body ==
-          "\"failed to parse filter (in.))\" (line 1, column 4)") {
-        return ("false");
-      }
       if (response.statusCode == 200 || response.statusCode == 202) {
         return (response.body);
       } else {
+        _logger.e(
+            "calendarValues failed with status code ${response.statusCode}: ${response.body}");
         return "false";
       }
     } catch (e) {
+      _logger.e(e.toString());
       return "false";
     }
   }
@@ -506,11 +597,11 @@ class ApiService {
     Client? client,
   }) async {
 ////////////////////////// test
-    String dateString1 = '2023-01-01 01:00:00.000';
-    DateTime begin = DateTime.parse(dateString1);
+    // String dateString1 = '2023-01-01 01:00:00.000';
+    // DateTime begin = DateTime.parse(dateString1);
 
-    String dateString = '2023-02-30 23:00:00.000';
-    DateTime end = DateTime.parse(dateString);
+    // String dateString = '2023-02-30 23:00:00.000';
+    // DateTime end = DateTime.parse(dateString);
 ////////////////////////// end test
 
     String beginTimeStamp = DateFormat("yyyy-MM-dd").format(begin.toUtc());
@@ -519,7 +610,7 @@ class ApiService {
 
     String id;
     if (userId == -1) {
-      id = '31';
+      return "false";
     } else {
       id = userId.toString();
     }
@@ -538,9 +629,11 @@ class ApiService {
       if (response.statusCode == 200 || response.statusCode == 202) {
         return (response.body);
       } else {
+        _logger.e("map value ${response.statusCode}: ${response.body}");
         return "false";
       }
     } catch (e) {
+      _logger.e(e.toString());
       return "false";
     }
   }
@@ -557,11 +650,11 @@ class ApiService {
     Client? client,
   }) async {
 ////////////////////////// test
-    String dateString1 = '2023-01-01 01:00:00.000';
-    DateTime begin = DateTime.parse(dateString1);
+    // String dateString1 = '2023-01-01 01:00:00.000';
+    // DateTime begin = DateTime.parse(dateString1);
 
-    String dateString = '2023-02-30 23:00:00.000';
-    DateTime end = DateTime.parse(dateString);
+    // String dateString = '2023-02-30 23:00:00.000';
+    // DateTime end = DateTime.parse(dateString);
 ////////////////////////// end test
 
     String beginTimeStamp = DateFormat("yyyy-MM-dd").format(begin.toUtc());
@@ -570,7 +663,7 @@ class ApiService {
 
     String id;
     if (userId == -1) {
-      id = '31';
+      return (-1);
     } else {
       id = userId.toString();
     }
@@ -595,9 +688,11 @@ class ApiService {
         }
         return (tt);
       } else {
+        _logger.e("nbDelivery ${response.statusCode}: ${response.body}");
         return -1;
       }
     } catch (e) {
+      _logger.e(e.toString());
       return -1;
     }
   }

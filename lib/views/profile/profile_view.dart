@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 import 'package:diagora/services/api_service.dart';
-import 'package:diagora/views/home/profile/change_password.dart';
+import 'package:diagora/views/profile/change_password.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
@@ -26,10 +26,9 @@ class _ProfileViewState extends State<ProfileView> {
   dynamic userData;
   File? _image;
 
-  Future<void> _pickImage() async {
+  Future<void> _pickImage(ImageSource source) async {
     final imagePicker = ImagePicker();
-    final pickedImage =
-        await imagePicker.pickImage(source: ImageSource.gallery);
+    final pickedImage = await imagePicker.pickImage(source: source);
 
     if (pickedImage != null) {
       setState(() {
@@ -37,6 +36,18 @@ class _ProfileViewState extends State<ProfileView> {
       });
     }
   }
+
+  // Future<void> _pickImage() async {
+  //   final imagePicker = ImagePicker();
+  //   final pickedImage =
+  //       await imagePicker.pickImage(source: ImageSource.gallery);
+
+  //   if (pickedImage != null) {
+  //     setState(() {
+  //       _image = File(pickedImage.path);
+  //     });
+  //   }
+  // }
 
   String capitalizeFirstLetter(String input) {
     if (input.isEmpty) {
@@ -54,7 +65,20 @@ class _ProfileViewState extends State<ProfileView> {
     email = userData['email'];
 
     permissionsData = _api.permissions?.toJson();
-    permissions = permissionsData['permissions'] ?? 'null';
+    permissions = permissionsData['permissions'] ?? 'user';
+  }
+
+  void _showImageSourcePicker() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return ImageSourcePicker(
+          onImageSourceSelected: (source) {
+            _pickImage(source);
+          },
+        );
+      },
+    );
   }
 
   @override
@@ -67,24 +91,22 @@ class _ProfileViewState extends State<ProfileView> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CircleAvatar(
-              radius: 80,
-              backgroundColor: Colors.grey,
-              backgroundImage: _image != null ? FileImage(_image!) : null,
-              child: _image == null
-                  ? const Icon(
-                      Icons.person,
-                      size: 80,
-                      color: Colors.white,
-                    )
-                  : null,
+            GestureDetector(
+              onTap: _showImageSourcePicker,
+              child: CircleAvatar(
+                radius: 80,
+                backgroundColor: Colors.grey,
+                backgroundImage: _image != null ? FileImage(_image!) : null,
+                child: _image == null
+                    ? const Icon(
+                        Icons.person,
+                        size: 80,
+                        color: Colors.white,
+                      )
+                    : null,
+              ),
             ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _pickImage,
-              child: const Text('Change Profile Picture'),
-            ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 50),
             Text(
               'Username: $username',
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -111,6 +133,42 @@ class _ProfileViewState extends State<ProfileView> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class ImageSourcePicker extends StatelessWidget {
+  final Function(ImageSource) onImageSourceSelected;
+
+  const ImageSourcePicker({super.key, required this.onImageSourceSelected});
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text(
+        'Select Image Source',
+        textAlign: TextAlign.center,
+      ),
+      content: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          ElevatedButton(
+            onPressed: () {
+              onImageSourceSelected(ImageSource.gallery);
+              Navigator.of(context).pop();
+            },
+            child: const Text('Gallery'),
+          ),
+          const SizedBox(width: 15),
+          ElevatedButton(
+            onPressed: () {
+              onImageSourceSelected(ImageSource.camera);
+              Navigator.of(context).pop();
+            },
+            child: const Text('Camera'),
+          ),
+        ],
       ),
     );
   }

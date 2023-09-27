@@ -136,20 +136,57 @@ class _CalendarPageState extends State<CalendarPage> {
             },
             onDaySelected: _onDaySelected,
           ),
-          Text("On ${DateFormat('EEEE, MMM d, yyyy').format(today)}"),
+          Container(
+            margin: const EdgeInsets.only(top: 10.0, bottom: 10.0),
+            child: Text(
+              "On ${DateFormat('EEEE, MMM d, yyyy').format(today)}",
+              style: const TextStyle(
+                fontSize: 16,
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
           TextButton(
-              onPressed: () => {
-                    setState(() {
-                      today = DateTime.now();
-                      _onDaySelected(today, today);
-                    })
-                  },
-              child: const Text("Back to Today")),
+            onPressed: () => {
+              setState(() {
+                today = DateTime.now();
+                _onDaySelected(today, today);
+              })
+            },
+            child: Container(
+              padding: const EdgeInsets.all(12.0),
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Colors.blue,
+                  width: 2,
+                ),
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+              child: const Text(
+                "Back to Today",
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Colors.blue,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
           Expanded(
-            child: deliveryToday
-                ? MyListWidget(items: calendarList, today: today)
-                : const Text("No delivery for today"),
-          )
+              child: deliveryToday
+                  ? MyListWidget(items: calendarList, today: today)
+                  : const Center(
+                      child: Text(
+                        "No delivery for today",
+                        style: TextStyle(
+                          fontSize: 20,
+                          color: Color.fromARGB(255, 0, 0, 0),
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ))
         ],
       ),
     );
