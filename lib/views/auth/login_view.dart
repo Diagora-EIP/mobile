@@ -1,3 +1,4 @@
+import 'package:diagora/views/loading/loading_view.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 
@@ -68,12 +69,12 @@ class _LoginViewState extends State<LoginView> {
                     _formKey.currentState!.save();
                     bool returnValue = await _api.login(_email, _password);
                     if (returnValue) {
-                      await _api.fetchPermissions(userId: _api.user!.id);
+                      await _api.fetchPermissions();
                       // ignore: use_build_context_synchronously
                       Navigator.pushAndRemoveUntil(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const WrapperView(),
+                          builder: (context) => const LoadingView(),
                         ),
                         (route) => false,
                       );

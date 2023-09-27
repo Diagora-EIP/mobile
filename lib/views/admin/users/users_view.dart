@@ -122,23 +122,27 @@ class UsersViewState extends State<UsersView> {
                   ],
                   const Divider(),
                   ListTile(
-                    title: Text(user.name),
-                    subtitle: Text(user.email),
-                    leading: // Avatar
-                        CircleAvatar(
-                      backgroundColor: Colors.grey,
-                      child: Text(
-                        user.name[0].toUpperCase() + user.name[1].toUpperCase(),
-                        style: const TextStyle(color: Colors.white),
+                      title: Text(user.name),
+                      subtitle: Text(user.email),
+                      leading: // Avatar
+                          CircleAvatar(
+                        backgroundColor: Colors.grey,
+                        child: Text(
+                          user.name.length == 1
+                              ? user.name.toUpperCase()
+                              : user.name[0].toUpperCase() +
+                                  user.name[1].toUpperCase(),
+                          style: const TextStyle(color: Colors.white),
+                        ),
                       ),
-                    ),
-                    onTap: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => UserView(user: user),
-                              ),
-                            ),
-                  ),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => UserView(user: user),
+                          ),
+                        );
+                      }),
                 ],
               ] else ...[
                 const SizedBox(height: 60),

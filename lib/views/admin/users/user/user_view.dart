@@ -99,7 +99,7 @@ class UserViewState extends State<UserView> {
         });
       }
       _user.name = _nameController.text;
-      _apiService.patchUser(_user).then((succeed) {
+      _apiService.patchUser(_user, userId: _user.id).then((succeed) {
         if (succeed) {
           if (_permissions == null) {
             Navigator.of(context).pop(true);
@@ -272,7 +272,8 @@ class UserViewState extends State<UserView> {
                                 onPressed: () {
                                   Navigator.of(context).push(
                                     MaterialPageRoute(
-                                      builder: (context) => SchedulesView(_user.id),
+                                      builder: (context) =>
+                                          SchedulesView(_user.id),
                                     ),
                                   );
                                 },

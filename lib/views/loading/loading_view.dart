@@ -42,7 +42,7 @@ class LoadingViewState extends State<LoadingView> {
         (route) => false,
       );
     } else {
-      await _api.fetchPermissions(userId: _api.user!.id);
+      await _api.fetchPermissions();
       if (_api.permissions != null) {
         // ignore: use_build_context_synchronously
         Navigator.pushAndRemoveUntil(
@@ -62,6 +62,14 @@ class LoadingViewState extends State<LoadingView> {
               'Une erreur est survenue lors de la connexion à l\'application. Veuillez réessayer.',
             ),
             actions: [
+              TextButton(
+                onPressed: () async {
+                  Navigator.pop(context);
+                  await _api.logout();
+                  redirect();
+                },
+                child: Text('Se déconnecter', style: TextStyle(color: Colors.red)),
+              ),
               TextButton(
                 onPressed: () {
                   Navigator.pop(context);

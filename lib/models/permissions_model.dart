@@ -43,7 +43,6 @@ class Permissions {
 
   static PermissionType? _parsePermissionType(String? value) {
     if (value == null) return null;
-
     switch (value) {
       case 'admin':
         return PermissionType.admin;

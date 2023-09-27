@@ -125,6 +125,7 @@ class ApiService {
         dynamic responseData = json.decode(response.body);
         _prefs?.setString('token', responseData['token']);
         _token = responseData['token'];
+        print(_token);
         _prefs?.setString('user', json.encode(responseData['user']));
         _user = User.fromJson(responseData['user']);
         _logger.i(responseData);
@@ -235,20 +236,17 @@ class ApiService {
       userId ??= _user?.id;
       client ??= _httpClient;
       Uri url = ApiRoutes.route(
-          ApiRoutes.permissionRoute.replaceAll(':id', userId.toString()));
+          ApiRoutes.userPermissionsRoute.replaceAll(':id', userId.toString()));
       Response response = await client.get(
         url,
         headers: {
-          'Content-Type': 'application/json',
           "Authorization": "Bearer Valorant-35"
         },
       );
       if (response.statusCode == 200 || response.statusCode == 202) {
         dynamic responseData = json.decode(response.body);
-        if (user != null && userId == _user?.id) {
-          _permissions = Permissions.fromJson(responseData);
-        }
         _logger.i(responseData);
+        _permissions = Permissions.fromJson(responseData);
         return (_permissions);
       } else {
         _logger.e(
@@ -256,7 +254,7 @@ class ApiService {
         return (null);
       }
     } catch (e) {
-      _logger.e(e.toString());
+      _logger.e(e);
       return (null);
     }
   }
@@ -280,7 +278,10 @@ class ApiService {
           ApiRoutes.permissionRoute.replaceAll(':id', userId.toString()));
       Response response = await client.patch(
         url,
-        headers: {"Authorization": "Bearer Valorant-35", "Content-Type": "application/json"},
+        headers: {
+          "Authorization": "Bearer Valorant-35",
+          "Content-Type": "application/json"
+        },
         body: json.encode(permissionData.toJson()),
       );
       if (response.statusCode == 200 || response.statusCode == 202) {
@@ -355,7 +356,10 @@ class ApiService {
           ApiRoutes.userRoute.replaceAll(':id', userId.toString()));
       Response response = await client.patch(
         url,
-        headers: {"Authorization": "Bearer $_token", "Content-Type": "application/json"},
+        headers: {
+          "Authorization": "Bearer Valorant-35",
+          "Content-Type": "application/json"
+        },
         body: json.encode(userData.toJson()),
       );
       if (response.statusCode == 200) {
@@ -478,7 +482,9 @@ class ApiService {
           'MAILJET_API_SECRET': 'c1582325f03a0be32490c4af7c012350'
         },
       );
-      if (response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 204) {
+      if (response.statusCode == 200 ||
+          response.statusCode == 201 ||
+          response.statusCode == 204) {
         // dynamic responseData = json.decode(response.body);
         // _logger.i(responseData);
         return true;
@@ -512,9 +518,7 @@ class ApiService {
       Response response = await client.post(
         url,
         body: json.encode(
-          {
-            'password': newPassword
-          },
+          {'password': newPassword},
         ),
         headers: {
           'Content-Type': 'application/json',
@@ -556,7 +560,7 @@ class ApiService {
 
     String id;
     if (userId == -1) {
-        return "false";
+      return "false";
     } else {
       id = userId.toString();
     }
@@ -569,7 +573,7 @@ class ApiService {
         url,
         headers: {
           'Content-Type': 'application/json',
-          "Authorization": 'Bearer Valorant-35'
+          "Authorization": "Bearer Valorant-35"
         },
       );
       if (response.statusCode == 200 || response.statusCode == 202) {

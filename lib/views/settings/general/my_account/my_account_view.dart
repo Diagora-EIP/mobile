@@ -71,6 +71,7 @@ class MyAccountViewState extends State<MyAccountView> {
           loading = true;
         });
       }
+      _user.name = _nameController.text;
       _apiService.patchUser(_user).then((succeed) {
         if (succeed) {
           Navigator.of(context).pop(true);
