@@ -7,7 +7,7 @@ import 'package:diagora/views/home/home.dart';
 import 'package:diagora/views/auth/register_view.dart';
 import 'package:diagora/views/admin/admin_view.dart';
 import 'package:diagora/views/manage/manage_view.dart';
-import 'package:diagora/views/home/profile/profile_view.dart';
+import 'package:diagora/views/profile/profile_view.dart';
 import 'package:diagora/views/settings/settings_view.dart';
 
 class WrapperView extends StatefulWidget {
