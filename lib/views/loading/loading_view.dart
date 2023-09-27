@@ -68,7 +68,7 @@ class LoadingViewState extends State<LoadingView> {
                   await _api.logout();
                   redirect();
                 },
-                child: Text('Se déconnecter', style: TextStyle(color: Colors.red)),
+                child: const Text('Se déconnecter', style: TextStyle(color: Colors.red)),
               ),
               TextButton(
                 onPressed: () {

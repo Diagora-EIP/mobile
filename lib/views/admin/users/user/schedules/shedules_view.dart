@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'package:intl/intl.dart';
+
+import 'package:flutter_datetime_picker_plus/flutter_datetime_picker_plus.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_map/flutter_map.dart';
@@ -44,6 +46,9 @@ class SchedulesViewState extends State<SchedulesView> {
   bool deliveryToday = true;
   int userId = -1;
 
+  final TextEditingController _dateBeginController = TextEditingController();
+  final TextEditingController _dateEndController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
@@ -53,6 +58,7 @@ class SchedulesViewState extends State<SchedulesView> {
     userId = widget.userId;
     allTodaysValues = _api.calendarValues(todayStart, todayEnd, userId);
     allTodaysValues.then((value) {
+      print(value);
       setState(() {
         todayValueString = value;
         deliveryToday = true;
@@ -74,7 +80,6 @@ class SchedulesViewState extends State<SchedulesView> {
     Future<String> allTodaysValues =
         _api.calendarValues(todayStart, todayEnd, userId);
     allTodaysValues.then((value) {
-      print(value);
       if (mounted) {
         setState(() {
           todayValueString = value;
@@ -115,11 +120,177 @@ class SchedulesViewState extends State<SchedulesView> {
     });
   }
 
+  void openModalSchedule({schedule}) async {
+    String action = schedule == null ? 'Add' : 'Edit';
+    var scheduleData = {
+      "name": schedule == null ? "" : schedule["name"],
+      "address": schedule == null ? "" : schedule["address"],
+      "begin": schedule == null ? "" : schedule["begin"],
+      "end": schedule == null ? "" : schedule["end"],
+    };
+    if (scheduleData["begin"] == "") {
+      _dateBeginController.text = DateFormat('dd/MM/yyyy hh:mm aaa').format(new DateTime.now());
+    } else {
+      _dateBeginController.text = DateFormat('dd/MM/yyyy hh:mm aaa').format(DateTime.parse(scheduleData["begin"]));
+    }
+    if (scheduleData["end"] == "") {
+      _dateEndController.text = DateFormat('dd/MM/yyyy hh:mm aaa').format(new DateTime.now());
+    } else {
+      _dateEndController.text = DateFormat('dd/MM/yyyy hh:mm aaa').format(DateTime.parse(scheduleData["end"]));
+    }
+    if (schedule != null) {
+      scheduleData["schedule_id"] = schedule["schedule_id"];
+    }
+    await showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Form
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Form(
+                child: Column(
+                  children: [
+                    TextFormField(
+                      initialValue: scheduleData["name"],
+                      decoration: const InputDecoration(
+                        labelText: 'Name',
+                      ),
+                      onChanged: (value) {
+                        scheduleData["name"] = value;
+                      },
+                    ),
+                    TextFormField(
+                      initialValue: scheduleData["address"],
+                      decoration: const InputDecoration(
+                        labelText: 'Address',
+                      ),
+                      onChanged: (value) {
+                        scheduleData["address"] = value;
+                      },
+                    ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            readOnly: true,
+                            controller: _dateBeginController,
+                            onTap: () =>
+                                selectDateTime(context, "begin", scheduleData),
+                            decoration: const InputDecoration(
+                              labelText: "Begin",
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: TextFormField(
+                            readOnly: true,
+                            controller: _dateEndController,
+                            onTap: () =>
+                                selectDateTime(context, "end", scheduleData),
+                            decoration: const InputDecoration(
+                              labelText: "End",
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            // Submit btn
+            Container(
+              width: double.infinity,
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: OutlinedButton(
+                  onPressed: () async {
+                    try {
+                      await submitSchedule(scheduleData);
+                      Navigator.pop(context);
+                    } catch (e) {
+                      print(e);
+                    }
+                  },
+                  child: Text(action),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void selectDateTime(BuildContext context, String field,
+      Map<String, dynamic> scheduleData) async {
+    DateTime begin = scheduleData["begin"] != ""
+        ? DateTime.parse(scheduleData["begin"])
+        : DateTime.now();
+    DateTime end = scheduleData["end"] != ""
+        ? DateTime.parse(scheduleData["end"])
+        : DateTime.now();
+    final DateTime? pickedDate = await DatePicker.showDateTimePicker(
+      context,
+      showTitleActions: true,
+      currentTime: field == "begin" ? begin : end,
+      locale: LocaleType.en,
+    );
+    if (pickedDate != null) {
+      if (field == "begin") {
+        if (mounted) {
+          setState(() {
+            scheduleData["begin"] = pickedDate.toString();
+            _dateBeginController.text =
+                DateFormat('dd/MM/yyyy hh:mm aaa').format(pickedDate);
+          });
+        }
+      } else {
+        if (mounted) {
+          setState(() {
+            scheduleData["end"] = pickedDate.toString();
+            _dateEndController.text =
+                DateFormat('dd/MM/yyyy hh:mm aaa').format(pickedDate);
+          });
+        }
+      }
+    }
+  }
+
+  Future<void> submitSchedule(Map<String, dynamic> scheduleData) async {
+    bool returned = false;
+    if (scheduleData["schedule_id"] == null) {
+      returned = await _api.addUserSchedule(userId, scheduleData);
+    } else {
+      // returned = await _api.editUserSchedule(userId, scheduleData);
+    }
+    if (!returned) {
+      throw Exception('Error while adding schedule');
+    }
+    setState(() {
+      today = DateTime.now();
+      _onDaySelected(today, today);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Calendar'),
+        // On right, add a + button to add a new schedule
+        actions: <Widget>[
+          IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: () => openModalSchedule(),
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -145,15 +316,43 @@ class SchedulesViewState extends State<SchedulesView> {
             },
             onDaySelected: _onDaySelected,
           ),
-          Text("On ${DateFormat('EEEE, MMM d, yyyy').format(today)}"),
+          Container(
+            margin: const EdgeInsets.only(top: 10.0, bottom: 10.0),
+            child: Text(
+              "On ${DateFormat('EEEE, MMM d, yyyy').format(today)}",
+              style: const TextStyle(
+                fontSize: 16,
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
           TextButton(
-              onPressed: () => {
-                    setState(() {
-                      today = DateTime.now();
-                      _onDaySelected(today, today);
-                    })
-                  },
-              child: const Text("Back to Today")),
+            onPressed: () => {
+              setState(() {
+                today = DateTime.now();
+                _onDaySelected(today, today);
+              })
+            },
+            child: Container(
+              padding: const EdgeInsets.all(12.0),
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Colors.blue,
+                  width: 2,
+                ),
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+              child: const Text(
+                "Back to Today",
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Colors.blue,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
           Expanded(
             child: deliveryToday
                 ? MyListWidget(items: calendarList, today: today)

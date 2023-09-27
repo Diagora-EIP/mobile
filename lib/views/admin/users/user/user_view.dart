@@ -101,6 +101,11 @@ class UserViewState extends State<UserView> {
       _user.name = _nameController.text;
       _apiService.patchUser(_user, userId: _user.id).then((succeed) {
         if (succeed) {
+          if (mounted) {
+            setState(() {
+              widget.user.name = _user.name;
+            });
+          }
           if (_permissions == null) {
             Navigator.of(context).pop(true);
           } else {
@@ -260,7 +265,7 @@ class UserViewState extends State<UserView> {
                       ),
                       ListTile(
                         contentPadding: EdgeInsets.zero,
-                        title: Text("Manage schedules",
+                        title: Text("Manage calendar",
                             style: loading
                                 ? const TextStyle(color: Colors.grey)
                                 : null),

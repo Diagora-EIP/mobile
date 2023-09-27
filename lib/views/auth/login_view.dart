@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 
 import 'package:diagora/services/api_service.dart';
-import 'package:diagora/views/wrapper/wrapper_view.dart';
 import 'package:diagora/views/auth/password_forgotten_view.dart';
 
 class LoginView extends StatefulWidget {

@@ -37,7 +37,7 @@ class ApiRoutes {
   static const String companyRoute = '/company/:id'; // GET, PATCH, DELETE
   // Événement(s)
   static const String userScheduleRoute =
-      '/user/:user_id/schedule'; // GET, PATCH, DELETE
+      '/user/:user_id/schedule'; // GET, POST
   static const String scheduleRoute =
       '/schedule/:schedule_id'; // GET, PATCH, DELETE
   static const String scheduleAvailableSlotsRoute =
@@ -125,7 +125,6 @@ class ApiService {
         dynamic responseData = json.decode(response.body);
         _prefs?.setString('token', responseData['token']);
         _token = responseData['token'];
-        print(_token);
         _prefs?.setString('user', json.encode(responseData['user']));
         _user = User.fromJson(responseData['user']);
         _logger.i(responseData);
@@ -239,9 +238,7 @@ class ApiService {
           ApiRoutes.userPermissionsRoute.replaceAll(':id', userId.toString()));
       Response response = await client.get(
         url,
-        headers: {
-          "Authorization": "Bearer Valorant-35"
-        },
+        headers: {"Authorization": "Bearer Valorant-35"},
       );
       if (response.statusCode == 200 || response.statusCode == 202) {
         dynamic responseData = json.decode(response.body);
@@ -698,6 +695,40 @@ class ApiService {
     } catch (e) {
       _logger.e(e.toString());
       return -1;
+    }
+  }
+
+  Future<bool> addUserSchedule(
+    int userId,
+    dynamic schedule, {
+    Client? client,
+    bool injectToken = true,
+  }) async {
+    client ??= _httpClient;
+    Uri url = ApiRoutes.route(
+        ApiRoutes.userScheduleRoute.replaceAll(':user_id', userId.toString()));
+    try {
+      // post
+      final response = await client.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          "Authorization": "Bearer Valorant-35"
+        },
+        body: json.encode(schedule),
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        dynamic responseData = json.decode(response.body);
+        _logger.i(responseData);
+        return (true);
+      } else {
+        _logger.e(
+            'addUserSchedule failed with status code ${response.statusCode}: ${response.body}');
+        return (false);
+      }
+    } catch (e) {
+      _logger.e(e.toString());
+      return false;
     }
   }
 }
