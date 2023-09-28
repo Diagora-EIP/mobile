@@ -708,7 +708,6 @@ class ApiService {
     Uri url = ApiRoutes.route(
         ApiRoutes.userScheduleRoute.replaceAll(':user_id', userId.toString()));
     try {
-      // post
       final response = await client.post(
         url,
         headers: {
@@ -720,6 +719,38 @@ class ApiService {
       if (response.statusCode == 200 || response.statusCode == 201) {
         dynamic responseData = json.decode(response.body);
         _logger.i(responseData);
+        return (true);
+      } else {
+        _logger.e(
+            'addUserSchedule failed with status code ${response.statusCode}: ${response.body}');
+        return (false);
+      }
+    } catch (e) {
+      _logger.e(e.toString());
+      return false;
+    }
+  }
+
+  Future<bool> patchSchedule(
+    int scheduleId,
+    dynamic schedule, {
+    Client? client,
+    bool injectToken = true,
+  }) async {
+    client ??= _httpClient;
+    Uri url = ApiRoutes.route(ApiRoutes.scheduleRoute
+        .replaceAll(":schedule_id", scheduleId.toString()));
+    try {
+      final response = await client.patch(
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer Valorant-35"
+        },
+        body: json.encode(schedule),
+      );
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        _logger.i(response.body);
         return (true);
       } else {
         _logger.e(

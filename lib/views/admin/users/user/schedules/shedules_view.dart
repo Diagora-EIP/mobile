@@ -58,7 +58,6 @@ class SchedulesViewState extends State<SchedulesView> {
     userId = widget.userId;
     allTodaysValues = _api.calendarValues(todayStart, todayEnd, userId);
     allTodaysValues.then((value) {
-      print(value);
       setState(() {
         todayValueString = value;
         deliveryToday = true;
@@ -106,13 +105,12 @@ class SchedulesViewState extends State<SchedulesView> {
     List<dynamic> newCalendarList = [];
 
     for (var schedule in scheduleListVal) {
-      DateTime dateTimeBegin = DateTime.parse(schedule["begin"]);
-      DateTime dateTimeEnd = DateTime.parse(schedule["end"]);
       newCalendarList.add([
         schedule["name"],
         schedule["address"],
-        DateFormat('hh:mm aaa').format(dateTimeBegin),
-        DateFormat('hh:mm aaa').format(dateTimeEnd)
+        schedule["begin"],
+        schedule["end"],
+        schedule["schedule_id"],
       ]);
     }
     setState(() {
@@ -129,14 +127,18 @@ class SchedulesViewState extends State<SchedulesView> {
       "end": schedule == null ? "" : schedule["end"],
     };
     if (scheduleData["begin"] == "") {
-      _dateBeginController.text = DateFormat('dd/MM/yyyy hh:mm aaa').format(new DateTime.now());
+      _dateBeginController.text =
+          DateFormat('dd/MM/yyyy hh:mm aaa').format(DateTime.now());
     } else {
-      _dateBeginController.text = DateFormat('dd/MM/yyyy hh:mm aaa').format(DateTime.parse(scheduleData["begin"]));
+      _dateBeginController.text = DateFormat('dd/MM/yyyy hh:mm aaa')
+          .format(DateTime.parse(scheduleData["begin"]));
     }
     if (scheduleData["end"] == "") {
-      _dateEndController.text = DateFormat('dd/MM/yyyy hh:mm aaa').format(new DateTime.now());
+      _dateEndController.text =
+          DateFormat('dd/MM/yyyy hh:mm aaa').format(DateTime.now());
     } else {
-      _dateEndController.text = DateFormat('dd/MM/yyyy hh:mm aaa').format(DateTime.parse(scheduleData["end"]));
+      _dateEndController.text = DateFormat('dd/MM/yyyy hh:mm aaa')
+          .format(DateTime.parse(scheduleData["end"]));
     }
     if (schedule != null) {
       scheduleData["schedule_id"] = schedule["schedule_id"];
@@ -205,7 +207,7 @@ class SchedulesViewState extends State<SchedulesView> {
               ),
             ),
             // Submit btn
-            Container(
+            SizedBox(
               width: double.infinity,
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
@@ -213,8 +215,10 @@ class SchedulesViewState extends State<SchedulesView> {
                   onPressed: () async {
                     try {
                       await submitSchedule(scheduleData);
+                      // ignore: use_build_context_synchronously
                       Navigator.pop(context);
                     } catch (e) {
+                      // ignore: avoid_print
                       print(e);
                     }
                   },
@@ -268,7 +272,7 @@ class SchedulesViewState extends State<SchedulesView> {
     if (scheduleData["schedule_id"] == null) {
       returned = await _api.addUserSchedule(userId, scheduleData);
     } else {
-      // returned = await _api.editUserSchedule(userId, scheduleData);
+      returned = await _api.patchSchedule(scheduleData["schedule_id"], scheduleData);
     }
     if (!returned) {
       throw Exception('Error while adding schedule');
@@ -355,7 +359,10 @@ class SchedulesViewState extends State<SchedulesView> {
           ),
           Expanded(
             child: deliveryToday
-                ? MyListWidget(items: calendarList, today: today)
+                ? MyListWidget(
+                    items: calendarList,
+                    today: today,
+                    modalFn: openModalSchedule)
                 : const Text("No delivery for today"),
           )
         ],
@@ -373,8 +380,13 @@ class SchedulesViewState extends State<SchedulesView> {
 class MyListWidget extends StatelessWidget {
   final List<dynamic> items;
   DateTime today;
+  final Function modalFn;
 
-  MyListWidget({super.key, required this.items, required this.today});
+  MyListWidget(
+      {super.key,
+      required this.items,
+      required this.today,
+      required this.modalFn});
 
   @override
   Widget build(BuildContext context) {
@@ -400,20 +412,40 @@ class MyListWidget extends StatelessWidget {
                 title: Text(items[index][0],
                     style: const TextStyle(fontWeight: FontWeight.bold)),
                 subtitle: Text(items[index][1]),
-                leading: Container(
-                  width: 5.0,
-                  decoration: BoxDecoration(
-                    color: color,
-                    borderRadius: BorderRadius.circular(5.0),
-                  ),
+                leading: // Container and btn next to each other
+                    Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 5.0,
+                      decoration: BoxDecoration(
+                        color: color,
+                        borderRadius: BorderRadius.circular(5.0),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    IconButton(
+                      icon: const Icon(Icons.edit),
+                      onPressed: () {
+                        dynamic schedule = {
+                          "name": items[index][0],
+                          "address": items[index][1],
+                          "begin": items[index][2],
+                          "end": items[index][3],
+                          "schedule_id": items[index][4],
+                        };
+                        modalFn(schedule: schedule);
+                      },
+                    ),
+                  ],
                 ),
                 trailing: Column(
                   children: [
                     Padding(
                       padding: const EdgeInsets.only(bottom: 15.0),
-                      child: Text(items[index][2]),
+                      child: Text(DateFormat('hh:mm aaa').format(DateTime.parse(items[index][2]))),
                     ),
-                    Text(items[index][3]),
+                    Text(DateFormat('hh:mm aaa').format(DateTime.parse(items[index][3]))),
                   ],
                 ),
               ),
