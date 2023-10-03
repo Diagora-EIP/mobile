@@ -1,0 +1,79 @@
+# Diagora | Mobile - CI
+name: Diagora | Mobile - CI
+
+# Controls when the action will run. Triggers the workflow on push or pull request events
+# but only for the CI branch
+on: [push]
+#     branches:
+#       - main
+#       - CI
+#   pull_request:
+#     branches:
+#       - main
+#       - CI
+
+jobs:
+  # Execute the tests
+  # Run condition: push or pull request on the CI branch
+  tests:
+    name: Diagora | Mobile - Tests
+    runs-on: ubuntu-20.04
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    
+    - name: Setup flutter
+      uses: subosito/flutter-action@v1
+
+    - name: Run Test
+      id: tested
+      run: flutter test --coverage
+  
+  # Build and push the docker image
+  # Run condition: push or pull request on the CI branch and tests job is successful
+  Docker:
+    name: Build and Push Docker
+    runs-on: ubuntu-latest
+    needs: tests
+
+    steps:
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v4
+        with:
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/frontend_react:latest
+  
+  # Send a notification on Discord of the triggered error
+  # Run condition: push or pull request on the CI branch and tests job is failed
+  Discord:
+    name: Discord Notification
+    runs-on: ubuntu-latest
+    needs: tests
+    if: |
+      always() &&
+      needs.tests.result == 'failure'
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Action Discord Alert
+      uses: ErnaneJ/action-discord-alerts@main
+      with:
+        webhook: ${{ secrets.DISCORD_WEBHOOK }}
+        color: '16711680'
+        description: 'An error occured during the test of the project or the required coverage is not met'
+        title: 'Diagora - Mobile'
