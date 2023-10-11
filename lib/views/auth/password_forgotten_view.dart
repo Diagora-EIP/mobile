@@ -149,7 +149,7 @@ class _EnterTokenState extends State<EnterToken> {
                       // ignore: use_build_context_synchronously
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('Error'),
+                          content: Text('Error: password must be longer than or equal to 4 characters'),
                         ),
                       );
                     }

@@ -97,26 +97,37 @@ class _MapPageState extends State<MapPage> {
       }
       List<dynamic> responseData = json.decode(response);
 
-      // CHECK OUT LIGNE 65: dynamic traj = responseData[i]['path'][0]['path']; -> [0] MIGHT NEED TO BE IN A LOOP TO GET ALL THE TRAJ OF THE DAY AND NOT JUST THE FIRST ONE
       for (int i = 0; i < responseData.length; i++) {
         coordinates = [];
         dynamic traj = responseData[i]['path'][0]['path'];
+        print("path: ");
+        print(responseData[i]['path'].length);
+
         dynamic stopPoints = responseData[i]['stop_point'];
         for (int a = 0; a < traj.length; a++) {
           coordinates.add(LatLng(traj[a]['lat'], traj[a]['lon']));
         }
+        print("stops: ");
+        print(stopPoints.length);
         for (int a = 0; a < stopPoints.length; a++) {
+          // Get lat/long of the stop point
           String lat = stopPoints[a]['lat'];
           String long = stopPoints[a]['long'];
+          // Change lat/long to double
           double doubleLat = double.parse(lat);
           double doubleLong = double.parse(long);
+          // Create LatLong type
           markerCoordinates = LatLng(doubleLat, doubleLong);
+          // Get address
           String address = stopPoints[a]['autocompleteAdress'];
+          // Get time of the delivery (start/end)
           DateTime begining = DateTime.parse(stopPoints[a]['begin']);
           DateTime ending = DateTime.parse(stopPoints[a]['end']);
+          // Formatize the date
           DateFormat outputFormat = DateFormat('yyyy-MM-dd HH:mm');
           String formattedBegin = outputFormat.format(begining);
           String formattedEnd = outputFormat.format(ending);
+          // Create a marker
           markerCoord.add(Marker(
               width: 80.0,
               height: 80.0,

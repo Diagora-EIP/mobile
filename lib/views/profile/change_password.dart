@@ -62,7 +62,10 @@ class _ChangePasswordState extends State<ChangePassword> {
               const Text("Confirm Your New Password"),
               TextFormField(
                 decoration:
-                    const InputDecoration(labelText: 'Confirm New Password'),
+                    const InputDecoration(
+                  labelText: 'Confirm New Password',
+                  contentPadding: EdgeInsets.only(left: 10),
+                ),
                 obscureText: true,
                 validator: (value) {
                   if (value!.isEmpty) {

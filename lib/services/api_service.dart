@@ -13,6 +13,7 @@ import 'package:diagora/models/permissions_model.dart';
 /// Classe qui contient toutes les routes de l'API. Utilisez [route] pour créer une Uri.
 class ApiRoutes {
   // static const String baseUrl = 'http://20.111.8.106:3000';
+  // static const String baseUrl = 'https://b237-135-180-108-211.ngrok.io';
   static const String baseUrl = 'http://localhost:3000';
   // Authentification
   static const String loginRoute = '/user/login'; // POST
@@ -238,7 +239,7 @@ class ApiService {
           ApiRoutes.userPermissionsRoute.replaceAll(':id', userId.toString()));
       Response response = await client.get(
         url,
-        headers: {"Authorization": "Bearer Valorant-35"},
+        headers: {"Authorization": "Bearer ${_token!}"},
       );
       if (response.statusCode == 200 || response.statusCode == 202) {
         dynamic responseData = json.decode(response.body);
@@ -276,7 +277,7 @@ class ApiService {
       Response response = await client.patch(
         url,
         headers: {
-          "Authorization": "Bearer Valorant-35",
+          "Authorization": "Bearer ${_token!}",
           "Content-Type": "application/json"
         },
         body: json.encode(permissionData.toJson()),
@@ -316,7 +317,7 @@ class ApiService {
         url,
         headers: {
           'Content-Type': 'application/json',
-          "Authorization": "Bearer Valorant-35"
+          "Authorization": "Bearer ${_token!}"
         },
       );
       if (response.statusCode == 200 || response.statusCode == 202) {
@@ -354,7 +355,7 @@ class ApiService {
       Response response = await client.patch(
         url,
         headers: {
-          "Authorization": "Bearer Valorant-35",
+          "Authorization": "Bearer ${_token!}",
           "Content-Type": "application/json"
         },
         body: json.encode(userData.toJson()),
@@ -388,7 +389,7 @@ class ApiService {
         url,
         headers: {
           "Content-Type": "application/json",
-          "Authorization": "Bearer Valorant-35",
+          "Authorization": "Bearer ${_token!}",
         },
       );
       if (response.statusCode == 200 || response.statusCode == 202) {
@@ -523,7 +524,7 @@ class ApiService {
           'MAILJET_API_SECRET': 'c1582325f03a0be32490c4af7c012350'
         },
       );
-      if (response.statusCode == 200 || response.statusCode == 201) {
+      if (response.statusCode == 200) {
         dynamic responseData = json.decode(response.body);
         _logger.i(responseData);
         return true;
@@ -570,7 +571,7 @@ class ApiService {
         url,
         headers: {
           'Content-Type': 'application/json',
-          "Authorization": "Bearer Valorant-35"
+          "Authorization": "Bearer ${_token!}"
         },
       );
       if (response.statusCode == 200 || response.statusCode == 202) {
@@ -598,11 +599,11 @@ class ApiService {
     Client? client,
   }) async {
 ////////////////////////// test
-    // String dateString1 = '2023-01-01 01:00:00.000';
-    // DateTime begin = DateTime.parse(dateString1);
+    String dateString1 = '2023-06-08 16:00:00.000';
+    DateTime begin = DateTime.parse(dateString1);
 
-    // String dateString = '2023-02-30 23:00:00.000';
-    // DateTime end = DateTime.parse(dateString);
+    String dateString = '2023-06-08 20:00:00.000';
+    DateTime end = DateTime.parse(dateString);
 ////////////////////////// end test
 
     String beginTimeStamp = DateFormat("yyyy-MM-dd").format(begin.toUtc());
@@ -624,13 +625,12 @@ class ApiService {
         url,
         headers: {
           'Content-Type': 'application/json',
-          "Authorization": "Bearer Valorant-35"
+          "Authorization": "Bearer ${_token!}"
         },
       );
       if (response.statusCode == 200 || response.statusCode == 202) {
         return (response.body);
       } else {
-        _logger.e("map value ${response.statusCode}: ${response.body}");
         return "false";
       }
     } catch (e) {
@@ -651,11 +651,11 @@ class ApiService {
     Client? client,
   }) async {
 ////////////////////////// test
-    // String dateString1 = '2023-01-01 01:00:00.000';
-    // DateTime begin = DateTime.parse(dateString1);
+    String dateString1 = '2023-06-08 16:00:00.000';
+    DateTime begin = DateTime.parse(dateString1);
 
-    // String dateString = '2023-02-30 23:00:00.000';
-    // DateTime end = DateTime.parse(dateString);
+    String dateString = '2023-06-08 20:00:00.000';
+    DateTime end = DateTime.parse(dateString);
 ////////////////////////// end test
 
     String beginTimeStamp = DateFormat("yyyy-MM-dd").format(begin.toUtc());
@@ -677,7 +677,7 @@ class ApiService {
         url,
         headers: {
           'Content-Type': 'application/json',
-          "Authorization": "Bearer Valorant-35"
+          "Authorization": "Bearer ${_token!}"
         },
       );
       if (response.statusCode == 200 || response.statusCode == 202) {
@@ -689,7 +689,6 @@ class ApiService {
         }
         return (tt);
       } else {
-        _logger.e("nbDelivery ${response.statusCode}: ${response.body}");
         return -1;
       }
     } catch (e) {
@@ -712,7 +711,7 @@ class ApiService {
         url,
         headers: {
           'Content-Type': 'application/json',
-          "Authorization": "Bearer Valorant-35"
+          "Authorization": "Bearer ${_token!}"
         },
         body: json.encode(schedule),
       );
@@ -745,7 +744,7 @@ class ApiService {
         url,
         headers: {
           "Content-Type": "application/json",
-          "Authorization": "Bearer Valorant-35"
+          "Authorization": "Bearer ${_token!}"
         },
         body: json.encode(schedule),
       );
