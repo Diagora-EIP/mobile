@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'package:intl/intl.dart';
@@ -39,6 +40,8 @@ class _MapPageState extends State<MapPage> {
   int userId = -1;
   dynamic userData;
   bool deliveryToday = true;
+
+  String formattedDate = DateFormat('MM-dd-yyyy').format(DateTime.now());
 
   void _showMarkerInfo(String address, String begin, String end) {
     showDialog(
@@ -100,15 +103,10 @@ class _MapPageState extends State<MapPage> {
       for (int i = 0; i < responseData.length; i++) {
         coordinates = [];
         dynamic traj = responseData[i]['path'][0]['path'];
-        print("path: ");
-        print(responseData[i]['path'].length);
-
         dynamic stopPoints = responseData[i]['stop_point'];
         for (int a = 0; a < traj.length; a++) {
           coordinates.add(LatLng(traj[a]['lat'], traj[a]['lon']));
         }
-        print("stops: ");
-        print(stopPoints.length);
         for (int a = 0; a < stopPoints.length; a++) {
           // Get lat/long of the stop point
           String lat = stopPoints[a]['lat'];
@@ -159,11 +157,80 @@ class _MapPageState extends State<MapPage> {
     super.initState();
   }
 
+  void _showDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Change Date'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              const Text('Select a date:'),
+              SizedBox(
+                height: 100,
+                width: 350,
+                child: CupertinoDatePicker(
+                  initialDateTime: today,
+                  onDateTimeChanged: (DateTime newdate) {
+                    setState(() {
+                      today = newdate;
+                      formattedDate =
+                          DateFormat('MM-dd-yyyy').format(today).toString();
+                    });
+                  },
+                  use24hFormat: true,
+                  maximumDate: DateTime.now().add(const Duration(days: 30)),
+                  minimumYear: 2010,
+                  maximumYear: 2025,
+                  minuteInterval: 1,
+                  mode: CupertinoDatePickerMode.date,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Center(
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('Confirm'),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Map'),
+        bottom: PreferredSize(
+          preferredSize:
+              const Size.fromHeight(30.0),
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              formattedDate,
+              style: const TextStyle(
+                  fontSize: 16.0,
+                  fontWeight: FontWeight.w300,
+                  color: Colors.white),
+            ),
+          ),
+        ),
+        actions: <Widget>[
+          IconButton(
+            icon: const Icon(Icons.date_range),
+            onPressed: () {
+              _showDialog(context);
+            },
+          ),
+        ],
       ),
       body: Stack(
         children: [
