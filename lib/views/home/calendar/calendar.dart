@@ -7,6 +7,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 import 'package:diagora/services/api_service.dart';
+import 'package:diagora/views/home/calendar/new_delivery.dart';
 
 import 'dart:math';
 import 'dart:convert';
@@ -111,6 +112,19 @@ class _CalendarPageState extends State<CalendarPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Calendar'),
+        actions: <Widget>[
+          IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const NewDelivery(),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: Column(
         children: [
