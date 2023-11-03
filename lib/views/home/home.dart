@@ -1,3 +1,4 @@
+import 'package:diagora/components/vehicules.dart';
 import 'package:flutter/material.dart';
 
 import 'package:diagora/views/home/map/map.dart';
@@ -111,6 +112,17 @@ class _HomeViewState extends State<HomeView> {
                       context,
                       MaterialPageRoute(
                           builder: (context) => const OrderView()));
+                }),
+                _buildNavigationButton("Vehicules", () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => VehiculesComponent(
+                        userId: userData['user_id'],
+                        pageTitle: 'Vehicules',
+                      ),
+                    ),
+                  );
                 }),
               ],
             );

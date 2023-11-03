@@ -760,4 +760,143 @@ class ApiService {
       return false;
     }
   }
+
+  Future<dynamic> getVehicules({
+    Client? client,
+    bool injectToken = true,
+  }) async {
+    client ??= _httpClient;
+    Uri url = ApiRoutes.route(ApiRoutes.vehiclesRoute);
+    try {
+      final response = await client.get(
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer ${_token!}"
+        },
+      );
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        dynamic responseData = json.decode(response.body);
+        _logger.i(responseData);
+        return (responseData);
+      } else {
+        _logger.e(
+            'getVehicules failed with status code ${response.statusCode}: ${response.body}');
+        return (false);
+      }
+    } catch (e) {
+      _logger.e(e.toString());
+      return false;
+    }
+  }
+
+  Future<dynamic> addVehicule({
+    Client? client,
+    bool injectToken = true,
+    required int userId,
+    required String name,
+    required String dimentions,
+    required int capacity,
+  }) async {
+    client ??= _httpClient;
+    Uri url = ApiRoutes.route(ApiRoutes.vehiclesRoute);
+    try {
+      final response = await client.post(
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer ${_token!}"
+        },
+        body: json.encode({
+          "userId": userId,
+          "name": name,
+          "dimentions": dimentions,
+          "capacity": capacity,
+        }),
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        dynamic responseData = json.decode(response.body);
+        _logger.i(responseData);
+        return (responseData);
+      } else {
+        _logger.e(
+            'addVehicule failed with status code ${response.statusCode}: ${response.body}');
+        return (false);
+      }
+    } catch (e) {
+      _logger.e(e.toString());
+      return false;
+    }
+  }
+
+  Future<dynamic> editVehicule({
+    Client? client,
+    bool injectToken = true,
+    required int vehiculeId,
+    required int userId,
+    required String name,
+    required String dimentions,
+    required int capacity,
+  }) async {
+    client ??= _httpClient;
+    Uri url = ApiRoutes.route(
+        ApiRoutes.vehicleRoute.replaceAll(":id", vehiculeId.toString()));
+    try {
+      final response = await client.patch(
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer ${_token!}"
+        },
+        body: json.encode({
+          "userId": userId,
+          "name": name,
+          "dimentions": dimentions,
+          "capacity": capacity,
+        }),
+      );
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        dynamic responseData = json.decode(response.body);
+        _logger.i(responseData);
+        return (responseData);
+      } else {
+        _logger.e(
+            'editVehicule failed with status code ${response.statusCode}: ${response.body}');
+        return (false);
+      }
+    } catch (e) {
+      _logger.e(e.toString());
+      return false;
+    }
+  }
+
+  Future<bool> deleteVehicule({
+    Client? client,
+    bool injectToken = true,
+    required int vehiculeId,
+  }) async {
+    client ??= _httpClient;
+    Uri url = ApiRoutes.route(
+        ApiRoutes.vehicleRoute.replaceAll(":id", vehiculeId.toString()));
+    try {
+      final response = await client.delete(
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer ${_token!}"
+        },
+      );
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        _logger.i(response.body);
+        return (true);
+      } else {
+        _logger.e(
+            'deleteVehicule failed with status code ${response.statusCode}: ${response.body}');
+        return (false);
+      }
+    } catch (e) {
+      _logger.e(e.toString());
+      return false;
+    }
+  }
 }

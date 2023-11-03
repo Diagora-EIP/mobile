@@ -1,3 +1,4 @@
+import 'package:diagora/components/vehicules.dart';
 import 'package:diagora/models/permissions_model.dart';
 import 'package:diagora/views/admin/users/user/schedules/shedules_view.dart';
 import 'package:flutter/material.dart';
@@ -279,6 +280,29 @@ class UserViewState extends State<UserView> {
                                     MaterialPageRoute(
                                       builder: (context) =>
                                           SchedulesView(_user.id),
+                                    ),
+                                  );
+                                },
+                              ),
+                      ),
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text("Manage vehicules",
+                            style: loading
+                                ? const TextStyle(color: Colors.grey)
+                                : null),
+                        // Button to open schedules view
+                        trailing: loading
+                            ? null
+                            : IconButton(
+                                icon: const Icon(Icons.arrow_forward_ios),
+                                onPressed: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (context) => VehiculesComponent(
+                                        userId: _user.id,
+                                        pageTitle: "Manage vehicules",
+                                      ),
                                     ),
                                   );
                                 },
