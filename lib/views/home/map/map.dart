@@ -238,6 +238,7 @@ class _MapPageState extends State<MapPage> {
             options: MapOptions(
               center: LatLng(51.509364, -0.128928),
               zoom: currentZoom,
+              maxZoom: 17,
               onPositionChanged: (mapPosition, boolValue) {
                 if (mapPosition.zoom! > maxZoom) {
                   setState(() {
@@ -248,11 +249,16 @@ class _MapPageState extends State<MapPage> {
             ),
             children: [
               TileLayer(
-                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                userAgentPackageName: 'com.example.app',
+                  urlTemplate:
+                      'https://api.mapbox.com/styles/v1/diagora/cloj70pd9001f01r7hx2danyp/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiZGlhZ29yYSIsImEiOiJjbG9qNXBwMHcxbjdzMmtvMTkyeGIzYnFjIn0.YAW88p0zcUrGejfjnShxew',
+                  additionalOptions: const {
+                    'accessToken':
+                        'pk.eyJ1IjoiZGlhZ29yYSIsImEiOiJjbG9qNXBwMHcxbjdzMmtvMTkyeGIzYnFjIn0.YAW88p0zcUrGejfjnShxew',
+                    'id': 'mapbox.mapbox-streets-v8',
+                  }
               ),
-              PolylineLayer(polylines: polylines),
-              MarkerLayer(markers: markerCoord)
+              // PolylineLayer(polylines: polylines),
+              // MarkerLayer(markers: markerCoord)
             ],
           ),
         ],

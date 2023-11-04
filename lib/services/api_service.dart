@@ -43,6 +43,7 @@ class ApiRoutes {
   static const String scheduleAvailableSlotsRoute =
       '/schedule/avalaibleSlots/:user_id'; // GET
   // Véhicule(s)
+  static const String userVehiclesRoute = '/user/:user_id/vehicle'; // GET
   static const String vehiclesRoute = '/vehicle'; // GET, POST
   static const String vehicleRoute = '/vehicle/:id'; // GET, PATCH, DELETE
   // Itinéraire(s)
@@ -764,9 +765,11 @@ class ApiService {
   Future<dynamic> getVehicules({
     Client? client,
     bool injectToken = true,
+    required int userId,
   }) async {
     client ??= _httpClient;
-    Uri url = ApiRoutes.route(ApiRoutes.vehiclesRoute);
+    Uri url = ApiRoutes.route(
+        ApiRoutes.userVehiclesRoute.replaceAll(":user_id", userId.toString()));
     try {
       final response = await client.get(
         url,
@@ -778,6 +781,9 @@ class ApiService {
       if (response.statusCode == 200 || response.statusCode == 202) {
         dynamic responseData = json.decode(response.body);
         _logger.i(responseData);
+        if (responseData == "User does not have any vehicle") {
+          return ([]);
+        }
         return (responseData);
       } else {
         _logger.e(

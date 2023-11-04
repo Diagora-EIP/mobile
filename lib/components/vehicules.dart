@@ -31,8 +31,7 @@ class VehiculesComponentState extends State<VehiculesComponent> {
       setState(() {
         fetching = true;
       });
-      data = await _api.getVehicules();
-      print(data);
+      data = await _api.getVehicules(userId: widget.userId);
       setState(() {
         fetching = false;
       });
