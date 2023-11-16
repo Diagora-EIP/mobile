@@ -12,8 +12,8 @@ import 'package:diagora/models/permissions_model.dart';
 
 /// Classe qui contient toutes les routes de l'API. Utilisez [route] pour créer une Uri.
 class ApiRoutes {
-  // static const String baseUrl = 'http://51.103.122.92:3000';
-  static const String baseUrl = 'http://localhost:3000';
+  static const String baseUrl = 'http://51.103.122.92:3000';
+  // static const String baseUrl = 'http://localhost:3000';
   // Authentification
   static const String loginRoute = '/user/login'; // POST
   static const String registerRoute = '/user/register'; // POST
@@ -599,11 +599,11 @@ class ApiService {
     Client? client,
   }) async {
 ////////////////////////// test
-    String dateString1 = '2023-06-08 16:00:00.000';
-    DateTime begin = DateTime.parse(dateString1);
+    // String dateString1 = '2023-06-08 16:00:00.000';
+    // DateTime begin = DateTime.parse(dateString1);
 
-    String dateString = '2023-06-08 20:00:00.000';
-    DateTime end = DateTime.parse(dateString);
+    // String dateString = '2023-06-08 20:00:00.000';
+    // DateTime end = DateTime.parse(dateString);
 ////////////////////////// end test
 
     String beginTimeStamp = DateFormat("yyyy-MM-dd").format(begin.toUtc());
@@ -628,6 +628,8 @@ class ApiService {
           "Authorization": "Bearer ${_token!}"
         },
       );
+      _logger.d(response.statusCode);
+      _logger.d(response.body);
       if (response.statusCode == 200 || response.statusCode == 202) {
         return (response.body);
       } else {
