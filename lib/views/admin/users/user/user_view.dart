@@ -1,9 +1,13 @@
-import 'package:diagora/components/vehicules.dart';
-import 'package:diagora/models/permissions_model.dart';
-import 'package:diagora/views/admin/users/user/schedules/shedules_view.dart';
 import 'package:flutter/material.dart';
+
 import 'package:diagora/services/api_service.dart';
+
+import 'package:diagora/views/admin/users/user/schedules/shedules_view.dart';
+import 'package:diagora/components/vehicules.dart';
+
 import 'package:diagora/models/user_model.dart';
+import 'package:diagora/models/permissions_model.dart';
+import 'package:diagora/models/company_model.dart';
 
 class UserView extends StatefulWidget {
   final User user;
@@ -21,6 +25,7 @@ class UserViewState extends State<UserView> {
   final ApiService _apiService = const ApiService();
   late User _user;
   late Permissions? _permissions;
+  Company? _company;
   bool loading = false;
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
@@ -63,17 +68,58 @@ class UserViewState extends State<UserView> {
     _apiService.fetchPermissions(userId: id).then((permissions) {
       if (mounted) {
         setState(() {
-          loading = false;
+          if (_user.companyId != null && _user.companyId != -1) {
+            fetchUserCompany(_user.companyId!);
+          } else {
+            loading = false;
+          }
           _permissions = permissions;
           _nameController.text = _user.name;
           _emailController.text = _user.email;
           _permissionController.text =
               _permissions?.permissions.toString() ?? 'null';
+          if (_permissions?.isAdmin == true) {
+            _permissionController.text = 'PermissionType.admin';
+          }
+          // else if (_permissions?.isManager == true) {
+          //   _permissionController.text = 'PermissionType.manager';
+          // }
+          else if (_permissions?.isUser == true) {
+            _permissionController.text = 'PermissionType.user';
+          } else {
+            _permissionController.text = 'null';
+          }
           if (_user.createdAt != null) {
             creationDate =
                 'Account created the ${_user.createdAt!.day.toString().padLeft(2, '0')}/${_user.createdAt!.month.toString().padLeft(2, '0')}/${_user.createdAt!.year}';
           }
         });
+      }
+    });
+  }
+
+  void fetchUserCompany(int id) {
+    if (mounted) {
+      setState(() {
+        loading = true;
+      });
+    }
+    _apiService.fetchCompany(id).then((company) {
+      if (company != null) {
+        if (mounted) {
+          setState(() {
+            _company = company;
+            loading = false;
+          });
+        }
+      } else {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('An error occured while fetching the company.'),
+            duration: Duration(seconds: 2),
+          ),
+        );
       }
     });
   }
@@ -127,6 +173,20 @@ class UserViewState extends State<UserView> {
             }
             dynamic data = _permissions?.toJson();
             data['permissions'] = newPermission;
+            switch (data['permissions']) {
+              case 'admin':
+                data['isAdmin'] = true;
+                data['isUser'] = true;
+                break;
+              case 'manager':
+                data['isAdmin'] = false;
+                data['isUser'] = true;
+                break;
+              case 'user':
+                data['isAdmin'] = false;
+                data['isUser'] = true;
+                break;
+            }
             _apiService
                 .patchPermissions(Permissions.fromJson(data),
                     userId: _permissions?.id)
@@ -236,10 +296,10 @@ class UserViewState extends State<UserView> {
                               value: 'PermissionType.admin',
                               child: Text('Admin'),
                             ),
-                            DropdownMenuItem(
-                              value: 'PermissionType.manager',
-                              child: Text('Manager'),
-                            ),
+                            // DropdownMenuItem(
+                            //   value: 'PermissionType.manager',
+                            //   child: Text('Manager'),
+                            // ),
                             DropdownMenuItem(
                               value: 'PermissionType.user',
                               child: Text('User'),
@@ -262,6 +322,19 @@ class UserViewState extends State<UserView> {
                                     }
                                   }
                                 },
+                        ),
+                      ),
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text("Company",
+                            style: loading || _company == null
+                                ? const TextStyle(color: Colors.grey)
+                                : null),
+                        trailing: Text(
+                          _company?.name ?? 'None',
+                          style: loading || _company == null
+                              ? const TextStyle(color: Colors.grey)
+                              : null,
                         ),
                       ),
                       ListTile(

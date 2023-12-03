@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 
 import 'package:diagora/services/api_service.dart';
-import 'package:diagora/models/permissions_model.dart';
 
 import 'package:diagora/views/home/home.dart';
 import 'package:diagora/views/auth/register_view.dart';
 import 'package:diagora/views/admin/admin_view.dart';
-import 'package:diagora/views/manage/manage_view.dart';
+// import 'package:diagora/views/manage/manage_view.dart';
 import 'package:diagora/views/profile/profile_view.dart';
 import 'package:diagora/views/settings/settings_view.dart';
 
@@ -30,38 +29,39 @@ class WrapperViewState extends State<WrapperView> {
 
   /// Initialise les onglets en fonction des permissions de l'utilisateur pour remplir la liste [_finalTabs].
   void initViews() {
-    switch (_api.permissions?.permissions) {
-      case PermissionType.admin: // Si l'utilisateur est un admin
-        _finalTabs.addAll([
-          const HomeView(),
-          const AdminView(),
-          const ProfileView(),
-          SettingsView(
-            logout: logout,
-          ),
-        ]);
-        showAdmin = true;
-        break;
-      case PermissionType.manager: // Si l'utilisateur est un manager
-        _finalTabs.addAll([
-          const HomeView(),
-          const ManageView(),
-          const ProfileView(),
-          SettingsView(
-            logout: logout,
-          ),
-        ]);
-        showManage = true;
-        break;
-      default: // Si l'utilisateur est un utilisateur normal
-        _finalTabs.addAll([
-          const HomeView(),
-          const ProfileView(),
-          SettingsView(
-            logout: logout,
-          ),
-        ]);
-        break;
+    if (_api.permissions?.isAdmin == true) {
+      // Si l'utilisateur est un admin
+      _finalTabs.addAll([
+        const HomeView(),
+        const AdminView(),
+        const ProfileView(),
+        SettingsView(
+          logout: logout,
+        ),
+      ]);
+      showAdmin = true;
+    }
+    // else if (_api.permissions?.isManager == true) {
+    //   // Si l'utilisateur est un manager
+    //   _finalTabs.addAll([
+    //     const HomeView(),
+    //     const ManageView(),
+    //     const ProfileView(),
+    //     SettingsView(
+    //       logout: logout,
+    //     ),
+    //   ]);
+    //   showManage = true;
+    // }
+    else {
+      // Si l'utilisateur est un utilisateur normal
+      _finalTabs.addAll([
+        const HomeView(),
+        const ProfileView(),
+        SettingsView(
+          logout: logout,
+        ),
+      ]);
     }
   }
 
