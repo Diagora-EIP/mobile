@@ -54,6 +54,7 @@ dependencies:
   provider: ^6.0.5
   flutter_datetime_picker_plus: ^2.1.0
   accordion: ^2.6.0
+  fl_chart: ^0.64.0
 
 dev_dependencies:
   coverage: ^1.6.3

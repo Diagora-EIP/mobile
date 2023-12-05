@@ -1,6 +1,7 @@
 enum PermissionType {
   admin,
   manager,
+  client,
   user,
 }
 
@@ -10,6 +11,7 @@ class Permissions {
   final DateTime? createdAt;
   final bool isAdmin;
   final bool isUser;
+  final bool isClient;
   final PermissionType? permissions;
 
   Permissions({
@@ -17,6 +19,7 @@ class Permissions {
     this.createdAt,
     this.isAdmin = false,
     this.isUser = false,
+    this.isClient = false,
     this.permissions,
   });
 
@@ -26,6 +29,7 @@ class Permissions {
       createdAt: DateTime.parse(json['created_at'] ?? DateTime(0).toString()),
       isAdmin: json['isAdmin'] ?? false,
       isUser: json['isUser'] ?? false,
+      isClient: false,
       permissions: _parsePermissionType(json['permissions']),
     );
     return permissions;
@@ -37,6 +41,7 @@ class Permissions {
       'created_at': createdAt?.toIso8601String(),
       'isAdmin': isAdmin,
       'isUser': isUser,
+      'isClient': isClient,
       'permissions': permissions?.toString().split('.').last,
     };
   }
@@ -48,6 +53,8 @@ class Permissions {
         return PermissionType.admin;
       case 'manager':
         return PermissionType.manager;
+      case 'client':
+        return PermissionType.client;
       case 'user':
         return PermissionType.user;
       default:
