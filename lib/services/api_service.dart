@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:diagora/models/company_model.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart';
 import 'package:logger/logger.dart';
@@ -26,7 +27,7 @@ class ApiRoutes {
       '/user/reset-password-generate';
 
   // User(s)
-  static const String usersRoute = '/user'; // GET
+  static const String usersRoute = '/user/all'; // GET
   static const String userRoute = '/user/:id'; // GET, PATCH, DELETE
   static const String userPermissionsRoute = '/user/permissions/:id'; // GET
   // Permissions
@@ -35,6 +36,7 @@ class ApiRoutes {
   // Entreprise(s)
   static const String companiesRoute = '/company'; // GET, POST
   static const String companyRoute = '/company/:id'; // GET, PATCH, DELETE
+  static const String companyVehicleRoute = '/company/:id/vehicle'; // GET, PATCH
   // Événement(s)
   static const String userScheduleRoute =
       '/user/:user_id/schedule'; // GET, POST
@@ -133,6 +135,7 @@ class ApiService {
         return true;
       } else {
         _logger.e('Login failed with status code ${response.statusCode}');
+        _logger.e(response.body);
         return false;
       }
     } catch (e) {
@@ -398,11 +401,10 @@ class ApiService {
         for (var user in responseData["users"]) {
           users.add(User.fromJson(user));
         }
-        _logger.i(responseData);
         return (users);
       } else {
         _logger.e(
-            'patchUser failed with status code ${response.statusCode}: ${response.body}');
+            'fetchUsers failed with status code ${response.statusCode}: ${response.body}');
         return (null);
       }
     } catch (e) {
@@ -905,6 +907,166 @@ class ApiService {
     } catch (e) {
       _logger.e(e.toString());
       return false;
+    }
+  }
+
+  /// Permet de récupérer toutes les entreprises.
+  ///
+  /// Peut prendre en paramètre un [client] qui est un [Client].
+  ///
+  /// Retourne une [List] de [Company]. Si la requête échoue, retourne null.
+  Future<List<Company>?> fetchCompanies({
+    Client? client,
+  }) async {
+    try {
+      client ??= _httpClient;
+      Uri url = ApiRoutes.route(ApiRoutes.companiesRoute);
+      Response response = await client.get(
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer ${_token!}",
+        },
+      );
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        dynamic responseData = json.decode(response.body);
+        _logger.i(responseData);
+        List<Company> companies = [];
+        for (var company in responseData) {
+          companies.add(Company.fromJson(company));
+        }
+        return (companies);
+      } else {
+        _logger.e(
+            'fetchCompanies failed with status code ${response.statusCode}: ${response.body}');
+        return (null);
+      }
+    } catch (e) {
+      _logger.e(e.toString());
+      return (null);
+    }
+  }
+
+  /// Permet de récupérer une entreprise.
+  ///
+  /// Prend en paramètre un [companyId] qui est un [int].
+  ///
+  /// Peut prendre en paramètre un [client] qui est un [Client].
+  ///
+  /// Retourne une [Company]. Si la requête échoue, retourne null.
+  Future<Company?> fetchCompany(
+    int companyId, {
+    Client? client,
+  }) async {
+    try {
+      client ??= _httpClient;
+      Uri url = ApiRoutes.route(
+          ApiRoutes.companyRoute.replaceAll(':id', companyId.toString()));
+      Response response = await client.get(
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer ${_token!}",
+        },
+      );
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        dynamic responseData = json.decode(response.body);
+        _logger.i(responseData);
+        if (responseData is List) {
+          return (Company.fromJson(responseData[0]));
+        } else {
+          return (Company.fromJson(responseData));
+        }
+      } else {
+        _logger.e(
+            'fetchCompany failed with status code ${response.statusCode}: ${response.body}');
+        return (null);
+      }
+    } catch (e) {
+      _logger.e(e.toString());
+      return (null);
+    }
+  }
+
+  /// Permet de mettre à jour une entreprise.
+  ///
+  /// Prend en paramètre un [companyId] qui est un [int] et un [name] qui est une [String].
+  ///
+  /// Peut prendre en paramètre un [client] qui est un [Client].
+  ///
+  /// Retourne un [bool] qui indique si la requête a réussi.
+  Future<bool> patchCompany(
+    int companyId,
+    String name,
+    List<int> usersIds, {
+    Client? client,
+  }) async {
+    try {
+      client ??= _httpClient;
+      Uri url = ApiRoutes.route(
+          ApiRoutes.companyRoute.replaceAll(':id', companyId.toString()));
+      Response response = await client.patch(
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer ${_token!}",
+        },
+        body: json.encode({
+          "name": name,
+          "users_ids": usersIds,
+        }),
+      );
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        _logger.i(response.body);
+        return (true);
+      } else {
+        _logger.e(
+            'patchCompany failed with status code ${response.statusCode}: ${response.body}');
+        return (false);
+      }
+    } catch (e) {
+      _logger.e(e.toString());
+      return (false);
+    }
+  }
+
+  /// Permet de créer une entreprise.
+  ///
+  /// Prend en paramètre un [name] qui est une [String] et un [usersIds] qui est une [List] d'[int].
+  ///
+  /// Peut prendre en paramètre un [client] qui est un [Client].
+  ///
+  /// Retourne un [bool] qui indique si la requête a réussi.
+  Future<bool> createCompany(
+    String name,
+    List<int> usersIds, {
+    Client? client,
+  }) async {
+    try {
+      client ??= _httpClient;
+      Uri url = ApiRoutes.route(ApiRoutes.companiesRoute);
+      Response response = await client.post(
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer ${_token!}",
+        },
+        body: json.encode({
+          "name": name,
+          "users_ids": usersIds,
+        }),
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        _logger.i(response.body);
+        return (true);
+      } else {
+        _logger.e(
+            'createCompany failed with status code ${response.statusCode}: ${response.body}');
+        return (false);
+      }
+    } catch (e) {
+      _logger.e(e.toString());
+      return (false);
     }
   }
 }

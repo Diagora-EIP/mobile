@@ -6,6 +6,7 @@ class User {
   String encryptedPassword;
   DateTime? createdAt;
   String? resetPassword;
+  int? companyId;
 
   User({
     this.id = -1,
@@ -14,6 +15,7 @@ class User {
     this.encryptedPassword = '',
     this.createdAt,
     this.resetPassword = '',
+    this.companyId,
   });
 
   factory User.fromJson(dynamic json) {
@@ -24,6 +26,7 @@ class User {
       encryptedPassword: json['password'] ?? '',
       createdAt: DateTime.parse(json['created_at'] ?? DateTime(0).toString()),
       resetPassword: json['reset-password'] ?? '',
+      companyId: json['company_id'] ?? -1,
     );
     return user;
   }
@@ -36,6 +39,7 @@ class User {
       'password': encryptedPassword,
       'created_at': createdAt?.toIso8601String(),
       'reset-password': resetPassword,
+      'company_id': companyId == -1 ? null : companyId,
     };
   }
 }

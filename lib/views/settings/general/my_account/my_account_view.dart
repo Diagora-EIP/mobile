@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:diagora/services/api_service.dart';
 import 'package:diagora/models/user_model.dart';
+import 'package:diagora/models/company_model.dart';
 
 class MyAccountView extends StatefulWidget {
   const MyAccountView({
@@ -14,6 +15,7 @@ class MyAccountView extends StatefulWidget {
 class MyAccountViewState extends State<MyAccountView> {
   final ApiService _apiService = const ApiService();
   late User _user;
+  Company? _company;
   bool loading = false;
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
@@ -30,8 +32,12 @@ class MyAccountViewState extends State<MyAccountView> {
       if (user != null) {
         if (mounted) {
           setState(() {
-            loading = false;
             _user = user;
+            if (user.companyId != null) {
+              fetchUserCompany(user.companyId!);
+            } else {
+              loading = false;
+            }
             _nameController.text = user.name;
             _emailController.text = user.email;
             if (user.createdAt != null) {
@@ -45,6 +51,32 @@ class MyAccountViewState extends State<MyAccountView> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('An error occured while fetching your account.'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    });
+  }
+
+  void fetchUserCompany(int id) {
+    if (mounted) {
+      setState(() {
+        loading = true;
+      });
+    }
+    _apiService.fetchCompany(id).then((company) {
+      if (company != null) {
+        if (mounted) {
+          setState(() {
+            _company = company;
+            loading = false;
+          });
+        }
+      } else {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('An error occured while fetching the company.'),
             duration: Duration(seconds: 2),
           ),
         );
@@ -145,6 +177,20 @@ class MyAccountViewState extends State<MyAccountView> {
                         keyboardType: TextInputType.name,
                         decoration: const InputDecoration(
                           labelText: 'Email',
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text("Company",
+                            style: loading || _company == null
+                                ? const TextStyle(color: Colors.grey)
+                                : null),
+                        trailing: Text(
+                          _company?.name ?? 'None',
+                          style: loading || _company == null
+                              ? const TextStyle(color: Colors.grey)
+                              : null,
                         ),
                       ),
                     ],

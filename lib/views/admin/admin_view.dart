@@ -1,5 +1,7 @@
-import 'package:diagora/views/admin/users/users_view.dart';
 import 'package:flutter/material.dart';
+
+import 'package:diagora/views/admin/users/users_view.dart';
+import 'package:diagora/views/admin/companies/companies_view.dart';
 
 class AdminView extends StatefulWidget {
   const AdminView({
@@ -28,7 +30,7 @@ class AdminViewState extends State<AdminView> {
                 child: Padding(
                   padding: EdgeInsets.only(left: 16.0, top: 16.0),
                   child: Text(
-                    "Users management",
+                    "Users-related data",
                     style: TextStyle(fontWeight: FontWeight.bold),
                     textAlign: TextAlign.left,
                   ),
@@ -42,6 +44,16 @@ class AdminViewState extends State<AdminView> {
                   context,
                   MaterialPageRoute(
                     builder: (context) => const UsersView(),
+                  ),
+                ),
+              ),
+              ListTile(
+                title: const Text('Companies'),
+                leading: const Icon(Icons.business_center),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const CompaniesView(),
                   ),
                 ),
               ),

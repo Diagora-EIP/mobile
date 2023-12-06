@@ -82,7 +82,9 @@ class VehiculesComponentState extends State<VehiculesComponent> {
                         labelText: 'Name',
                       ),
                       onChanged: (value) {
-                        vehiculeData["name"] = value;
+                        setState(() {
+                          vehiculeData["name"] = value;
+                        });
                       },
                     ),
                     TextFormField(
@@ -91,7 +93,9 @@ class VehiculesComponentState extends State<VehiculesComponent> {
                         labelText: 'Dimentions',
                       ),
                       onChanged: (value) {
-                        vehiculeData["dimentions"] = value;
+                        setState(() {
+                          vehiculeData["dimentions"] = value;
+                        });
                       },
                     ),
                     TextFormField(
@@ -109,7 +113,9 @@ class VehiculesComponentState extends State<VehiculesComponent> {
                         } catch (e) {
                           value = "0";
                         }
-                        vehiculeData["capacity"] = int.parse(value);
+                        setState(() {
+                          vehiculeData["capacity"] = int.parse(value);
+                        });
                       },
                     ),
                   ],
@@ -122,7 +128,40 @@ class VehiculesComponentState extends State<VehiculesComponent> {
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
                 child: OutlinedButton(
-                  onPressed: () async {
+                  onPressed: vehiculeData["capacity"] > 0 &&
+                    vehiculeData["name"] != "" &&
+                    vehiculeData["dimentions"] != ""
+                   ? () async {
+                    if (vehiculeData["capacity"] == 0) {
+                      // ignore: use_build_context_synchronously
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Capacity must be greater than 0.'),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                      return;
+                    }
+                    if (vehiculeData["name"] == "") {
+                      // ignore: use_build_context_synchronously
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Name cannot be empty.'),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                      return;
+                    }
+                    if (vehiculeData["dimentions"] == "") {
+                      // ignore: use_build_context_synchronously
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Dimentions cannot be empty.'),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                      return;
+                    }
                     try {
                       if (vehicule == null) {
                         await addVehicule(vehiculeData);
@@ -134,7 +173,7 @@ class VehiculesComponentState extends State<VehiculesComponent> {
                       // ignore: avoid_print
                       print(e);
                     }
-                  },
+                  } : null,
                   child: Text(action),
                 ),
               ),
@@ -213,9 +252,9 @@ class VehiculesComponentState extends State<VehiculesComponent> {
       });
       var response = await _api.addVehicule(
         userId: vehiculeData["userId"],
-        name: vehiculeData["name"],
-        dimentions: vehiculeData["dimentions"],
-        capacity: vehiculeData["capacity"],
+        name: vehiculeData["name"] ?? "",
+        dimentions: vehiculeData["dimentions"] ?? "",
+        capacity: vehiculeData["capacity"] ?? 0,
       );
       if (response == false) {
         throw Exception("Error while adding vehicule");
@@ -231,6 +270,9 @@ class VehiculesComponentState extends State<VehiculesComponent> {
       );
       // ignore: avoid_print
       print(e);
+      setState(() {
+        fetching = false;
+      });
     }
   }
 
@@ -243,9 +285,9 @@ class VehiculesComponentState extends State<VehiculesComponent> {
       var response = await _api.editVehicule(
         vehiculeId: vehiculeData["vehicle_id"],
         userId: vehiculeData["userId"],
-        name: vehiculeData["name"],
-        dimentions: vehiculeData["dimentions"],
-        capacity: vehiculeData["capacity"],
+        name: vehiculeData["name"] ?? "",
+        dimentions: vehiculeData["dimentions"] ?? "",
+        capacity: vehiculeData["capacity"] ?? 0,
       );
       if (response == false) {
         throw Exception("Error while editting vehicule");

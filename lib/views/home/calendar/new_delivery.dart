@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+// import 'package:diagora/services/api_service.dart';
+
+
 class NewDelivery extends StatefulWidget {
   const NewDelivery({super.key});
 
@@ -8,6 +11,8 @@ class NewDelivery extends StatefulWidget {
 }
 
 class _NewDeliveryState extends State<NewDelivery> {
+  // final ApiService _api = ApiService.getInstance();
+
   final name = TextEditingController();
   final address = TextEditingController();
 
@@ -19,7 +24,13 @@ class _NewDeliveryState extends State<NewDelivery> {
     super.dispose();
   }
 
-  void submit() {}
+  void submit() {
+    // _api.addDelveryAutomatique(31, name.text, address.text).then((value) {
+    //   if (value) {
+    //     Navigator.pop(context);
+    //   }
+    // });
+  }
 
   @override
   Widget build(BuildContext context) {

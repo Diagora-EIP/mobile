@@ -56,6 +56,8 @@ dependencies:
   mapbox_maps_flutter: ^0.5.0
   permission_handler: ^11.0.1
   geolocator: ^10.1.0
+  accordion: ^2.6.0
+  fl_chart: ^0.64.0
 
 dev_dependencies:
   coverage: ^1.6.3
