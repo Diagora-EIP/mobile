@@ -105,7 +105,7 @@ class _HomeViewState extends State<HomeView> {
                 }),
                 _buildNavigationButton("Map", () {
                   Navigator.push(context,
-                      MaterialPageRoute(builder: (context) => const MapPage()));
+                      MaterialPageRoute(builder: (context) => MapPage(userId: userData['user_id'])));
                 }),
                 _buildNavigationButton("Orders", () {
                   Navigator.push(

@@ -49,5 +49,7 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>$(PRODUCT_NAME) needs access to location when open.</string>
 </dict>
 </plist>

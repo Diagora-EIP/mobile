@@ -30,6 +30,20 @@ dart pub global activate flutterfire_cli
 flutterfire configure
 ```
 
+### Installation et configuration de Mapbox
+Le token public est déjà configuré dans le [Makefile](./Makefile). Il reste néanmoins le secret token à setup afin de télécharger le SDK dans l'envionnement.<br />
+Dans Mapbox, créez un token avec le scope `Downloads:Read`.<br />
+Ajoutez dans `~/.gradle/gradle.properties`:
+```
+SDK_REGISTRY_TOKEN=SECRET_MAPBOX_ACCESS_TOKEN
+```
+Ajoutez dans `~/.netrc`:
+```
+machine api.mapbox.com
+login mapbox
+password SECRET_MAPBOX_ACCESS_TOKEN
+```
+
 ### 🛠 Développement
 
 ```bash
