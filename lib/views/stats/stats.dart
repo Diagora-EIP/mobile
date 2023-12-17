@@ -15,12 +15,9 @@ class Stat {
   List<int> hoursOfDays;
   List<double> randomValues;
   final String name;
+  final String description;
 
-  Stat({
-    required this.hoursOfDays,
-    required this.randomValues,
-    required this.name,
-  });
+  Stat({required this.hoursOfDays, required this.randomValues, required this.name, required this.description});
 }
 
 class _StatistiquesState extends State<Statistiques> {
@@ -29,11 +26,13 @@ class _StatistiquesState extends State<Statistiques> {
       hoursOfDays: List.generate(24, (index) => index),
       randomValues: List.generate(24, (index) => Random().nextDouble()),
       name: "Delivery Hours",
+      description: "This is the delivery hours",
     ),
     Stat(
         hoursOfDays: List.generate(24, (index) => index),
         randomValues: List.generate(24, (index) => Random().nextDouble()),
-        name: "Km/h travelled"),
+        name: "Km/h travelled",
+        description: "This is the km/h travelled"),
   ];
 
   @override
@@ -64,8 +63,7 @@ class _StatistiquesState extends State<Statistiques> {
                           context,
                           MaterialPageRoute(
                             builder: (context) => DeliveryHours(
-                              hoursOfDay: currentStat.hoursOfDays,
-                              randomValues: currentStat.randomValues,
+                              statValue: currentStat,
                             ),
                           ),
                         );
@@ -74,9 +72,10 @@ class _StatistiquesState extends State<Statistiques> {
                         width: 100.0, // Adjust the width as needed
                         height: 100.0, // Adjust the height as needed
                         decoration: BoxDecoration(
+                          color: Theme.of(context).primaryColor, // Adjust the color as needed
                           // border color to black
                           border: Border.all(
-                            color: Colors.black,
+                            color: Colors.white,
                             width: 1.0,
                           ),
                           borderRadius: BorderRadius.circular(10.0),
@@ -85,7 +84,7 @@ class _StatistiquesState extends State<Statistiques> {
                           child: Text(
                             currentStat.name,
                             style: const TextStyle(
-                              color: Colors.black,
+                              color: Colors.white,
                               fontSize: 16.0,
                               fontWeight: FontWeight.bold,
                             ),

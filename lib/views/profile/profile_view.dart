@@ -37,18 +37,6 @@ class _ProfileViewState extends State<ProfileView> {
     }
   }
 
-  // Future<void> _pickImage() async {
-  //   final imagePicker = ImagePicker();
-  //   final pickedImage =
-  //       await imagePicker.pickImage(source: ImageSource.gallery);
-
-  //   if (pickedImage != null) {
-  //     setState(() {
-  //       _image = File(pickedImage.path);
-  //     });
-  //   }
-  // }
-
   String capitalizeFirstLetter(String input) {
     if (input.isEmpty) {
       return input;
@@ -106,34 +94,56 @@ class _ProfileViewState extends State<ProfileView> {
                     : null,
               ),
             ),
-            const SizedBox(height: 50),
-            Text(
-              'Username: $username',
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Email: $email',
-              style: const TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Permissions: $permissions',
-              style: const TextStyle(fontSize: 16),
-            ),
+            const SizedBox(height: 24),
+            ProfileInfos(itemName: "Username", itemValue: username),
+            ProfileInfos(itemName: "Email", itemValue: email),
+            ProfileInfos(itemName: "Permissions", itemValue: permissions),
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const ChangePassword()));
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const ChangePassword()));
               },
               child: const Text('Change Password'),
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class ProfileInfos extends StatefulWidget {
+  final String itemName;
+  final String itemValue;
+
+  const ProfileInfos({super.key, required this.itemName, required this.itemValue});
+
+  @override
+  State<ProfileInfos> createState() => _ProfileInfosState();
+}
+
+class _ProfileInfosState extends State<ProfileInfos> {
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        const SizedBox(height: 24),
+        FractionallySizedBox(
+          widthFactor: 2 / 3,
+          child: Container(
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: Colors.grey[700],
+                borderRadius: BorderRadius.circular(5.0),
+              ),
+              child: Text(widget.itemName, style: const TextStyle(fontSize: 16, color: Colors.white))),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          widget.itemValue,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+      ],
     );
   }
 }

@@ -79,13 +79,12 @@ class _HomeViewState extends State<HomeView> {
                   width: 200,
                   height: 200,
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 10),
                 Text(
                   "Hello $username !",
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black,
                   ),
                 ),
                 const SizedBox(height: 10),
