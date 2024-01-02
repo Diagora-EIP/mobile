@@ -9,52 +9,81 @@ import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:diagora/models/user_model.dart';
-import 'package:diagora/models/permissions_model.dart';
+import 'package:diagora/models/role_model.dart';
 
 /// Classe qui contient toutes les routes de l'API. Utilisez [route] pour créer une Uri.
 class ApiRoutes {
   // static const String baseUrl = 'http://51.103.122.92:3000';
   static const String baseUrl = 'http://localhost:3000';
-  // static const String baseUrl = 'https://878e-135-180-108-211.ngrok.io';
+
   // Authentification
-  static const String loginRoute = '/user/login'; // POST
-  static const String registerRoute = '/user/register'; // POST
-  static const String logoutRoute = '/user/logout'; // POST
-  static const String resetPasswordWithTokenRoute =
-      '/user/reset-password/:token'; // POST
-  static const String resetPasswordWithoutTokenRoute =
-      '/user/reset-password'; // POST
-  static const String resetPasswordGenerateToken =
-      '/user/reset-password-generate';
+  static const String registerUserRoute = '/user/register'; // POST
+  static const String loginUserRoute = '/user/login'; // POST
+  static const String logoutUserRoute = '/user/logout'; // POST
+  static const String resetPasswordRoute = '/resetPassword'; // POST
+  static const String updatePasswordRoute = '/resetPassword'; // PATCH
+  static const String updatePasswordByTokenRoute =
+      '/resetPassword/:reset_token'; // PATCH
 
-  // User(s)
-  static const String usersRoute = '/user/all'; // GET
-  static const String userRoute = '/user/:id'; // GET, PATCH, DELETE
-  static const String userPermissionsRoute = '/user/permissions/:id'; // GET
-  // Permissions
-  static const String permissionsRoute = '/permissions'; // GET
-  static const String permissionRoute = '/permissions/:id'; // GET, PATCH
-  // Entreprise(s)
-  static const String companiesRoute = '/company'; // GET, POST
-  static const String companyRoute = '/company/:id'; // GET, PATCH, DELETE
-  static const String companyVehicleRoute = '/company/:id/vehicle'; // GET, PATCH
-  // Événement(s)
-  static const String userScheduleRoute =
-      '/user/:user_id/schedule'; // GET, POST
-  static const String scheduleRoute =
-      '/schedule/:schedule_id'; // GET, PATCH, DELETE
-  static const String scheduleAvailableSlotsRoute =
-      '/schedule/avalaibleSlots/:user_id'; // GET
-  // Véhicule(s)
-  static const String userVehiclesRoute = '/user/:user_id/vehicle'; // GET
-  static const String vehiclesRoute = '/vehicle'; // GET, POST
-  static const String vehicleRoute = '/vehicle/:id'; // GET, PATCH, DELETE
-  // Itinéraire(s)
-  static const String itinerariesUserRoute = '/itinerary/:user_id'; // GET, POST
-  static const String itinerariesRoute = '/itinerary/:id'; // PATCH, DELETE
+  // Utilisateur
+  static const String getUserRoute = '/user'; // GET
+  static const String getUserByIdRoute = '/user/:id'; // GET
+  static const String updateUserRoute = '/user'; // PATCH
+  static const String updateUserByIdRoute = '/user/:id'; // PATCH
+  static const String registerManagerRoute = '/user/registerManager'; // POST
+  static const String getUserRolesRoute = '/userRoles'; // GET
+  static const String checkSessionRoute = '/session'; // GET
 
-  // Calendrier
-  static const String calendrierValues = 'user/:user_id/';
+  // Admin - Utilisateurs
+  static const String getAdminUsersRoute = '/admin/users'; // GET
+  static const String updateAdminUserRoute = '/admin/user/:id'; // PATCH
+  static const String getAdminUserRolesRoute = '/admin/userRoles/:id'; // GET
+  static const String updateAdminUserRolesRoute =
+      '/admin/userRoles/:id'; // PATCH
+
+  // Entreprises
+  static const String getCompanyRoute = '/company'; // GET
+
+  // Admin - Entreprises
+  static const String getAdminCompanyRoute =
+      '/admin/company/:company_id'; // GET
+  static const String getAdminCompaniesRoute = '/admin/companies'; // GET
+  static const String createAdminCompanyRoute = '/admin/company'; // POST
+  static const String updateAdminCompanyRoute =
+      '/admin/company/:company_id'; // PATCH
+
+  // Commandes
+  static const String createOrderRoute = '/order/create'; // POST
+  static const String getOrdersBetweenDatesRoute =
+      '/order/get-between-date'; // GET
+  static const String updateOrderRoute = '/order/update/:order_id'; // PATCH
+  static const String deleteOrderRoute = '/order/delete/:order_id'; // DELETE
+
+  // Admin - Commandes
+  static const String getAllAdminOrdersRoute = '/admin/orders'; // GET
+
+  // Vehicules
+  static const String createVehicleRoute = '/vehicle'; // POST
+  static const String updateVehicleRoute = '/vehicle/:vehicle_id'; // PATCH
+  static const String deleteVehicleRoute = '/vehicle/:vehicle_id'; // DELETE
+  static const String getVehicleRoute = '/vehicle/:vehicle_id'; // GET
+  static const String getUserVehiclesRoute = '/vehicles'; // GET
+  static const String getUserCompanyVehiclesRoute = '/user/:id/vehicles'; // GET
+
+  // Admin - Vehicules
+  static const String createAdminVehicleRoute =
+      '/admin/vehicle/:company_id'; // POST
+  static const String updateAdminVehicleRoute =
+      '/admin/vehicle/:vehicle_id'; // PATCH
+  static const String deleteAdminVehicleRoute =
+      '/admin/vehicle/:vehicle_id'; // DELETE
+  static const String getAdminVehicleInfoRoute =
+      '/admin/vehicle/:vehicle_id'; // GET
+  static const String getAdminCompanyVehiclesRoute =
+      '/admin/company/:company_id/vehicles'; // GET
+  static const String getUserAdminVehiclesRoute =
+      '/admin/user/:user_id/vehicles'; // GET
+  static const String getAllAdminVehiclesRoute = '/admin/vehicles'; // GET
 
   /// Permet de créer l'URL complète d'une route.
   ///
@@ -113,7 +142,7 @@ class ApiService {
   }) async {
     try {
       client ??= _httpClient;
-      Uri url = ApiRoutes.route(ApiRoutes.loginRoute);
+      Uri url = ApiRoutes.route(ApiRoutes.loginUserRoute);
       Response response = await client.post(
         url,
         body: json.encode(
@@ -129,13 +158,13 @@ class ApiService {
         dynamic responseData = json.decode(response.body);
         _prefs?.setString('token', responseData['token']);
         _token = responseData['token'];
-        _prefs?.setString('user', json.encode(responseData['user']));
-        _user = User.fromJson(responseData['user']);
+        _prefs?.setString('user', json.encode(responseData));
+        _user = User.fromJson(responseData);
         _logger.i(responseData);
         analytics.logLogin(loginMethod: 'email').ignore();
         return true;
       } else {
-        _logger.e('Login failed with status code ${response.statusCode}');
+        _logger.e('login() failed with status code ${response.statusCode}');
         _logger.e(response.body);
         return false;
       }
@@ -160,7 +189,7 @@ class ApiService {
   }) async {
     try {
       client ??= _httpClient;
-      Uri url = ApiRoutes.route(ApiRoutes.registerRoute);
+      Uri url = ApiRoutes.route(ApiRoutes.registerUserRoute);
       Response response = await client.post(
         url,
         body: json.encode(
@@ -171,13 +200,15 @@ class ApiService {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         dynamic responseData = json.decode(response.body);
-        _prefs?.setString('user', json.encode(responseData['user']));
-        _user = User.fromJson(responseData['user']);
+        _prefs?.setString('token', responseData['token']);
+        _token = responseData['token'];
+        _prefs?.setString('user', json.encode(responseData));
+        _user = User.fromJson(responseData);
         analytics.logSignUp(signUpMethod: 'email').ignore();
         _logger.i(responseData);
         return true;
       } else {
-        _logger.e('Register failed with status code ${response.statusCode}');
+        _logger.e('register() failed with status code ${response.statusCode}');
         return false;
       }
     } catch (e) {
@@ -197,7 +228,7 @@ class ApiService {
     try {
       if (_token == null || _token!.isEmpty) return false;
       client ??= _httpClient;
-      Uri url = ApiRoutes.route(ApiRoutes.logoutRoute);
+      Uri url = ApiRoutes.route(ApiRoutes.logoutUserRoute);
       Response response = await client.post(
         url,
         body: json.encode({
@@ -216,7 +247,7 @@ class ApiService {
         _logger.i('Logout successful');
         return true;
       } else {
-        _logger.e('Logout failed with status code ${response.statusCode}');
+        _logger.e('logout() failed with status code ${response.statusCode}');
         return false;
       }
     } catch (e) {
@@ -232,15 +263,19 @@ class ApiService {
   /// Peut prendre en paramètre un [client] qui est un [Client].
   ///
   /// Retourne un [Permissions] qui est le modèle de données des permissions. Si la requête échoue, retourne null.
-  Future<Permissions?> fetchPermissions({
+  Future<Permissions?> fetchRoles({
     int? userId,
     Client? client,
   }) async {
     try {
-      userId ??= _user?.id;
       client ??= _httpClient;
-      Uri url = ApiRoutes.route(
-          ApiRoutes.userPermissionsRoute.replaceAll(':id', userId.toString()));
+      Uri url;
+      if (userId == null || userId == _user?.id) {
+        url = ApiRoutes.route(ApiRoutes.getUserRolesRoute);
+      } else {
+        url = ApiRoutes.route(ApiRoutes.getAdminUserRolesRoute
+            .replaceAll(':id', userId.toString()));
+      }
       Response response = await client.get(
         url,
         headers: {"Authorization": "Bearer ${_token!}"},
@@ -248,11 +283,11 @@ class ApiService {
       if (response.statusCode == 200 || response.statusCode == 202) {
         dynamic responseData = json.decode(response.body);
         _logger.i(responseData);
-        _permissions = Permissions.fromJson(responseData);
+        _permissions = Permissions.fromJson(responseData[0]);
         return (_permissions);
       } else {
         _logger.e(
-            'fetchPermissions failed with status code ${response.statusCode}');
+            'fetchRoles() failed with status code ${response.statusCode}');
         return (null);
       }
     } catch (e) {
@@ -268,16 +303,20 @@ class ApiService {
   /// Peut prendre en paramètre un [client] qui est un [Client].
   ///
   /// Retourne un [bool] qui indique si la requête a réussi.
-  Future<bool> patchPermissions(
+  Future<bool> patchRoles(
     Permissions permissionData, {
     int? userId,
     Client? client,
   }) async {
     try {
-      userId ??= _user?.id;
       client ??= _httpClient;
-      Uri url = ApiRoutes.route(
-          ApiRoutes.permissionRoute.replaceAll(':id', userId.toString()));
+      Uri url;
+      if (userId == null || userId == _user?.id) {
+        url = ApiRoutes.route(ApiRoutes.getUserRolesRoute);
+      } else {
+        url = ApiRoutes.route(ApiRoutes.updateAdminUserRolesRoute
+            .replaceAll(':id', userId.toString()));
+      }
       Response response = await client.patch(
         url,
         headers: {
@@ -292,7 +331,7 @@ class ApiService {
         return (true);
       } else {
         _logger.e(
-            'patchPermissions failed with status code ${response.statusCode}');
+            'patchRoles() failed with status code ${response.statusCode}');
         return (false);
       }
     } catch (e) {
@@ -313,10 +352,14 @@ class ApiService {
     Client? client,
   }) async {
     try {
-      userId ??= _user?.id;
       client ??= _httpClient;
-      Uri url = ApiRoutes.route(
-          ApiRoutes.userRoute.replaceAll(':id', userId.toString()));
+      Uri url;
+      if (userId == null || userId == _user?.id) {
+        url = ApiRoutes.route(ApiRoutes.getUserRoute);
+      } else {
+        url = ApiRoutes.route(
+            ApiRoutes.getUserByIdRoute.replaceAll(':id', userId.toString()));
+      }
       Response response = await client.get(
         url,
         headers: {
@@ -330,7 +373,7 @@ class ApiService {
         _logger.i(responseData);
         return (user);
       } else {
-        _logger.e('fetchUser failed with status code ${response.statusCode}');
+        _logger.e('fetchUser() failed with status code ${response.statusCode}');
         return (null);
       }
     } catch (e) {
@@ -352,10 +395,14 @@ class ApiService {
     Client? client,
   }) async {
     try {
-      userId ??= _user?.id;
       client ??= _httpClient;
-      Uri url = ApiRoutes.route(
-          ApiRoutes.userRoute.replaceAll(':id', userId.toString()));
+      Uri url;
+      if (userId == null || userId == _user?.id) {
+        url = ApiRoutes.route(ApiRoutes.getUserRoute);
+      } else {
+        url = ApiRoutes.route(
+            ApiRoutes.updateUserByIdRoute.replaceAll(':id', userId.toString()));
+      }
       Response response = await client.patch(
         url,
         headers: {
@@ -369,7 +416,7 @@ class ApiService {
         _logger.i(responseData);
         return (true);
       } else {
-        _logger.e('patchUser failed with status code ${response.statusCode}');
+        _logger.e('patchUser() failed with status code ${response.statusCode}');
         return (false);
       }
     } catch (e) {
@@ -388,7 +435,7 @@ class ApiService {
   }) async {
     try {
       client ??= _httpClient;
-      Uri url = ApiRoutes.route(ApiRoutes.usersRoute);
+      Uri url = ApiRoutes.route(ApiRoutes.getAdminUsersRoute);
       Response response = await client.get(
         url,
         headers: {
@@ -405,7 +452,7 @@ class ApiService {
         return (users);
       } else {
         _logger.e(
-            'fetchUsers failed with status code ${response.statusCode}: ${response.body}');
+            'fetchUsers() failed with status code ${response.statusCode}: ${response.body}');
         return (null);
       }
     } catch (e) {
@@ -429,7 +476,7 @@ class ApiService {
   }) async {
     try {
       client ??= _httpClient;
-      Uri url = ApiRoutes.route(ApiRoutes.resetPasswordWithoutTokenRoute);
+      Uri url = ApiRoutes.route(ApiRoutes.resetPasswordRoute);
       Response response = await client.post(
         url,
         body: json.encode(
@@ -447,7 +494,7 @@ class ApiService {
         return true;
       } else {
         _logger.e(
-            'Login failed with status code ${response.statusCode}: ${response.body}');
+            'resetPasswordWithoutToken() failed with status code ${response.statusCode}: ${response.body}');
         return false;
       }
     } catch (e) {
@@ -469,7 +516,7 @@ class ApiService {
   }) async {
     try {
       client ??= _httpClient;
-      Uri url = ApiRoutes.route(ApiRoutes.resetPasswordGenerateToken);
+      Uri url = ApiRoutes.route(ApiRoutes.resetPasswordRoute);
       Response response = await client.post(
         url,
         body: json.encode(
@@ -491,7 +538,7 @@ class ApiService {
         return true;
       } else {
         _logger.e(
-            'Login failed with status code ${response.statusCode}: ${response.body}');
+            'generatePasswordToken() failed with status code ${response.statusCode}: ${response.body}');
         return false;
       }
     } catch (e) {
@@ -514,8 +561,8 @@ class ApiService {
   }) async {
     try {
       client ??= _httpClient;
-      Uri url = ApiRoutes.route(
-          ApiRoutes.resetPasswordWithTokenRoute.replaceAll(":token", token));
+      Uri url = ApiRoutes.route(ApiRoutes.updatePasswordByTokenRoute
+          .replaceAll(':reset_token', token));
       Response response = await client.post(
         url,
         body: json.encode(
@@ -533,7 +580,7 @@ class ApiService {
         return true;
       } else {
         _logger.e(
-            'Login failed with status code ${response.statusCode}: ${response.body}');
+            'resetPasswordWithToken() failed with status code ${response.statusCode}: ${response.body}');
         return false;
       }
     } catch (e) {
@@ -581,7 +628,7 @@ class ApiService {
         return (response.body);
       } else {
         _logger.e(
-            "calendarValues failed with status code ${response.statusCode}: ${response.body}");
+            "calendarValues() failed with status code ${response.statusCode}: ${response.body}");
         return "false";
       }
     } catch (e) {
@@ -702,70 +749,69 @@ class ApiService {
     }
   }
 
-  Future<bool> addUserSchedule(
-    int userId,
-    dynamic schedule, {
-    Client? client,
-    bool injectToken = true,
-  }) async {
-    client ??= _httpClient;
-    Uri url = ApiRoutes.route(
-        ApiRoutes.userScheduleRoute.replaceAll(':user_id', userId.toString()));
-    try {
-      final response = await client.post(
-        url,
-        headers: {
-          'Content-Type': 'application/json',
-          "Authorization": "Bearer ${_token!}"
-        },
-        body: json.encode(schedule),
-      );
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        dynamic responseData = json.decode(response.body);
-        _logger.i(responseData);
-        return (true);
-      } else {
-        _logger.e(
-            'addUserSchedule failed with status code ${response.statusCode}: ${response.body}');
-        return (false);
-      }
-    } catch (e) {
-      _logger.e(e.toString());
-      return false;
-    }
-  }
+  // Future<bool> addUserSchedule(
+  //   int userId,
+  //   dynamic schedule, {
+  //   Client? client,
+  //   bool injectToken = true,
+  // }) async {
+  //   client ??= _httpClient;
+  //   Uri url = ApiRoutes.route(ApiRoutes.userScheduleRoute.replaceAll(':user_id', userId.toString()));
+  //   try {
+  //     final response = await client.post(
+  //       url,
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //         "Authorization": "Bearer ${_token!}"
+  //       },
+  //       body: json.encode(schedule),
+  //     );
+  //     if (response.statusCode == 200 || response.statusCode == 201) {
+  //       dynamic responseData = json.decode(response.body);
+  //       _logger.i(responseData);
+  //       return (true);
+  //     } else {
+  //       _logger.e(
+  //           'addUserSchedule() failed with status code ${response.statusCode}: ${response.body}');
+  //       return (false);
+  //     }
+  //   } catch (e) {
+  //     _logger.e(e.toString());
+  //     return false;
+  //   }
+  // }
 
-  Future<bool> patchSchedule(
-    int scheduleId,
-    dynamic schedule, {
-    Client? client,
-    bool injectToken = true,
-  }) async {
-    client ??= _httpClient;
-    Uri url = ApiRoutes.route(ApiRoutes.scheduleRoute
-        .replaceAll(":schedule_id", scheduleId.toString()));
-    try {
-      final response = await client.patch(
-        url,
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer ${_token!}"
-        },
-        body: json.encode(schedule),
-      );
-      if (response.statusCode == 200 || response.statusCode == 202) {
-        _logger.i(response.body);
-        return (true);
-      } else {
-        _logger.e(
-            'addUserSchedule failed with status code ${response.statusCode}: ${response.body}');
-        return (false);
-      }
-    } catch (e) {
-      _logger.e(e.toString());
-      return false;
-    }
-  }
+  // Future<bool> patchSchedule(
+  //   int scheduleId,
+  //   dynamic schedule, {
+  //   Client? client,
+  //   bool injectToken = true,
+  // }) async {
+  //   client ??= _httpClient;
+  //   Uri url = ApiRoutes.route(ApiRoutes.scheduleRoute
+  //       .replaceAll(":schedule_id", scheduleId.toString()));
+  //   try {
+  //     final response = await client.patch(
+  //       url,
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //         "Authorization": "Bearer ${_token!}"
+  //       },
+  //       body: json.encode(schedule),
+  //     );
+  //     if (response.statusCode == 200 || response.statusCode == 202) {
+  //       _logger.i(response.body);
+  //       return (true);
+  //     } else {
+  //       _logger.e(
+  //           'patchSchedule() failed with status code ${response.statusCode}: ${response.body}');
+  //       return (false);
+  //     }
+  //   } catch (e) {
+  //     _logger.e(e.toString());
+  //     return false;
+  //   }
+  // }
 
   Future<dynamic> getVehicules({
     Client? client,
@@ -773,8 +819,13 @@ class ApiService {
     required int userId,
   }) async {
     client ??= _httpClient;
-    Uri url = ApiRoutes.route(
-        ApiRoutes.userVehiclesRoute.replaceAll(":user_id", userId.toString()));
+    Uri url;
+    if (userId == -1) {
+      url = ApiRoutes.route(ApiRoutes.getUserVehiclesRoute);
+    } else {
+      url = ApiRoutes.route(ApiRoutes.getUserCompanyVehiclesRoute
+          .replaceAll(":id", userId.toString()));
+    }
     try {
       final response = await client.get(
         url,
@@ -792,7 +843,7 @@ class ApiService {
         return (responseData);
       } else {
         _logger.e(
-            'getVehicules failed with status code ${response.statusCode}: ${response.body}');
+            'getVehicules() failed with status code ${response.statusCode}: ${response.body}');
         return (false);
       }
     } catch (e) {
@@ -810,7 +861,7 @@ class ApiService {
     required int capacity,
   }) async {
     client ??= _httpClient;
-    Uri url = ApiRoutes.route(ApiRoutes.vehiclesRoute);
+    Uri url = ApiRoutes.route(ApiRoutes.createVehicleRoute);
     try {
       final response = await client.post(
         url,
@@ -831,7 +882,7 @@ class ApiService {
         return (responseData);
       } else {
         _logger.e(
-            'addVehicule failed with status code ${response.statusCode}: ${response.body}');
+            'addVehicule() failed with status code ${response.statusCode}: ${response.body}');
         return (false);
       }
     } catch (e) {
@@ -850,8 +901,14 @@ class ApiService {
     required int capacity,
   }) async {
     client ??= _httpClient;
-    Uri url = ApiRoutes.route(
-        ApiRoutes.vehicleRoute.replaceAll(":id", vehiculeId.toString()));
+    Uri url;
+    if (userId == _user!.id) {
+      url = ApiRoutes.route(ApiRoutes.updateVehicleRoute
+          .replaceAll(":vehicle_id", vehiculeId.toString()));
+    } else {
+      url = ApiRoutes.route(ApiRoutes.updateAdminVehicleRoute
+          .replaceAll(":vehicle_id", vehiculeId.toString()));
+    }
     try {
       final response = await client.patch(
         url,
@@ -872,7 +929,7 @@ class ApiService {
         return (responseData);
       } else {
         _logger.e(
-            'editVehicule failed with status code ${response.statusCode}: ${response.body}');
+            'editVehicule() failed with status code ${response.statusCode}: ${response.body}');
         return (false);
       }
     } catch (e) {
@@ -887,8 +944,7 @@ class ApiService {
     required int vehiculeId,
   }) async {
     client ??= _httpClient;
-    Uri url = ApiRoutes.route(
-        ApiRoutes.vehicleRoute.replaceAll(":id", vehiculeId.toString()));
+    Uri url = ApiRoutes.route(ApiRoutes.deleteVehicleRoute.replaceAll(":vehicle_id", vehiculeId.toString()));
     try {
       final response = await client.delete(
         url,
@@ -902,7 +958,7 @@ class ApiService {
         return (true);
       } else {
         _logger.e(
-            'deleteVehicule failed with status code ${response.statusCode}: ${response.body}');
+            'deleteVehicule() failed with status code ${response.statusCode}: ${response.body}');
         return (false);
       }
     } catch (e) {
@@ -921,7 +977,7 @@ class ApiService {
   }) async {
     try {
       client ??= _httpClient;
-      Uri url = ApiRoutes.route(ApiRoutes.companiesRoute);
+      Uri url = ApiRoutes.route(ApiRoutes.getAdminCompaniesRoute);
       Response response = await client.get(
         url,
         headers: {
@@ -939,7 +995,7 @@ class ApiService {
         return (companies);
       } else {
         _logger.e(
-            'fetchCompanies failed with status code ${response.statusCode}: ${response.body}');
+            'fetchCompanies() failed with status code ${response.statusCode}: ${response.body}');
         return (null);
       }
     } catch (e) {
@@ -961,8 +1017,7 @@ class ApiService {
   }) async {
     try {
       client ??= _httpClient;
-      Uri url = ApiRoutes.route(
-          ApiRoutes.companyRoute.replaceAll(':id', companyId.toString()));
+      Uri url = ApiRoutes.route(ApiRoutes.getAdminCompanyRoute.replaceAll(':id', companyId.toString()));
       Response response = await client.get(
         url,
         headers: {
@@ -980,7 +1035,7 @@ class ApiService {
         }
       } else {
         _logger.e(
-            'fetchCompany failed with status code ${response.statusCode}: ${response.body}');
+            'fetchCompany() failed with status code ${response.statusCode}: ${response.body}');
         return (null);
       }
     } catch (e) {
@@ -1004,8 +1059,7 @@ class ApiService {
   }) async {
     try {
       client ??= _httpClient;
-      Uri url = ApiRoutes.route(
-          ApiRoutes.companyRoute.replaceAll(':id', companyId.toString()));
+      Uri url = ApiRoutes.route(ApiRoutes.updateAdminCompanyRoute.replaceAll(':company_id', companyId.toString()));
       Response response = await client.patch(
         url,
         headers: {
@@ -1022,7 +1076,7 @@ class ApiService {
         return (true);
       } else {
         _logger.e(
-            'patchCompany failed with status code ${response.statusCode}: ${response.body}');
+            'patchCompany() failed with status code ${response.statusCode}: ${response.body}');
         return (false);
       }
     } catch (e) {
@@ -1045,7 +1099,7 @@ class ApiService {
   }) async {
     try {
       client ??= _httpClient;
-      Uri url = ApiRoutes.route(ApiRoutes.companiesRoute);
+      Uri url = ApiRoutes.route(ApiRoutes.createAdminCompanyRoute);
       Response response = await client.post(
         url,
         headers: {
@@ -1062,7 +1116,7 @@ class ApiService {
         return (true);
       } else {
         _logger.e(
-            'createCompany failed with status code ${response.statusCode}: ${response.body}');
+            'createCompany() failed with status code ${response.statusCode}: ${response.body}');
         return (false);
       }
     } catch (e) {

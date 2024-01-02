@@ -269,18 +269,19 @@ class SchedulesViewState extends State<SchedulesView> {
 
   Future<void> submitSchedule(Map<String, dynamic> scheduleData) async {
     bool returned = false;
-    if (scheduleData["schedule_id"] == null) {
-      returned = await _api.addUserSchedule(userId, scheduleData);
-    } else {
-      returned = await _api.patchSchedule(scheduleData["schedule_id"], scheduleData);
-    }
+    // TODO
+    // if (scheduleData["schedule_id"] == null) {
+    //   returned = await _api.addUserSchedule(userId, scheduleData);
+    // } else {
+    //   returned = await _api.patchSchedule(scheduleData["schedule_id"], scheduleData);
+    // }
     if (!returned) {
       throw Exception('Error while adding schedule');
     }
-    setState(() {
-      today = DateTime.now();
-      _onDaySelected(today, today);
-    });
+    // setState(() {
+    //   today = DateTime.now();
+    //   _onDaySelected(today, today);
+    // });
   }
 
   @override

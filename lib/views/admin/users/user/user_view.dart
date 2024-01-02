@@ -6,7 +6,7 @@ import 'package:diagora/views/admin/users/user/schedules/shedules_view.dart';
 import 'package:diagora/components/vehicules.dart';
 
 import 'package:diagora/models/user_model.dart';
-import 'package:diagora/models/permissions_model.dart';
+import 'package:diagora/models/role_model.dart';
 import 'package:diagora/models/company_model.dart';
 
 class UserView extends StatefulWidget {
@@ -65,7 +65,7 @@ class UserViewState extends State<UserView> {
         loading = true;
       });
     }
-    _apiService.fetchPermissions(userId: id).then((permissions) {
+    _apiService.fetchRoles(userId: id).then((permissions) {
       if (mounted) {
         setState(() {
           if (_user.companyId != null && _user.companyId != -1) {
@@ -188,7 +188,7 @@ class UserViewState extends State<UserView> {
                 break;
             }
             _apiService
-                .patchPermissions(Permissions.fromJson(data),
+                .patchRoles(Permissions.fromJson(data),
                     userId: _permissions?.id)
                 .then((succeed) {
               if (succeed) {

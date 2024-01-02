@@ -80,19 +80,15 @@ class _RegisterViewState extends State<RegisterView> {
                     bool returnValue =
                         await _api.register(_name, _email, _password);
                     if (returnValue) {
-                      returnValue =
-                          await _api.login(_email, _password, remember: true);
-                      if (returnValue) {
-                        await _api.fetchPermissions();
-                        // ignore: use_build_context_synchronously
-                        Navigator.pushAndRemoveUntil(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const LoadingView(),
-                            ),
-                          (route) => false,
-                        );
-                      }
+                      await _api.fetchRoles();
+                      // ignore: use_build_context_synchronously
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const LoadingView(),
+                          ),
+                        (route) => false,
+                      );
                     } else {
                       // ignore: use_build_context_synchronously
                       ScaffoldMessenger.of(context).showSnackBar(
