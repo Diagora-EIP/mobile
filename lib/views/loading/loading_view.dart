@@ -43,7 +43,7 @@ class LoadingViewState extends State<LoadingView> {
       );
     } else {
       await _api.fetchRoles();
-      if (_api.permissions != null) {
+      if (_api.role != null) {
         // ignore: use_build_context_synchronously
         Navigator.pushAndRemoveUntil(
           context,

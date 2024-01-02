@@ -46,7 +46,7 @@ class CompanyViewState extends State<CompanyView> {
         loading = true;
       });
     }
-    _apiService.fetchCompany(id).then((company) {
+    _apiService.fetchCompany(companyId: id).then((company) {
       if (company != null) {
         if (mounted) {
           setState(() {

@@ -48,16 +48,20 @@ class _CalendarPageState extends State<CalendarPage> {
     todayStart = DateTime(todayDate.year, todayDate.month, todayDate.day, 1);
     todayEnd = DateTime(todayDate.year, todayDate.month, todayDate.day, 23);
 
-    userData = _api.user?.toJson();
-    userId = userData['user_id'];
-    allTodaysValues = _api.calendarValues(todayStart, todayEnd, userId);
+    allTodaysValues = _api.calendarOrders(todayStart, todayEnd);
     allTodaysValues.then((value) {
-      setState(() {
-        todayValueString = value;
-        deliveryToday = true;
-        scheduleList = json.decode(todayValueString);
-        _shipmentOfTheDay(scheduleList);
-      });
+      if (value == "[]") {
+        setState(() {
+          deliveryToday = false;
+        });
+      } else {
+        setState(() {
+          todayValueString = value;
+          deliveryToday = true;
+          scheduleList = json.decode(todayValueString);
+          _shipmentOfTheDay(scheduleList);
+        });
+      }
     }).catchError((error) {
       setState(() {
         deliveryToday = false;
@@ -66,12 +70,9 @@ class _CalendarPageState extends State<CalendarPage> {
   }
 
   void _onDaySelected(DateTime day, DateTime focusDay) {
-    DateTime todayStart =
-        DateTime(focusDay.year, focusDay.month, focusDay.day, 1);
-    DateTime todayEnd =
-        DateTime(focusDay.year, focusDay.month, focusDay.day, 23);
-    Future<String> allTodaysValues =
-        _api.calendarValues(todayStart, todayEnd, userId);
+    DateTime todayStart = DateTime(focusDay.year, focusDay.month, focusDay.day, 1);
+    DateTime todayEnd = DateTime(focusDay.year, focusDay.month, focusDay.day, 23);
+    Future<String> allTodaysValues = _api.calendarOrders(todayStart, todayEnd);
     allTodaysValues.then((value) {
       setState(() {
         todayValueString = value;
@@ -224,8 +225,7 @@ class MyListWidget extends StatelessWidget {
     return ListView.builder(
       itemCount: items.length,
       itemBuilder: (BuildContext context, int index) {
-        final color = Color((Random().nextDouble() * 0xFFFFFF).toInt() << 0)
-            .withOpacity(1.0);
+        final color = Color((Random().nextDouble() * 0xFFFFFF).toInt() << 0).withOpacity(1.0);
 
         return Column(
           children: <Widget>[
@@ -234,14 +234,12 @@ class MyListWidget extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) =>
-                        ItemDetailsPage(item: items[index], today: today),
+                    builder: (context) => ItemDetailsPage(item: items[index], today: today),
                   ),
                 );
               },
               child: ListTile(
-                title: Text(items[index][0],
-                    style: const TextStyle(fontWeight: FontWeight.bold)),
+                title: Text(items[index][0], style: const TextStyle(fontWeight: FontWeight.bold)),
                 subtitle: Text(items[index][1]),
                 leading: Container(
                   width: 5.0,
@@ -277,8 +275,8 @@ class MyListWidget extends StatelessWidget {
 Future<Map<String, double>> getCoordinates(String address) async {
   Map<String, double> locationMap = {'lat': 0.0, 'long': 0.0};
   try {
-    final response = await http.get(Uri.parse(
-        'https://nominatim.openstreetmap.org/search?q=$address&format=json&limit=1'));
+    final response =
+        await http.get(Uri.parse('https://nominatim.openstreetmap.org/search?q=$address&format=json&limit=1'));
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
@@ -303,8 +301,7 @@ class ItemDetailsPage extends StatefulWidget {
   final List<dynamic> item;
   DateTime today;
 
-  ItemDetailsPage({Key? key, required this.item, required this.today})
-      : super(key: key);
+  ItemDetailsPage({Key? key, required this.item, required this.today}) : super(key: key);
 
   @override
   // ignore: library_private_types_in_public_api
@@ -414,8 +411,7 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
                         ),
                         children: [
                           TileLayer(
-                            urlTemplate:
-                                'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                            urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                             userAgentPackageName: 'com.example.app',
                           ),
                           MarkerLayer(

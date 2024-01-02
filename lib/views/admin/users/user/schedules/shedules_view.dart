@@ -55,15 +55,20 @@ class SchedulesViewState extends State<SchedulesView> {
     todayDate = DateTime.parse(today.toString());
     todayStart = DateTime(todayDate.year, todayDate.month, todayDate.day, 1);
     todayEnd = DateTime(todayDate.year, todayDate.month, todayDate.day, 23);
-    userId = widget.userId;
-    allTodaysValues = _api.calendarValues(todayStart, todayEnd, userId);
+    allTodaysValues = _api.calendarOrders(todayStart, todayEnd);
     allTodaysValues.then((value) {
-      setState(() {
-        todayValueString = value;
-        deliveryToday = true;
-        scheduleList = json.decode(todayValueString);
-        _shipmentOfTheDay(scheduleList);
-      });
+      if (value == '[]') {
+        setState(() {
+          deliveryToday = false;
+        });
+      } else {
+        setState(() {
+          todayValueString = value;
+          deliveryToday = true;
+          scheduleList = json.decode(todayValueString);
+          _shipmentOfTheDay(scheduleList);
+        });
+      }
     }).catchError((error) {
       setState(() {
         deliveryToday = false;
@@ -72,12 +77,9 @@ class SchedulesViewState extends State<SchedulesView> {
   }
 
   void _onDaySelected(DateTime day, DateTime focusDay) {
-    DateTime todayStart =
-        DateTime(focusDay.year, focusDay.month, focusDay.day, 1);
-    DateTime todayEnd =
-        DateTime(focusDay.year, focusDay.month, focusDay.day, 23);
-    Future<String> allTodaysValues =
-        _api.calendarValues(todayStart, todayEnd, userId);
+    DateTime todayStart = DateTime(focusDay.year, focusDay.month, focusDay.day, 1);
+    DateTime todayEnd = DateTime(focusDay.year, focusDay.month, focusDay.day, 23);
+    Future<String> allTodaysValues = _api.calendarOrders(todayStart, todayEnd);
     allTodaysValues.then((value) {
       if (mounted) {
         setState(() {
@@ -127,18 +129,14 @@ class SchedulesViewState extends State<SchedulesView> {
       "end": schedule == null ? "" : schedule["end"],
     };
     if (scheduleData["begin"] == "") {
-      _dateBeginController.text =
-          DateFormat('dd/MM/yyyy hh:mm aaa').format(DateTime.now());
+      _dateBeginController.text = DateFormat('dd/MM/yyyy hh:mm aaa').format(DateTime.now());
     } else {
-      _dateBeginController.text = DateFormat('dd/MM/yyyy hh:mm aaa')
-          .format(DateTime.parse(scheduleData["begin"]));
+      _dateBeginController.text = DateFormat('dd/MM/yyyy hh:mm aaa').format(DateTime.parse(scheduleData["begin"]));
     }
     if (scheduleData["end"] == "") {
-      _dateEndController.text =
-          DateFormat('dd/MM/yyyy hh:mm aaa').format(DateTime.now());
+      _dateEndController.text = DateFormat('dd/MM/yyyy hh:mm aaa').format(DateTime.now());
     } else {
-      _dateEndController.text = DateFormat('dd/MM/yyyy hh:mm aaa')
-          .format(DateTime.parse(scheduleData["end"]));
+      _dateEndController.text = DateFormat('dd/MM/yyyy hh:mm aaa').format(DateTime.parse(scheduleData["end"]));
     }
     if (schedule != null) {
       scheduleData["schedule_id"] = schedule["schedule_id"];
@@ -181,8 +179,7 @@ class SchedulesViewState extends State<SchedulesView> {
                           child: TextFormField(
                             readOnly: true,
                             controller: _dateBeginController,
-                            onTap: () =>
-                                selectDateTime(context, "begin", scheduleData),
+                            onTap: () => selectDateTime(context, "begin", scheduleData),
                             decoration: const InputDecoration(
                               labelText: "Begin",
                             ),
@@ -193,8 +190,7 @@ class SchedulesViewState extends State<SchedulesView> {
                           child: TextFormField(
                             readOnly: true,
                             controller: _dateEndController,
-                            onTap: () =>
-                                selectDateTime(context, "end", scheduleData),
+                            onTap: () => selectDateTime(context, "end", scheduleData),
                             decoration: const InputDecoration(
                               labelText: "End",
                             ),
@@ -232,14 +228,9 @@ class SchedulesViewState extends State<SchedulesView> {
     );
   }
 
-  void selectDateTime(BuildContext context, String field,
-      Map<String, dynamic> scheduleData) async {
-    DateTime begin = scheduleData["begin"] != ""
-        ? DateTime.parse(scheduleData["begin"])
-        : DateTime.now();
-    DateTime end = scheduleData["end"] != ""
-        ? DateTime.parse(scheduleData["end"])
-        : DateTime.now();
+  void selectDateTime(BuildContext context, String field, Map<String, dynamic> scheduleData) async {
+    DateTime begin = scheduleData["begin"] != "" ? DateTime.parse(scheduleData["begin"]) : DateTime.now();
+    DateTime end = scheduleData["end"] != "" ? DateTime.parse(scheduleData["end"]) : DateTime.now();
     final DateTime? pickedDate = await DatePicker.showDateTimePicker(
       context,
       showTitleActions: true,
@@ -251,16 +242,14 @@ class SchedulesViewState extends State<SchedulesView> {
         if (mounted) {
           setState(() {
             scheduleData["begin"] = pickedDate.toString();
-            _dateBeginController.text =
-                DateFormat('dd/MM/yyyy hh:mm aaa').format(pickedDate);
+            _dateBeginController.text = DateFormat('dd/MM/yyyy hh:mm aaa').format(pickedDate);
           });
         }
       } else {
         if (mounted) {
           setState(() {
             scheduleData["end"] = pickedDate.toString();
-            _dateEndController.text =
-                DateFormat('dd/MM/yyyy hh:mm aaa').format(pickedDate);
+            _dateEndController.text = DateFormat('dd/MM/yyyy hh:mm aaa').format(pickedDate);
           });
         }
       }
@@ -360,10 +349,7 @@ class SchedulesViewState extends State<SchedulesView> {
           ),
           Expanded(
             child: deliveryToday
-                ? MyListWidget(
-                    items: calendarList,
-                    today: today,
-                    modalFn: openModalSchedule)
+                ? MyListWidget(items: calendarList, today: today, modalFn: openModalSchedule)
                 : const Text("No delivery for today"),
           )
         ],
@@ -383,19 +369,14 @@ class MyListWidget extends StatelessWidget {
   DateTime today;
   final Function modalFn;
 
-  MyListWidget(
-      {super.key,
-      required this.items,
-      required this.today,
-      required this.modalFn});
+  MyListWidget({super.key, required this.items, required this.today, required this.modalFn});
 
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
       itemCount: items.length,
       itemBuilder: (BuildContext context, int index) {
-        final color = Color((Random().nextDouble() * 0xFFFFFF).toInt() << 0)
-            .withOpacity(1.0);
+        final color = Color((Random().nextDouble() * 0xFFFFFF).toInt() << 0).withOpacity(1.0);
 
         return Column(
           children: <Widget>[
@@ -404,14 +385,12 @@ class MyListWidget extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) =>
-                        ItemDetailsPage(item: items[index], today: today),
+                    builder: (context) => ItemDetailsPage(item: items[index], today: today),
                   ),
                 );
               },
               child: ListTile(
-                title: Text(items[index][0],
-                    style: const TextStyle(fontWeight: FontWeight.bold)),
+                title: Text(items[index][0], style: const TextStyle(fontWeight: FontWeight.bold)),
                 subtitle: Text(items[index][1]),
                 leading: // Container and btn next to each other
                     Row(
@@ -467,8 +446,8 @@ class MyListWidget extends StatelessWidget {
 Future<Map<String, double>> getCoordinates(String address) async {
   Map<String, double> locationMap = {'lat': 0.0, 'long': 0.0};
   try {
-    final response = await http.get(Uri.parse(
-        'https://nominatim.openstreetmap.org/search?q=$address&format=json&limit=1'));
+    final response =
+        await http.get(Uri.parse('https://nominatim.openstreetmap.org/search?q=$address&format=json&limit=1'));
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
@@ -493,8 +472,7 @@ class ItemDetailsPage extends StatefulWidget {
   final List<dynamic> item;
   DateTime today;
 
-  ItemDetailsPage({Key? key, required this.item, required this.today})
-      : super(key: key);
+  ItemDetailsPage({Key? key, required this.item, required this.today}) : super(key: key);
 
   @override
   // ignore: library_private_types_in_public_api
@@ -604,8 +582,7 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
                         ),
                         children: [
                           TileLayer(
-                            urlTemplate:
-                                'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                            urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                             userAgentPackageName: 'com.example.app',
                           ),
                           MarkerLayer(

@@ -24,7 +24,7 @@ class UserView extends StatefulWidget {
 class UserViewState extends State<UserView> {
   final ApiService _apiService = const ApiService();
   late User _user;
-  late Permissions? _permissions;
+  late Role? _role;
   Company? _company;
   bool loading = false;
   final _formKey = GlobalKey<FormState>();
@@ -73,18 +73,17 @@ class UserViewState extends State<UserView> {
           } else {
             loading = false;
           }
-          _permissions = permissions;
+          _role = permissions;
           _nameController.text = _user.name;
           _emailController.text = _user.email;
-          _permissionController.text =
-              _permissions?.permissions.toString() ?? 'null';
-          if (_permissions?.isAdmin == true) {
+          _permissionController.text = _role?.role.toString() ?? 'null';
+          if (_role?.role == Roles.admin) {
             _permissionController.text = 'PermissionType.admin';
           }
-          // else if (_permissions?.isManager == true) {
+          // else if (_role?.isManager == true) {
           //   _permissionController.text = 'PermissionType.manager';
           // }
-          else if (_permissions?.isUser == true) {
+          else if (_role?.role == Roles.user) {
             _permissionController.text = 'PermissionType.user';
           } else {
             _permissionController.text = 'null';
@@ -104,7 +103,7 @@ class UserViewState extends State<UserView> {
         loading = true;
       });
     }
-    _apiService.fetchCompany(id).then((company) {
+    _apiService.fetchCompany(companyId: id).then((company) {
       if (company != null) {
         if (mounted) {
           setState(() {
@@ -153,7 +152,7 @@ class UserViewState extends State<UserView> {
               widget.user.name = _user.name;
             });
           }
-          if (_permissions == null) {
+          if (_role == null) {
             Navigator.of(context).pop(true);
           } else {
             String? newPermission;
@@ -171,7 +170,7 @@ class UserViewState extends State<UserView> {
                 newPermission = null;
                 break;
             }
-            dynamic data = _permissions?.toJson();
+            dynamic data = _role?.toJson();
             data['permissions'] = newPermission;
             switch (data['permissions']) {
               case 'admin':
@@ -187,17 +186,13 @@ class UserViewState extends State<UserView> {
                 data['isUser'] = true;
                 break;
             }
-            _apiService
-                .patchRoles(Permissions.fromJson(data),
-                    userId: _permissions?.id)
-                .then((succeed) {
+            _apiService.patchRoles(Role.fromJson(data), userId: _role?.id).then((succeed) {
               if (succeed) {
                 Navigator.of(context).pop(true);
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text(
-                        'An error occured while saving your account permissions.'),
+                    content: Text('An error occured while saving your account permissions.'),
                     duration: Duration(seconds: 2),
                   ),
                 );
@@ -285,10 +280,8 @@ class UserViewState extends State<UserView> {
                       // Select field with options "Admin" (admin) and "User" (user)
                       ListTile(
                         contentPadding: EdgeInsets.zero,
-                        title: Text("Role",
-                            style: loading || _permissions == null
-                                ? const TextStyle(color: Colors.grey)
-                                : null),
+                        title:
+                            Text("Role", style: loading || _role == null ? const TextStyle(color: Colors.grey) : null),
                         trailing: DropdownButton(
                           value: _permissionController.text,
                           items: const [
@@ -309,15 +302,14 @@ class UserViewState extends State<UserView> {
                               child: Text('Undefined'),
                             ),
                           ],
-                          onChanged: loading || _permissions == null
+                          onChanged: loading || _role == null
                               ? null
                               : (value) {
                                   if (value == null) return;
                                   if (mounted) {
                                     if (mounted) {
                                       setState(() {
-                                        _permissionController.text =
-                                            value.toString();
+                                        _permissionController.text = value.toString();
                                       });
                                     }
                                   }
@@ -327,22 +319,15 @@ class UserViewState extends State<UserView> {
                       ListTile(
                         contentPadding: EdgeInsets.zero,
                         title: Text("Company",
-                            style: loading || _company == null
-                                ? const TextStyle(color: Colors.grey)
-                                : null),
+                            style: loading || _company == null ? const TextStyle(color: Colors.grey) : null),
                         trailing: Text(
                           _company?.name ?? 'None',
-                          style: loading || _company == null
-                              ? const TextStyle(color: Colors.grey)
-                              : null,
+                          style: loading || _company == null ? const TextStyle(color: Colors.grey) : null,
                         ),
                       ),
                       ListTile(
                         contentPadding: EdgeInsets.zero,
-                        title: Text("Manage calendar",
-                            style: loading
-                                ? const TextStyle(color: Colors.grey)
-                                : null),
+                        title: Text("Manage calendar", style: loading ? const TextStyle(color: Colors.grey) : null),
                         // Button to open schedules view
                         trailing: loading
                             ? null
@@ -351,8 +336,7 @@ class UserViewState extends State<UserView> {
                                 onPressed: () {
                                   Navigator.of(context).push(
                                     MaterialPageRoute(
-                                      builder: (context) =>
-                                          SchedulesView(_user.id),
+                                      builder: (context) => SchedulesView(_user.id),
                                     ),
                                   );
                                 },
@@ -360,10 +344,7 @@ class UserViewState extends State<UserView> {
                       ),
                       ListTile(
                         contentPadding: EdgeInsets.zero,
-                        title: Text("Manage vehicules",
-                            style: loading
-                                ? const TextStyle(color: Colors.grey)
-                                : null),
+                        title: Text("Manage vehicules", style: loading ? const TextStyle(color: Colors.grey) : null),
                         // Button to open schedules view
                         trailing: loading
                             ? null

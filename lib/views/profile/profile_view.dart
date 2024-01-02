@@ -52,7 +52,7 @@ class _ProfileViewState extends State<ProfileView> {
     username = capitalizeFirstLetter(userData['name']);
     email = userData['email'];
 
-    permissionsData = _api.permissions?.toJson();
+    permissionsData = _api.role?.toJson();
     permissions = permissionsData['permissions'] ?? 'user';
   }
 

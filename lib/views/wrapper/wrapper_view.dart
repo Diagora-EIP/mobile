@@ -4,12 +4,14 @@ import 'package:diagora/services/api_service.dart';
 
 import 'package:diagora/views/home/home.dart';
 import 'package:diagora/views/stats/stats.dart';
+import 'package:diagora/models/role_model.dart';
 import 'package:diagora/views/admin/admin_view.dart';
 import 'package:diagora/views/auth/register_view.dart';
 // import 'package:diagora/views/manage/manage_view.dart';
 import 'package:diagora/views/profile/profile_view.dart';
 import 'package:diagora/views/my_package/my_package.dart';
 import 'package:diagora/views/settings/settings_view.dart';
+
 
 class WrapperView extends StatefulWidget {
   const WrapperView({
@@ -32,7 +34,7 @@ class WrapperViewState extends State<WrapperView> {
 
   /// Initialise les onglets en fonction des permissions de l'utilisateur pour remplir la liste [_finalTabs].
   void initViews() {
-    if (_api.permissions?.isAdmin == true) {
+    if (_api.role?.role == Roles.admin) {
       // Si l'utilisateur est un admin
       _finalTabs.addAll([
         const HomeView(),
@@ -57,7 +59,7 @@ class WrapperViewState extends State<WrapperView> {
     //   ]);
     //   showManage = true;
     // }
-    else if (_api.permissions?.isClient == true) {
+    else if (_api.role?.role == Roles.client) {
       // Si l'utilisateur est un client
       _finalTabs.addAll([
         const MyPackages(),

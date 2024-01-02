@@ -31,7 +31,7 @@ class MapPageState extends State<MapPage> {
     var date = currentDate;
     var dateStart = DateTime(date.year, date.month, date.day, 0, 0, 1);
     var dateEnd = DateTime(date.year, date.month, date.day, 23, 59, 59);
-    String valuesData = await _api.mapValues(dateStart, dateEnd, widget.userId);
+    String valuesData = await _api.mapItinenaries(dateStart, dateEnd, widget.userId);
     if (valuesData == "false") return;
     List<dynamic> values = json.decode(valuesData);
     print(values);

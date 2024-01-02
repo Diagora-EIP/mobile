@@ -22,8 +22,7 @@ class ApiRoutes {
   static const String logoutUserRoute = '/user/logout'; // POST
   static const String resetPasswordRoute = '/resetPassword'; // POST
   static const String updatePasswordRoute = '/resetPassword'; // PATCH
-  static const String updatePasswordByTokenRoute =
-      '/resetPassword/:reset_token'; // PATCH
+  static const String updatePasswordByTokenRoute = '/resetPassword/:reset_token'; // PATCH
 
   // Utilisateur
   static const String getUserRoute = '/user'; // GET
@@ -38,26 +37,25 @@ class ApiRoutes {
   static const String getAdminUsersRoute = '/admin/users'; // GET
   static const String updateAdminUserRoute = '/admin/user/:id'; // PATCH
   static const String getAdminUserRolesRoute = '/admin/userRoles/:id'; // GET
-  static const String updateAdminUserRolesRoute =
-      '/admin/userRoles/:id'; // PATCH
+  static const String updateAdminUserRolesRoute = '/admin/userRoles/:id'; // PATCH
 
   // Entreprises
   static const String getCompanyRoute = '/company'; // GET
 
   // Admin - Entreprises
-  static const String getAdminCompanyRoute =
-      '/admin/company/:company_id'; // GET
+  static const String getAdminCompanyRoute = '/admin/company/:company_id'; // GET
   static const String getAdminCompaniesRoute = '/admin/companies'; // GET
   static const String createAdminCompanyRoute = '/admin/company'; // POST
-  static const String updateAdminCompanyRoute =
-      '/admin/company/:company_id'; // PATCH
+  static const String updateAdminCompanyRoute = '/admin/company/:company_id'; // PATCH
 
   // Commandes
   static const String createOrderRoute = '/order/create'; // POST
-  static const String getOrdersBetweenDatesRoute =
-      '/order/get-between-date'; // GET
+  static const String getOrdersBetweenDatesRoute = '/order/get-between-date'; // GET
   static const String updateOrderRoute = '/order/update/:order_id'; // PATCH
   static const String deleteOrderRoute = '/order/delete/:order_id'; // DELETE
+
+  // Itineraries
+  static const String getItineraryRoute = '/itinerary/get/:itinerary_id'; // GET
 
   // Admin - Commandes
   static const String getAllAdminOrdersRoute = '/admin/orders'; // GET
@@ -71,18 +69,12 @@ class ApiRoutes {
   static const String getUserCompanyVehiclesRoute = '/user/:id/vehicles'; // GET
 
   // Admin - Vehicules
-  static const String createAdminVehicleRoute =
-      '/admin/vehicle/:company_id'; // POST
-  static const String updateAdminVehicleRoute =
-      '/admin/vehicle/:vehicle_id'; // PATCH
-  static const String deleteAdminVehicleRoute =
-      '/admin/vehicle/:vehicle_id'; // DELETE
-  static const String getAdminVehicleInfoRoute =
-      '/admin/vehicle/:vehicle_id'; // GET
-  static const String getAdminCompanyVehiclesRoute =
-      '/admin/company/:company_id/vehicles'; // GET
-  static const String getUserAdminVehiclesRoute =
-      '/admin/user/:user_id/vehicles'; // GET
+  static const String createAdminVehicleRoute = '/admin/vehicle/:company_id'; // POST
+  static const String updateAdminVehicleRoute = '/admin/vehicle/:vehicle_id'; // PATCH
+  static const String deleteAdminVehicleRoute = '/admin/vehicle/:vehicle_id'; // DELETE
+  static const String getAdminVehicleInfoRoute = '/admin/vehicle/:vehicle_id'; // GET
+  static const String getAdminCompanyVehiclesRoute = '/admin/company/:company_id/vehicles'; // GET
+  static const String getUserAdminVehiclesRoute = '/admin/user/:user_id/vehicles'; // GET
   static const String getAllAdminVehiclesRoute = '/admin/vehicles'; // GET
 
   /// Permet de créer l'URL complète d'une route.
@@ -109,8 +101,8 @@ class ApiService {
   // Informations sur l'utilisateur connecté
   static User? _user;
   User? get user => _user;
-  static Permissions? _permissions;
-  Permissions? get permissions => _permissions;
+  static Role? _role;
+  Role? get role => _role;
   static String? _token;
 
   /// Permet d'obtenir une instance de [ApiService].
@@ -119,9 +111,7 @@ class ApiService {
       SharedPreferences.getInstance().then((value) {
         _prefs = value;
         _token ??= _prefs?.getString('token');
-        _user ??= _prefs?.getString('user') != null
-            ? User.fromJson(json.decode(_prefs!.getString('user')!))
-            : null;
+        _user ??= _prefs?.getString('user') != null ? User.fromJson(json.decode(_prefs!.getString('user')!)) : null;
       });
     }
     return _instance;
@@ -146,11 +136,7 @@ class ApiService {
       Response response = await client.post(
         url,
         body: json.encode(
-          {
-            'email': email.toLowerCase(),
-            'password': password,
-            'remember': remember
-          },
+          {'email': email.toLowerCase(), 'password': password, 'remember': remember},
         ),
         headers: {'Content-Type': 'application/json'},
       );
@@ -240,7 +226,7 @@ class ApiService {
       _prefs?.remove('token');
       _prefs?.remove('user');
       _user = null;
-      _permissions = null;
+      _role = null;
       _token = null;
       analytics.logEvent(name: 'logout').ignore();
       if (response.statusCode == 200) {
@@ -263,7 +249,7 @@ class ApiService {
   /// Peut prendre en paramètre un [client] qui est un [Client].
   ///
   /// Retourne un [Permissions] qui est le modèle de données des permissions. Si la requête échoue, retourne null.
-  Future<Permissions?> fetchRoles({
+  Future<Role?> fetchRoles({
     int? userId,
     Client? client,
   }) async {
@@ -273,8 +259,7 @@ class ApiService {
       if (userId == null || userId == _user?.id) {
         url = ApiRoutes.route(ApiRoutes.getUserRolesRoute);
       } else {
-        url = ApiRoutes.route(ApiRoutes.getAdminUserRolesRoute
-            .replaceAll(':id', userId.toString()));
+        url = ApiRoutes.route(ApiRoutes.getAdminUserRolesRoute.replaceAll(':id', userId.toString()));
       }
       Response response = await client.get(
         url,
@@ -283,11 +268,10 @@ class ApiService {
       if (response.statusCode == 200 || response.statusCode == 202) {
         dynamic responseData = json.decode(response.body);
         _logger.i(responseData);
-        _permissions = Permissions.fromJson(responseData[0]);
-        return (_permissions);
+        _role = Role.fromJson(responseData[0]);
+        return (_role);
       } else {
-        _logger.e(
-            'fetchRoles() failed with status code ${response.statusCode}');
+        _logger.e('fetchRoles() failed with status code ${response.statusCode}');
         return (null);
       }
     } catch (e) {
@@ -304,7 +288,7 @@ class ApiService {
   ///
   /// Retourne un [bool] qui indique si la requête a réussi.
   Future<bool> patchRoles(
-    Permissions permissionData, {
+    Role roleData, {
     int? userId,
     Client? client,
   }) async {
@@ -314,24 +298,19 @@ class ApiService {
       if (userId == null || userId == _user?.id) {
         url = ApiRoutes.route(ApiRoutes.getUserRolesRoute);
       } else {
-        url = ApiRoutes.route(ApiRoutes.updateAdminUserRolesRoute
-            .replaceAll(':id', userId.toString()));
+        url = ApiRoutes.route(ApiRoutes.updateAdminUserRolesRoute.replaceAll(':id', userId.toString()));
       }
       Response response = await client.patch(
         url,
-        headers: {
-          "Authorization": "Bearer ${_token!}",
-          "Content-Type": "application/json"
-        },
-        body: json.encode(permissionData.toJson()),
+        headers: {"Authorization": "Bearer ${_token!}", "Content-Type": "application/json"},
+        body: json.encode(roleData.toJson()),
       );
       if (response.statusCode == 200 || response.statusCode == 202) {
         dynamic responseData = json.decode(response.body);
         _logger.i(responseData);
         return (true);
       } else {
-        _logger.e(
-            'patchRoles() failed with status code ${response.statusCode}');
+        _logger.e('patchRoles() failed with status code ${response.statusCode}');
         return (false);
       }
     } catch (e) {
@@ -357,19 +336,15 @@ class ApiService {
       if (userId == null || userId == _user?.id) {
         url = ApiRoutes.route(ApiRoutes.getUserRoute);
       } else {
-        url = ApiRoutes.route(
-            ApiRoutes.getUserByIdRoute.replaceAll(':id', userId.toString()));
+        url = ApiRoutes.route(ApiRoutes.getUserByIdRoute.replaceAll(':id', userId.toString()));
       }
       Response response = await client.get(
         url,
-        headers: {
-          'Content-Type': 'application/json',
-          "Authorization": "Bearer ${_token!}"
-        },
+        headers: {'Content-Type': 'application/json', "Authorization": "Bearer ${_token!}"},
       );
       if (response.statusCode == 200 || response.statusCode == 202) {
         dynamic responseData = json.decode(response.body);
-        User user = User.fromJson(responseData["user"]);
+        User user = User.fromJson(responseData);
         _logger.i(responseData);
         return (user);
       } else {
@@ -400,15 +375,11 @@ class ApiService {
       if (userId == null || userId == _user?.id) {
         url = ApiRoutes.route(ApiRoutes.getUserRoute);
       } else {
-        url = ApiRoutes.route(
-            ApiRoutes.updateUserByIdRoute.replaceAll(':id', userId.toString()));
+        url = ApiRoutes.route(ApiRoutes.updateUserByIdRoute.replaceAll(':id', userId.toString()));
       }
       Response response = await client.patch(
         url,
-        headers: {
-          "Authorization": "Bearer ${_token!}",
-          "Content-Type": "application/json"
-        },
+        headers: {"Authorization": "Bearer ${_token!}", "Content-Type": "application/json"},
         body: json.encode(userData.toJson()),
       );
       if (response.statusCode == 200) {
@@ -446,13 +417,12 @@ class ApiService {
       if (response.statusCode == 200 || response.statusCode == 202) {
         dynamic responseData = json.decode(response.body);
         List<User> users = [];
-        for (var user in responseData["users"]) {
+        for (var user in responseData) {
           users.add(User.fromJson(user));
         }
         return (users);
       } else {
-        _logger.e(
-            'fetchUsers() failed with status code ${response.statusCode}: ${response.body}');
+        _logger.e('fetchUsers() failed with status code ${response.statusCode}: ${response.body}');
         return (null);
       }
     } catch (e) {
@@ -493,8 +463,7 @@ class ApiService {
         _logger.i(responseData);
         return true;
       } else {
-        _logger.e(
-            'resetPasswordWithoutToken() failed with status code ${response.statusCode}: ${response.body}');
+        _logger.e('resetPasswordWithoutToken() failed with status code ${response.statusCode}: ${response.body}');
         return false;
       }
     } catch (e) {
@@ -530,15 +499,12 @@ class ApiService {
           'MAILJET_API_SECRET': 'c1582325f03a0be32490c4af7c012350'
         },
       );
-      if (response.statusCode == 200 ||
-          response.statusCode == 201 ||
-          response.statusCode == 204) {
+      if (response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 204) {
         // dynamic responseData = json.decode(response.body);
         // _logger.i(responseData);
         return true;
       } else {
-        _logger.e(
-            'generatePasswordToken() failed with status code ${response.statusCode}: ${response.body}');
+        _logger.e('generatePasswordToken() failed with status code ${response.statusCode}: ${response.body}');
         return false;
       }
     } catch (e) {
@@ -561,8 +527,7 @@ class ApiService {
   }) async {
     try {
       client ??= _httpClient;
-      Uri url = ApiRoutes.route(ApiRoutes.updatePasswordByTokenRoute
-          .replaceAll(':reset_token', token));
+      Uri url = ApiRoutes.route(ApiRoutes.updatePasswordByTokenRoute.replaceAll(':reset_token', token));
       Response response = await client.post(
         url,
         body: json.encode(
@@ -579,8 +544,7 @@ class ApiService {
         _logger.i(responseData);
         return true;
       } else {
-        _logger.e(
-            'resetPasswordWithToken() failed with status code ${response.statusCode}: ${response.body}');
+        _logger.e('resetPasswordWithToken() failed with status code ${response.statusCode}: ${response.body}');
         return false;
       }
     } catch (e) {
@@ -594,41 +558,27 @@ class ApiService {
   /// The[begin], [end] parameter are required and cannot be null.
   /// The output value will be the shipment date if the call succeed.
   /// If [response.statusCode] is not 200 or 202, this function will return "false".
-  Future<String> calendarValues(
+  Future<String> calendarOrders(
     DateTime begin,
-    DateTime end,
-    int userId, {
+    DateTime end, {
     Client? client,
   }) async {
-    String beginTimeStamp =
-        DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(begin.toUtc());
-    String endTimeStamp =
-        DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(end.toUtc());
+    String beginTimeStamp = DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(begin.toUtc());
+    String endTimeStamp = DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(end.toUtc());
     client ??= _httpClient;
 
-    String id;
-    if (userId == -1) {
-      return "false";
-    } else {
-      id = userId.toString();
-    }
-
-    Uri url = ApiRoutes.route(
-        "/user/$id/schedule?begin=$beginTimeStamp&end=$endTimeStamp");
+    Uri url =
+        ApiRoutes.route("${ApiRoutes.getOrdersBetweenDatesRoute}?start_date=$beginTimeStamp&end_date=$endTimeStamp");
 
     try {
       final response = await client.get(
         url,
-        headers: {
-          'Content-Type': 'application/json',
-          "Authorization": "Bearer ${_token!}"
-        },
+        headers: {'Content-Type': 'application/json', "Authorization": "Bearer ${_token!}"},
       );
       if (response.statusCode == 200 || response.statusCode == 202) {
         return (response.body);
       } else {
-        _logger.e(
-            "calendarValues() failed with status code ${response.statusCode}: ${response.body}");
+        _logger.e("calendarOrders() failed with status code ${response.statusCode}: ${response.body}");
         return "false";
       }
     } catch (e) {
@@ -642,7 +592,7 @@ class ApiService {
   /// The[begin], [end] parameter are required and cannot be null.
   /// The output value will be the shipment date if the call succeed.
   /// If [response.statusCode] is not 200 or 202, this function will return "false".
-  Future<String> mapValues(
+  Future<String> mapItinenaries(
     DateTime begin,
     DateTime end,
     int userId, {
@@ -667,16 +617,13 @@ class ApiService {
       id = userId.toString();
     }
 
-    Uri url = ApiRoutes.route(
-        "/user/$id/itinary?begin=$beginTimeStamp&end=$endTimeStamp");
+    // Uri url = ApiRoutes.route("/user/$id/itinary?begin=$beginTimeStamp&end=$endTimeStamp");
+    Uri url = ApiRoutes.route(ApiRoutes.getItineraryRoute.replaceAll(":itinerary_id", "14"));
 
     try {
       final response = await client.get(
         url,
-        headers: {
-          'Content-Type': 'application/json',
-          "Authorization": "Bearer ${_token!}"
-        },
+        headers: {'Content-Type': 'application/json', "Authorization": "Bearer ${_token!}"},
       );
       _logger.d(response.statusCode);
       _logger.d(response.body);
@@ -721,16 +668,12 @@ class ApiService {
       id = userId.toString();
     }
 
-    Uri url = ApiRoutes.route(
-        "/user/$id/itinary?begin=$beginTimeStamp&end=$endTimeStamp");
+    Uri url = ApiRoutes.route("/user/$id/itinary?begin=$beginTimeStamp&end=$endTimeStamp");
 
     try {
       final response = await client.get(
         url,
-        headers: {
-          'Content-Type': 'application/json',
-          "Authorization": "Bearer ${_token!}"
-        },
+        headers: {'Content-Type': 'application/json', "Authorization": "Bearer ${_token!}"},
       );
       if (response.statusCode == 200 || response.statusCode == 202) {
         List<dynamic> responseData = json.decode(response.body);
@@ -816,23 +759,19 @@ class ApiService {
   Future<dynamic> getVehicules({
     Client? client,
     bool injectToken = true,
-    required int userId,
+    int? userId,
   }) async {
     client ??= _httpClient;
     Uri url;
-    if (userId == -1) {
+    if (userId == null || userId == _user!.id) {
       url = ApiRoutes.route(ApiRoutes.getUserVehiclesRoute);
     } else {
-      url = ApiRoutes.route(ApiRoutes.getUserCompanyVehiclesRoute
-          .replaceAll(":id", userId.toString()));
+      url = ApiRoutes.route(ApiRoutes.getUserCompanyVehiclesRoute.replaceAll(":id", userId.toString()));
     }
     try {
       final response = await client.get(
         url,
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer ${_token!}"
-        },
+        headers: {"Content-Type": "application/json", "Authorization": "Bearer ${_token!}"},
       );
       if (response.statusCode == 200 || response.statusCode == 202) {
         dynamic responseData = json.decode(response.body);
@@ -841,9 +780,10 @@ class ApiService {
           return ([]);
         }
         return (responseData);
+      } else if (response.statusCode == 404) {
+        return ([]);
       } else {
-        _logger.e(
-            'getVehicules() failed with status code ${response.statusCode}: ${response.body}');
+        _logger.e('getVehicules() failed with status code ${response.statusCode}: ${response.body}');
         return (false);
       }
     } catch (e) {
@@ -855,20 +795,22 @@ class ApiService {
   Future<dynamic> addVehicule({
     Client? client,
     bool injectToken = true,
-    required int userId,
+    int? userId,
     required String name,
     required String dimentions,
     required int capacity,
   }) async {
     client ??= _httpClient;
-    Uri url = ApiRoutes.route(ApiRoutes.createVehicleRoute);
+    Uri url;
+    if (userId == null || userId == user?.id) {
+      url = ApiRoutes.route(ApiRoutes.createVehicleRoute);
+    } else {
+      url = ApiRoutes.route(ApiRoutes.createAdminVehicleRoute.replaceAll(":company_id", userId.toString()));
+    }
     try {
       final response = await client.post(
         url,
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer ${_token!}"
-        },
+        headers: {"Content-Type": "application/json", "Authorization": "Bearer ${_token!}"},
         body: json.encode({
           "userId": userId,
           "name": name,
@@ -881,8 +823,7 @@ class ApiService {
         _logger.i(responseData);
         return (responseData);
       } else {
-        _logger.e(
-            'addVehicule() failed with status code ${response.statusCode}: ${response.body}');
+        _logger.e('addVehicule() failed with status code ${response.statusCode}: ${response.body}');
         return (false);
       }
     } catch (e) {
@@ -903,19 +844,14 @@ class ApiService {
     client ??= _httpClient;
     Uri url;
     if (userId == _user!.id) {
-      url = ApiRoutes.route(ApiRoutes.updateVehicleRoute
-          .replaceAll(":vehicle_id", vehiculeId.toString()));
+      url = ApiRoutes.route(ApiRoutes.updateVehicleRoute.replaceAll(":vehicle_id", vehiculeId.toString()));
     } else {
-      url = ApiRoutes.route(ApiRoutes.updateAdminVehicleRoute
-          .replaceAll(":vehicle_id", vehiculeId.toString()));
+      url = ApiRoutes.route(ApiRoutes.updateAdminVehicleRoute.replaceAll(":vehicle_id", vehiculeId.toString()));
     }
     try {
       final response = await client.patch(
         url,
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer ${_token!}"
-        },
+        headers: {"Content-Type": "application/json", "Authorization": "Bearer ${_token!}"},
         body: json.encode({
           "userId": userId,
           "name": name,
@@ -928,8 +864,7 @@ class ApiService {
         _logger.i(responseData);
         return (responseData);
       } else {
-        _logger.e(
-            'editVehicule() failed with status code ${response.statusCode}: ${response.body}');
+        _logger.e('editVehicule() failed with status code ${response.statusCode}: ${response.body}');
         return (false);
       }
     } catch (e) {
@@ -948,17 +883,13 @@ class ApiService {
     try {
       final response = await client.delete(
         url,
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer ${_token!}"
-        },
+        headers: {"Content-Type": "application/json", "Authorization": "Bearer ${_token!}"},
       );
       if (response.statusCode == 200 || response.statusCode == 202) {
         _logger.i(response.body);
         return (true);
       } else {
-        _logger.e(
-            'deleteVehicule() failed with status code ${response.statusCode}: ${response.body}');
+        _logger.e('deleteVehicule() failed with status code ${response.statusCode}: ${response.body}');
         return (false);
       }
     } catch (e) {
@@ -994,8 +925,7 @@ class ApiService {
         }
         return (companies);
       } else {
-        _logger.e(
-            'fetchCompanies() failed with status code ${response.statusCode}: ${response.body}');
+        _logger.e('fetchCompanies() failed with status code ${response.statusCode}: ${response.body}');
         return (null);
       }
     } catch (e) {
@@ -1011,13 +941,19 @@ class ApiService {
   /// Peut prendre en paramètre un [client] qui est un [Client].
   ///
   /// Retourne une [Company]. Si la requête échoue, retourne null.
-  Future<Company?> fetchCompany(
-    int companyId, {
+  Future<Company?> fetchCompany({
+    int? companyId,
     Client? client,
   }) async {
     try {
       client ??= _httpClient;
-      Uri url = ApiRoutes.route(ApiRoutes.getAdminCompanyRoute.replaceAll(':id', companyId.toString()));
+
+      Uri url;
+      if (companyId == null) {
+        url = ApiRoutes.route(ApiRoutes.getCompanyRoute);
+      } else {
+        url = ApiRoutes.route(ApiRoutes.getAdminCompanyRoute.replaceAll(':id', companyId.toString()));
+      }
       Response response = await client.get(
         url,
         headers: {
@@ -1026,6 +962,7 @@ class ApiService {
         },
       );
       if (response.statusCode == 200 || response.statusCode == 202) {
+        if (response.body.isEmpty) return (null);
         dynamic responseData = json.decode(response.body);
         _logger.i(responseData);
         if (responseData is List) {
@@ -1034,8 +971,7 @@ class ApiService {
           return (Company.fromJson(responseData));
         }
       } else {
-        _logger.e(
-            'fetchCompany() failed with status code ${response.statusCode}: ${response.body}');
+        _logger.e('fetchCompany() failed with status code ${response.statusCode}: ${response.body}');
         return (null);
       }
     } catch (e) {
@@ -1075,8 +1011,7 @@ class ApiService {
         _logger.i(response.body);
         return (true);
       } else {
-        _logger.e(
-            'patchCompany() failed with status code ${response.statusCode}: ${response.body}');
+        _logger.e('patchCompany() failed with status code ${response.statusCode}: ${response.body}');
         return (false);
       }
     } catch (e) {
@@ -1115,8 +1050,7 @@ class ApiService {
         _logger.i(response.body);
         return (true);
       } else {
-        _logger.e(
-            'createCompany() failed with status code ${response.statusCode}: ${response.body}');
+        _logger.e('createCompany() failed with status code ${response.statusCode}: ${response.body}');
         return (false);
       }
     } catch (e) {

@@ -32,8 +32,7 @@ class UsersViewState extends State<UsersView> {
       if (users != null) {
         setState(() {
           this.users = users;
-          this.users.sort(
-              (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+          this.users.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
           filteredUsers = this.users;
           loading = false;
         });
@@ -78,12 +77,8 @@ class UsersViewState extends State<UsersView> {
                           filteredUsers = users
                               .where(
                                 (user) =>
-                                    user.name
-                                        .toLowerCase()
-                                        .contains(value.toLowerCase()) ||
-                                    user.email
-                                        .toLowerCase()
-                                        .contains(value.toLowerCase()),
+                                    user.name.toLowerCase().contains(value.toLowerCase()) ||
+                                    user.email.toLowerCase().contains(value.toLowerCase()),
                               )
                               .toList();
                         });
@@ -103,8 +98,7 @@ class UsersViewState extends State<UsersView> {
                 for (User user in filteredUsers) ...[
                   // If the user's name starts with a new character, a header row with the character is created
                   if (users.indexOf(user) == 0 ||
-                      user.name[0] !=
-                          users[users.indexOf(user) - 1].name[0]) ...[
+                      user.name[0].toLowerCase() != users[users.indexOf(user) - 1].name[0].toLowerCase()) ...[
                     if (users.indexOf(user) != 0) ...[
                       const SizedBox(height: 10),
                     ],
@@ -130,8 +124,7 @@ class UsersViewState extends State<UsersView> {
                         child: Text(
                           user.name.length == 1
                               ? user.name.toUpperCase()
-                              : user.name[0].toUpperCase() +
-                                  user.name[1].toUpperCase(),
+                              : user.name[0].toUpperCase() + user.name[1].toUpperCase(),
                           style: const TextStyle(color: Colors.white),
                         ),
                       ),

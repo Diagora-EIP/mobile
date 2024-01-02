@@ -64,7 +64,7 @@ class MyAccountViewState extends State<MyAccountView> {
         loading = true;
       });
     }
-    _apiService.fetchCompany(id).then((company) {
+    _apiService.fetchCompany().then((company) {
       if (company != null) {
         if (mounted) {
           setState(() {
@@ -183,14 +183,10 @@ class MyAccountViewState extends State<MyAccountView> {
                       ListTile(
                         contentPadding: EdgeInsets.zero,
                         title: Text("Company",
-                            style: loading || _company == null
-                                ? const TextStyle(color: Colors.grey)
-                                : null),
+                            style: loading || _company == null ? const TextStyle(color: Colors.grey) : null),
                         trailing: Text(
                           _company?.name ?? 'None',
-                          style: loading || _company == null
-                              ? const TextStyle(color: Colors.grey)
-                              : null,
+                          style: loading || _company == null ? const TextStyle(color: Colors.grey) : null,
                         ),
                       ),
                     ],
