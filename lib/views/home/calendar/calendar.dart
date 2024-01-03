@@ -23,43 +23,37 @@ class CalendarPage extends StatefulWidget {
 class _CalendarPageState extends State<CalendarPage> {
   final ApiService _api = ApiService.getInstance();
   CalendarFormat _calendarFormat = CalendarFormat.month;
-
   DateTime today = DateTime.now();
-  DateTime end = DateTime.now();
-
   List<dynamic> calendarList = [];
-  List<dynamic> scheduleList = [];
-
-  late DateTime todayDate;
-  late DateTime todayStart;
-  late DateTime todayEnd;
-
-  String todayValueString = "";
-  late Future<String> allTodaysValues;
-
   bool deliveryToday = true;
-  int userId = -1;
-  dynamic userData;
 
   @override
   void initState() {
     super.initState();
-    todayDate = DateTime.parse(today.toString());
-    todayStart = DateTime(todayDate.year, todayDate.month, todayDate.day, 1);
-    todayEnd = DateTime(todayDate.year, todayDate.month, todayDate.day, 23);
+    _onDaySelected(today, today);
+  }
 
-    allTodaysValues = _api.calendarOrders(todayStart, todayEnd);
+  // Needs to have the same parameters as the function onDaySelected [DateTime day, DateTime focusDay]
+  void _onDaySelected(DateTime day, DateTime focusDay) {
+    String chosenValueString = "";
+    List<dynamic> scheduleList = [];
+    DateTime chosenStart = DateTime(focusDay.year, focusDay.month, focusDay.day, 1);
+    DateTime chosenEnd = DateTime(focusDay.year, focusDay.month, focusDay.day, 23);
+    Future<String> allTodaysValues = _api.calendarOrders(chosenStart, chosenEnd);
+
     allTodaysValues.then((value) {
+      // No delivery for today
       if (value == "[]") {
         setState(() {
           deliveryToday = false;
         });
+        // Delivery for today
       } else {
+        chosenValueString = value;
+        scheduleList = json.decode(chosenValueString);
+        _shipmentOfTheDay(scheduleList);
         setState(() {
-          todayValueString = value;
           deliveryToday = true;
-          scheduleList = json.decode(todayValueString);
-          _shipmentOfTheDay(scheduleList);
         });
       }
     }).catchError((error) {
@@ -67,26 +61,9 @@ class _CalendarPageState extends State<CalendarPage> {
         deliveryToday = false;
       });
     });
-  }
-
-  void _onDaySelected(DateTime day, DateTime focusDay) {
-    DateTime todayStart = DateTime(focusDay.year, focusDay.month, focusDay.day, 1);
-    DateTime todayEnd = DateTime(focusDay.year, focusDay.month, focusDay.day, 23);
-    Future<String> allTodaysValues = _api.calendarOrders(todayStart, todayEnd);
-    allTodaysValues.then((value) {
-      setState(() {
-        todayValueString = value;
-        deliveryToday = true;
-        scheduleList = json.decode(todayValueString);
-        _shipmentOfTheDay(scheduleList);
-      });
-    }).catchError((error) {
-      setState(() {
-        deliveryToday = false;
-      });
-    });
+    // Change the variable today to the day selected
     setState(() {
-      today = day;
+      today = focusDay;
     });
   }
 
@@ -94,11 +71,11 @@ class _CalendarPageState extends State<CalendarPage> {
     List<dynamic> newCalendarList = [];
 
     for (var schedule in scheduleListVal) {
-      DateTime dateTimeBegin = DateTime.parse(schedule["begin"]);
-      DateTime dateTimeEnd = DateTime.parse(schedule["end"]);
+      DateTime dateTimeBegin = DateTime.parse(schedule["order_date"]);
+      DateTime dateTimeEnd = DateTime.parse(schedule["order_date"]);
       newCalendarList.add([
-        schedule["name"],
-        schedule["address"],
+        schedule["description"],
+        schedule["delivery_address"],
         DateFormat('hh:mm aaa').format(dateTimeBegin),
         DateFormat('hh:mm aaa').format(dateTimeEnd)
       ]);
@@ -190,7 +167,7 @@ class _CalendarPageState extends State<CalendarPage> {
           ),
           Expanded(
               child: deliveryToday
-                  ? MyListWidget(items: calendarList, today: today)
+                  ? MyListWidget(items: calendarList, chosen: today)
                   : const Center(
                       child: Text(
                         "No delivery for today",
@@ -216,9 +193,9 @@ class _CalendarPageState extends State<CalendarPage> {
 // ignore: must_be_immutable
 class MyListWidget extends StatelessWidget {
   final List<dynamic> items;
-  DateTime today;
+  DateTime chosen;
 
-  MyListWidget({super.key, required this.items, required this.today});
+  MyListWidget({super.key, required this.items, required this.chosen});
 
   @override
   Widget build(BuildContext context) {
@@ -234,7 +211,7 @@ class MyListWidget extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => ItemDetailsPage(item: items[index], today: today),
+                    builder: (context) => ItemDetailsPage(item: items[index], chosen: chosen),
                   ),
                 );
               },
@@ -299,9 +276,9 @@ Future<Map<String, double>> getCoordinates(String address) async {
 // ignore: must_be_immutable
 class ItemDetailsPage extends StatefulWidget {
   final List<dynamic> item;
-  DateTime today;
+  DateTime chosen;
 
-  ItemDetailsPage({Key? key, required this.item, required this.today}) : super(key: key);
+  ItemDetailsPage({Key? key, required this.item, required this.chosen}) : super(key: key);
 
   @override
   // ignore: library_private_types_in_public_api
@@ -331,7 +308,7 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          "On ${DateFormat('EEEE, MMM d, yyyy').format(widget.today)}",
+          "On ${DateFormat('EEEE, MMM d, yyyy').format(widget.chosen)}",
           style: const TextStyle(
             fontWeight: FontWeight.bold,
           ),

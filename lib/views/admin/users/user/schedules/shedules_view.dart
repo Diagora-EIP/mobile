@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 
 import 'package:intl/intl.dart';
 
-import 'package:flutter_datetime_picker_plus/flutter_datetime_picker_plus.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_map/flutter_map.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:flutter_datetime_picker_plus/flutter_datetime_picker_plus.dart';
 
 import 'package:diagora/services/api_service.dart';
 
@@ -27,24 +27,11 @@ class SchedulesView extends StatefulWidget {
 }
 
 class SchedulesViewState extends State<SchedulesView> {
-  final ApiService _api = ApiService.getInstance();
   CalendarFormat _calendarFormat = CalendarFormat.month;
-
+  final ApiService _api = ApiService.getInstance();
   DateTime today = DateTime.now();
-  DateTime end = DateTime.now();
-
   List<dynamic> calendarList = [];
-  List<dynamic> scheduleList = [];
-
-  late DateTime todayDate;
-  late DateTime todayStart;
-  late DateTime todayEnd;
-
-  String todayValueString = "";
-  late Future<String> allTodaysValues;
-
   bool deliveryToday = true;
-  int userId = -1;
 
   final TextEditingController _dateBeginController = TextEditingController();
   final TextEditingController _dateEndController = TextEditingController();
@@ -52,42 +39,30 @@ class SchedulesViewState extends State<SchedulesView> {
   @override
   void initState() {
     super.initState();
-    todayDate = DateTime.parse(today.toString());
-    todayStart = DateTime(todayDate.year, todayDate.month, todayDate.day, 1);
-    todayEnd = DateTime(todayDate.year, todayDate.month, todayDate.day, 23);
-    allTodaysValues = _api.calendarOrders(todayStart, todayEnd);
-    allTodaysValues.then((value) {
-      if (value == '[]') {
-        setState(() {
-          deliveryToday = false;
-        });
-      } else {
-        setState(() {
-          todayValueString = value;
-          deliveryToday = true;
-          scheduleList = json.decode(todayValueString);
-          _shipmentOfTheDay(scheduleList);
-        });
-      }
-    }).catchError((error) {
-      setState(() {
-        deliveryToday = false;
-      });
-    });
+    _onDaySelected(today, today);
   }
 
   void _onDaySelected(DateTime day, DateTime focusDay) {
-    DateTime todayStart = DateTime(focusDay.year, focusDay.month, focusDay.day, 1);
-    DateTime todayEnd = DateTime(focusDay.year, focusDay.month, focusDay.day, 23);
-    Future<String> allTodaysValues = _api.calendarOrders(todayStart, todayEnd);
+    String todayValueString = "";
+    List<dynamic> scheduleList = [];
+    DateTime chosenStart = DateTime(focusDay.year, focusDay.month, focusDay.day, 1);
+    DateTime chosenEnd = DateTime(focusDay.year, focusDay.month, focusDay.day, 23);
+    Future<String> allTodaysValues = _api.calendarOrders(chosenStart, chosenEnd);
+
     allTodaysValues.then((value) {
       if (mounted) {
-        setState(() {
-          todayValueString = value;
-          deliveryToday = true;
-          scheduleList = json.decode(todayValueString);
-          _shipmentOfTheDay(scheduleList);
-        });
+        if (value == '[]') {
+          setState(() {
+            deliveryToday = false;
+          });
+        } else {
+          setState(() {
+            todayValueString = value;
+            deliveryToday = true;
+            scheduleList = json.decode(todayValueString);
+            _shipmentOfTheDay(scheduleList);
+          });
+        }
       }
     }).catchError((error) {
       if (mounted) {
@@ -107,12 +82,13 @@ class SchedulesViewState extends State<SchedulesView> {
     List<dynamic> newCalendarList = [];
 
     for (var schedule in scheduleListVal) {
+      DateTime dateTimeBegin = DateTime.parse(schedule["order_date"]);
+      DateTime dateTimeEnd = DateTime.parse(schedule["order_date"]);
       newCalendarList.add([
-        schedule["name"],
-        schedule["address"],
-        schedule["begin"],
-        schedule["end"],
-        schedule["schedule_id"],
+        schedule["description"],
+        schedule["delivery_address"],
+        DateFormat('hh:mm aaa').format(dateTimeBegin),
+        DateFormat('hh:mm aaa').format(dateTimeEnd)
       ]);
     }
     setState(() {
@@ -423,9 +399,9 @@ class MyListWidget extends StatelessWidget {
                   children: [
                     Padding(
                       padding: const EdgeInsets.only(bottom: 15.0),
-                      child: Text(DateFormat('hh:mm aaa').format(DateTime.parse(items[index][2]))),
+                      child: Text(items[index][2]),
                     ),
-                    Text(DateFormat('hh:mm aaa').format(DateTime.parse(items[index][3]))),
+                    Text(items[index][2]),
                   ],
                 ),
               ),

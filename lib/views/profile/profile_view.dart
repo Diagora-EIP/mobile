@@ -133,7 +133,7 @@ class _ProfileInfosState extends State<ProfileInfos> {
           child: Container(
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: Colors.grey[700],
+                color: Theme.of(context).primaryColor,
                 borderRadius: BorderRadius.circular(5.0),
               ),
               child: Text(widget.itemName, style: const TextStyle(fontSize: 16, color: Colors.white))),

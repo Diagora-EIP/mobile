@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 
-// import 'package:diagora/services/api_service.dart';
-
+import 'package:diagora/services/api_service.dart';
 
 class NewDelivery extends StatefulWidget {
   const NewDelivery({super.key});
@@ -11,25 +11,26 @@ class NewDelivery extends StatefulWidget {
 }
 
 class _NewDeliveryState extends State<NewDelivery> {
-  // final ApiService _api = ApiService.getInstance();
+  final ApiService _api = ApiService.getInstance();
 
   final name = TextEditingController();
   final address = TextEditingController();
+  late DateTime chosenDate;
+  DateTime today = DateTime.now();
 
   @override
   void dispose() {
-    // Clean up the controller when the widget is disposed.
     name.dispose();
     address.dispose();
     super.dispose();
   }
 
   void submit() {
-    // _api.addDelveryAutomatique(31, name.text, address.text).then((value) {
-    //   if (value) {
-    //     Navigator.pop(context);
-    //   }
-    // });
+    _api.addDelveryAutomatique(name.text, address.text, chosenDate, today).then((value) {
+      if (value) {
+        Navigator.pop(context);
+      }
+    });
   }
 
   @override
@@ -42,7 +43,7 @@ class _NewDeliveryState extends State<NewDelivery> {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.all(50.0),
+              padding: const EdgeInsets.all(10.0),
               child: Image.asset(
                 'assets/images/diagora.png',
                 width: 200,
@@ -71,18 +72,64 @@ class _NewDeliveryState extends State<NewDelivery> {
                 ),
               ),
             ),
+            const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Text("When do you want to be delivered ?"),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: GestureDetector(
+                      onTap: () {},
+                      child: const Icon(
+                        Icons.calendar_today,
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    height: 100,
+                    width: 350,
+                    child: CupertinoDatePicker(
+                      initialDateTime: DateTime.now(),
+                      onDateTimeChanged: (DateTime newdate) {
+                        setState(() {
+                          chosenDate = newdate;
+                        });
+                      },
+                      use24hFormat: true,
+                      maximumDate: DateTime.now().add(const Duration(days: 30)),
+                      minimumYear: 2010,
+                      maximumYear: 2025,
+                      minuteInterval: 1,
+                      mode: CupertinoDatePickerMode.dateAndTime,
+                    ),
+                  ),
+                ],
+              ),
+            ),
             // submit button
             Padding(
               padding: const EdgeInsets.only(top: 40.0),
               child: ElevatedButton(
-                onPressed: () {
-                  submit();
-                },
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(200, 50),
-                ),
-                child: const Text('Submit')
-              ),
+                  onPressed: () {
+                    if (name.text.isEmpty || address.text.isEmpty) {
+                      // show error
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Cannot add delivery'),
+                        ),
+                      );
+                      return;
+                    }
+                    submit();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size(200, 50),
+                  ),
+                  child: const Text('Submit')),
             ),
           ],
         ),

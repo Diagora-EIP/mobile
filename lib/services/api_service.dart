@@ -60,6 +60,9 @@ class ApiRoutes {
   // Admin - Commandes
   static const String getAllAdminOrdersRoute = '/admin/orders'; // GET
 
+  // Schedule
+  static const String createScheduleRoute = '/schedule/create'; // POST
+
   // Vehicules
   static const String createVehicleRoute = '/vehicle'; // POST
   static const String updateVehicleRoute = '/vehicle/:vehicle_id'; // PATCH
@@ -585,6 +588,42 @@ class ApiService {
       _logger.e(e.toString());
       return "false";
     }
+  }
+
+  Future<bool> addDelveryAutomatique(
+    String name,
+    String address,
+    DateTime chosenDate,
+    DateTime todayDate, {
+    Client? client,
+  }) async {
+    Uri url = ApiRoutes.route(ApiRoutes.createScheduleRoute);
+    client ??= _httpClient;
+
+    String deliveryDate = DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(chosenDate.toLocal());
+    String orderDate = DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(todayDate.toLocal());
+
+    try {
+      final reponse = await client.post(
+        url,
+        headers: {'Content-Type': 'application/json', "Authorization": "Bearer ${_token!}"},
+        body: json.encode({
+          "delivery_date": deliveryDate,
+          "estimated_time": 3600,
+          "actual_time": 1800,
+          "order_date": orderDate,
+          "description": name,
+          "delivery_address": address,
+        }),
+      );
+      print(reponse.statusCode);
+      if (reponse.statusCode == 200 || reponse.statusCode == 201) {
+        return Future.value(true);
+      }
+    } catch (e) {
+      return Future.value(false);
+    }
+    return Future.value(false);
   }
 
   /// Takes [DateTime] [begin], [end] as input and returns an output string if the api call succeed.
