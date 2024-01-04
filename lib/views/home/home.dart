@@ -50,7 +50,7 @@ class _HomeViewState extends State<HomeView> {
   }
 
   Future<int> fetchNbDeliveryToday() async {
-    int nbDeliv = await _api.nbDeliveryToday(todayStart, todayEnd, userData['user_id']);
+    int nbDeliv = await _api.nbDeliveryToday(todayStart, todayEnd);
     if (nbDeliv == -1) {
       nbDeliv = 0;
     }

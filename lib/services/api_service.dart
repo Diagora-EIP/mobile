@@ -601,28 +601,54 @@ class ApiService {
     client ??= _httpClient;
 
     String deliveryDate = DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(chosenDate.toLocal());
-    String orderDate = DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(todayDate.toLocal());
+    // String orderDate = DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(todayDate.toLocal());
 
     try {
-      final reponse = await client.post(
+      final response = await client.post(
         url,
         headers: {'Content-Type': 'application/json', "Authorization": "Bearer ${_token!}"},
         body: json.encode({
           "delivery_date": deliveryDate,
           "estimated_time": 3600,
           "actual_time": 1800,
-          "order_date": orderDate,
+          "order_date": deliveryDate,
           "description": name,
           "delivery_address": address,
         }),
       );
-      print(reponse.statusCode);
-      if (reponse.statusCode == 200 || reponse.statusCode == 201) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        _logger.d(response.body);
+        dynamic responseData = json.decode(response.body);
+        String itineraryId = responseData['itinerary_id'];
+        String itineraryDate = responseData['delivery_date'];
+        String? listItineraryId = _prefs?.getString("itineraire_id");
+        String? listItineraryDate = _prefs?.getString("itineraire_date");
+
+        if (listItineraryId == null || listItineraryDate == null) {
+          _prefs?.setString("itineraire_id", json.encode([]));
+          _prefs?.setString("itineraire_date", json.encode([]));
+          listItineraryId = _prefs?.getString("itineraire_id");
+          listItineraryDate = _prefs?.getString("itineraire_date");
+        }
+        if (itineraryId != '0' && listItineraryId != null && listItineraryDate != null) {
+          dynamic listItinerary = json.decode(listItineraryId);
+          dynamic listDate = json.decode(listItineraryDate);
+          if (listItinerary.contains(itineraryId)) {
+            _logger.d("Itinerary already exist: ", itineraryId);
+            return Future.value(true);
+          }
+          listDate.add(itineraryDate);
+          listItinerary.add(itineraryId);
+          _prefs?.setString("itineraire_id", json.encode(listItinerary));
+          _prefs?.setString("itineraire_date", json.encode(listDate));
+        }
         return Future.value(true);
       }
     } catch (e) {
+      _logger.d(e);
       return Future.value(false);
     }
+    _logger.d("Error in addDelveryAutomatique");
     return Future.value(false);
   }
 
@@ -633,8 +659,7 @@ class ApiService {
   /// If [response.statusCode] is not 200 or 202, this function will return "false".
   Future<String> mapItinenaries(
     DateTime begin,
-    DateTime end,
-    int userId, {
+    DateTime end, {
     Client? client,
   }) async {
 ////////////////////////// test
@@ -645,19 +670,29 @@ class ApiService {
     // DateTime end = DateTime.parse(dateString);
 ////////////////////////// end test
 
-    String beginTimeStamp = DateFormat("yyyy-MM-dd").format(begin.toUtc());
-    String endTimeStamp = DateFormat("yyyy-MM-dd").format(end.toUtc());
+    // String beginTimeStamp = DateFormat("yyyy-MM-dd").format(begin.toUtc());
+    // String endTimeStamp = DateFormat("yyyy-MM-dd").format(end.toUtc());
     client ??= _httpClient;
+    String? listItineraryId = _prefs?.getString("itineraire_id");
+    String? listItineraryDate = _prefs?.getString("itineraire_date");
+    int index = -1;
+    dynamic listItinerary;
 
-    String id;
-    if (userId == -1) {
-      return "false";
-    } else {
-      id = userId.toString();
+
+    if (listItineraryId != null && listItineraryDate != null) {
+      listItinerary = json.decode(listItineraryId);
+      dynamic listDate = json.decode(listItineraryDate);
+      for (int i = 0; i < listDate.length; i++) {
+        DateTime date = DateTime.parse(listDate[i]);
+        if (date.isAfter(begin) && date.isBefore(end)) {
+          index = i;
+        }
+      }
     }
-
-    // Uri url = ApiRoutes.route("/user/$id/itinary?begin=$beginTimeStamp&end=$endTimeStamp");
-    Uri url = ApiRoutes.route(ApiRoutes.getItineraryRoute.replaceAll(":itinerary_id", "14"));
+    if (index == -1 || listItineraryId == null || listItineraryDate == null) {
+      return Future.value("false");
+    }
+    Uri url = ApiRoutes.route(ApiRoutes.getItineraryRoute.replaceAll(":itinerary_id", listItinerary[index]));
 
     try {
       final response = await client.get(
@@ -684,44 +719,32 @@ class ApiService {
   /// If [response.statusCode] is not 200 or 202, this function will return "false".
   Future<int> nbDeliveryToday(
     DateTime begin,
-    DateTime end,
-    int userId, {
+    DateTime end, {
     Client? client,
   }) async {
 ////////////////////////// test
-    String dateString1 = '2023-06-08 16:00:00.000';
-    DateTime begin = DateTime.parse(dateString1);
+    // String dateString1 = '2023-06-08 16:00:00.000';
+    // DateTime begin = DateTime.parse(dateString1);
 
-    String dateString = '2023-06-08 20:00:00.000';
-    DateTime end = DateTime.parse(dateString);
+    // String dateString = '2023-06-08 20:00:00.000';
+    // DateTime end = DateTime.parse(dateString);
 ////////////////////////// end test
 
     String beginTimeStamp = DateFormat("yyyy-MM-dd").format(begin.toUtc());
     String endTimeStamp = DateFormat("yyyy-MM-dd").format(end.toUtc());
     client ??= _httpClient;
-
-    String id;
-    if (userId == -1) {
-      return (-1);
-    } else {
-      id = userId.toString();
-    }
-
-    Uri url = ApiRoutes.route("/user/$id/itinary?begin=$beginTimeStamp&end=$endTimeStamp");
-
+    Uri url;
+    url = ApiRoutes.route("${ApiRoutes.getOrdersBetweenDatesRoute}?start_date=$beginTimeStamp&end_date=$endTimeStamp");
     try {
       final response = await client.get(
         url,
         headers: {'Content-Type': 'application/json', "Authorization": "Bearer ${_token!}"},
       );
       if (response.statusCode == 200 || response.statusCode == 202) {
+        _logger.d(response.body);
         List<dynamic> responseData = json.decode(response.body);
-        int tt = 0;
-        for (int i = 0; i < responseData.length; i++) {
-          int nbStopPoints = responseData[i]['stop_point'].length;
-          tt += nbStopPoints;
-        }
-        return (tt);
+        int nbDelivery = responseData.length;
+        return (nbDelivery);
       } else {
         return -1;
       }
