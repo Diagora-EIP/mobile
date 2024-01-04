@@ -70,6 +70,7 @@ class _ProfileViewState extends State<ProfileView> {
   }
 
   @override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
