@@ -1,3 +1,5 @@
+import 'package:diagora/models/company_model.dart';
+
 /// Modèle de données pour un utilisateur.
 class User {
   int id;
@@ -6,6 +8,7 @@ class User {
   String encryptedPassword;
   DateTime? createdAt;
   String? resetPassword;
+  Company? company;
   int? companyId;
 
   User({
@@ -15,6 +18,7 @@ class User {
     this.encryptedPassword = '',
     this.createdAt,
     this.resetPassword = '',
+    this.company,
     this.companyId,
   });
 
@@ -26,6 +30,7 @@ class User {
       encryptedPassword: json['password'] ?? '',
       createdAt: DateTime.parse(json['created_at'] ?? DateTime(0).toString()),
       resetPassword: json['reset-password'] ?? '',
+      company: json['company'] != null ? Company.fromJson(json['company']) : null,
       companyId: json['company_id'] ?? -1,
     );
     return user;

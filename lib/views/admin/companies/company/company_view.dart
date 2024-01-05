@@ -25,6 +25,7 @@ class CompanyViewState extends State<CompanyView> {
 
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
+  final _addressController = TextEditingController();
   String creationDate = ''; // Final: "Company created the dd/mm/yyyy"
   String lastUpdateDate = ''; // Final: "Company updated the dd/mm/yyyy"
 
@@ -52,6 +53,7 @@ class CompanyViewState extends State<CompanyView> {
           setState(() {
             _company = company;
             _nameController.text = _company!.name ?? '';
+            _addressController.text = _company!.address ?? '';
             if (_company!.createdAt != null) {
               creationDate = creationDate =
                   'Company created the ${_company!.createdAt!.day.toString().padLeft(2, '0')}/${_company!.createdAt!.month.toString().padLeft(2, '0')}/${_company!.createdAt!.year}';
@@ -92,6 +94,7 @@ class CompanyViewState extends State<CompanyView> {
   @override
   void dispose() {
     _nameController.dispose();
+    _addressController.dispose();
     super.dispose();
   }
 
@@ -109,6 +112,7 @@ class CompanyViewState extends State<CompanyView> {
             .patchCompany(
           widget.company!.id,
           _nameController.text,
+          _addressController.text,
           userIds,
         )
             .then((success) {
@@ -143,6 +147,7 @@ class CompanyViewState extends State<CompanyView> {
         _apiService
             .createCompany(
           _nameController.text,
+          _addressController.text,
           userIds,
         )
             .then((success) {
@@ -193,7 +198,7 @@ class CompanyViewState extends State<CompanyView> {
           },
         ),
         actions: <Widget>[
-          loading == true || _nameController.text.isEmpty
+          loading == true || _nameController.text.isEmpty || _addressController.text.isEmpty
               ? const IconButton(
                   icon: Icon(Icons.check),
                   onPressed: null,
@@ -201,7 +206,7 @@ class CompanyViewState extends State<CompanyView> {
               : IconButton(
                   icon: const Icon(Icons.check),
                   onPressed: () {
-                    if (_nameController.text.isNotEmpty) {
+                    if (_nameController.text.isNotEmpty && _addressController.text.isNotEmpty) {
                       _submitForm(context);
                     }
                   },
@@ -228,13 +233,22 @@ class CompanyViewState extends State<CompanyView> {
                         decoration: const InputDecoration(
                           labelText: 'Name',
                         ),
-                        // onChanged: (value) {
-                        //   if (mounted) {
-                        //     setState(() {});
-                        //   }
-                        // },
+                        onChanged: (value) {
+                          setState(() {});
+                        },
                       ),
                       const SizedBox(height: 20),
+                      TextFormField(
+                        enabled: loading ? false : true,
+                        controller: _addressController,
+                        keyboardType: TextInputType.streetAddress,
+                        decoration: const InputDecoration(
+                          labelText: 'Address',
+                        ),
+                        onChanged: (value) {
+                          setState(() {});
+                        },
+                      ),
                     ],
                   ),
                 ),
@@ -330,11 +344,11 @@ class AccordionContentState extends State<AccordionContent> {
             this.users.sort(
                 (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
             // Keep only users in this company and without company
-            this.users.removeWhere((user) => user.companyId != -1 && user.companyId != widget.companyId);
+            this.users.removeWhere((user) => user.company != null && user.company!.id != widget.companyId);
             filteredUsers = this.users;
             if (widget.companyId > 0) {
               for (User user in users) {
-                if (user.companyId == widget.companyId) {
+                if (user.company?.id== widget.companyId) {
                   widget.updateUserId(user.id, true);
                 }
               }

@@ -7,11 +7,10 @@ import 'package:diagora/views/stats/stats.dart';
 import 'package:diagora/models/role_model.dart';
 import 'package:diagora/views/admin/admin_view.dart';
 import 'package:diagora/views/auth/register_view.dart';
-// import 'package:diagora/views/manage/manage_view.dart';
+import 'package:diagora/views/manage/manage_view.dart';
 import 'package:diagora/views/profile/profile_view.dart';
 import 'package:diagora/views/my_package/my_package.dart';
 import 'package:diagora/views/settings/settings_view.dart';
-
 
 class WrapperView extends StatefulWidget {
   const WrapperView({
@@ -47,29 +46,19 @@ class WrapperViewState extends State<WrapperView> {
       ]);
       showAdmin = true;
     }
-    // else if (_api.permissions?.isManager == true) {
-    //   // Si l'utilisateur est un manager
-    //   _finalTabs.addAll([
-    //     const HomeView(),
-    //     const ManageView(),
-    //     const ProfileView(),
-    //     SettingsView(
-    //       logout: logout,
-    //     ),
-    //   ]);
-    //   showManage = true;
-    // }
-    else if (_api.role?.role == Roles.client) {
-      // Si l'utilisateur est un client
+    else if (_api.role?.role == Roles.manager) {
+      // Si l'utilisateur est un manager
       _finalTabs.addAll([
-        const MyPackages(),
+        const HomeView(),
+        const ManageView(),
         const ProfileView(),
         SettingsView(
           logout: logout,
         ),
       ]);
-      showClient = true;
-    } else {
+      showManage = true;
+    }
+    else {
       // Si l'utilisateur est un utilisateur normal
       _finalTabs.addAll([
         const HomeView(),
@@ -155,7 +144,7 @@ class WrapperViewState extends State<WrapperView> {
                 label: 'Manage',
               ),
             ],
-            if (!showAdmin) ...[
+            if (!showAdmin && !showManage) ...[
               // Si l'utilisateur est un utilisateur normal
               const BottomNavigationBarItem(
                 icon: Icon(Icons.shopping_bag),

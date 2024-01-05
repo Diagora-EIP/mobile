@@ -1,3 +1,4 @@
+import 'package:diagora/models/role_model.dart';
 import 'package:flutter/material.dart';
 import 'package:diagora/services/api_service.dart';
 
@@ -341,7 +342,8 @@ class VehiculesComponentState extends State<VehiculesComponent> {
           actions: [
             IconButton(
               icon: const Icon(Icons.add),
-              onPressed: fetching ? null : () => openModalVehicule(),
+              onPressed: fetching || _api.role?.role != Roles.manager ?
+                null : () => openModalVehicule(),
             ),
           ]),
       body: fetching
@@ -354,7 +356,7 @@ class VehiculesComponentState extends State<VehiculesComponent> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (data.isEmpty) ...[
+                    if (data == false || data.isEmpty) ...[
                       const SizedBox(height: 60),
                       const Center(
                         child: Text(
@@ -363,19 +365,21 @@ class VehiculesComponentState extends State<VehiculesComponent> {
                         ),
                       ),
                     ],
-                    for (dynamic vehicule in data) ...[
-                      if (data.indexOf(vehicule) != 0) ...[
-                        const Divider(),
-                      ],
-                      ListTile(
-                        title: Text(vehicule["vehicle_name"]),
-                        subtitle: Text(
-                          "Dimentions: ${vehicule["dimentions"]} | Capacity: ${vehicule["capacity"]}",
+                    if (data != false && data.isNotEmpty) ...[
+                      for (dynamic vehicule in data) ...[
+                        if (data.indexOf(vehicule) != 0) ...[
+                          const Divider(),
+                        ],
+                        ListTile(
+                          title: Text(vehicule["vehicle_name"]),
+                          subtitle: Text(
+                            "Dimentions: ${vehicule["dimentions"]} | Capacity: ${vehicule["capacity"]}",
+                          ),
+                          onTap: () {
+                            openModalVehicule(vehicule: vehicule);
+                          },
                         ),
-                        onTap: () {
-                          openModalVehicule(vehicule: vehicule);
-                        },
-                      ),
+                      ],
                     ],
                   ],
                 ),
