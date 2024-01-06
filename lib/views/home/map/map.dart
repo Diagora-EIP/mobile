@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'dart:convert';
 
@@ -23,7 +24,9 @@ class MapPage extends StatefulWidget {
 class MapPageState extends State<MapPage> {
   final ApiService _api = ApiService.getInstance();
   String publicToken = const String.fromEnvironment("MAPBOX_PUBLIC_TOKEN");
+
   mapbox.MapboxMap? mapboxMap;
+  mapbox.PointAnnotationManager? pointAnnotationManager;
 
   late DateTime currentDate;
 
@@ -33,8 +36,10 @@ class MapPageState extends State<MapPage> {
     var dateEnd = DateTime(date.year, date.month, date.day, 23, 59, 59);
     String valuesData = await _api.mapItinenaries(dateStart, dateEnd);
     if (valuesData == "false") return;
-    dynamic values = json.decode(valuesData);
-    print(values);
+    dynamic itinerary = json.decode(valuesData);
+    if (itinerary["path"]["points"] != null && itinerary["path"]["points"].length > 0) {
+      _addMarkers(itinerary["path"]["points"]);
+    }
   }
 
   void _flyToPosition({mapbox.Position? position}) async {
@@ -53,6 +58,30 @@ class MapPageState extends State<MapPage> {
           pitch: 3,
         ),
         mapbox.MapAnimationOptions(duration: 2000, startDelay: 0));
+  }
+
+  void _addMarkers(dynamic pointsArray) {
+    mapboxMap?.annotations.createPointAnnotationManager().then((value) async {
+      pointAnnotationManager = value;
+
+      final ByteData bytes = await rootBundle.load('assets/images/marker-icon.png');
+      final Uint8List list = bytes.buffer.asUint8List();
+
+      var options = <mapbox.PointAnnotationOptions>[];
+      for (dynamic point in pointsArray) {
+        options.add(mapbox.PointAnnotationOptions(
+          geometry: mapbox.Point(
+            coordinates: mapbox.Position(
+              point['x'],
+              point['y'],
+            ),
+          ).toJson(),
+          image: list,
+          iconSize: 0.15,
+        ));
+      }
+      pointAnnotationManager?.createMulti(options);
+    });
   }
 
   void _onMapCreated(mapbox.MapboxMap controller) async {
