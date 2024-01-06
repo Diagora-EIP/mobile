@@ -30,6 +30,8 @@ class _MyPackagesState extends State<MyPackages> {
 
   @override
   Widget build(BuildContext context) {
+    bool isScreenHorizontal = MediaQuery.of(context).orientation == Orientation.landscape;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('My Packages List'),
@@ -37,8 +39,8 @@ class _MyPackagesState extends State<MyPackages> {
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: GridView.builder(
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: isScreenHorizontal ? 3 : 2,
             crossAxisSpacing: 8.0,
             mainAxisSpacing: 8.0,
           ),
@@ -61,7 +63,7 @@ class _MyPackagesState extends State<MyPackages> {
                     ),
                     Text(
                       currentPackage.address,
-                      textAlign: TextAlign.center,
+                      // textAlign: TextAlign.center,
                       style: const TextStyle(
                         fontStyle: FontStyle.italic,
                         fontSize: 14.0,
@@ -69,7 +71,7 @@ class _MyPackagesState extends State<MyPackages> {
                       ),
                     ),
                     Text(
-                      "Date: ${currentPackage.date}",
+                      currentPackage.date,
                       style: const TextStyle(
                         fontSize: 14.0,
                       ),

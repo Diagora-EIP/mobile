@@ -72,58 +72,54 @@ class _HomeViewState extends State<HomeView> {
             return Text('Error: ${snapshot.error}');
           } else {
             int nbDeliveryToday = snapshot.data ?? 0;
-            return Column(
-              children: [
-                Image.asset(
-                  'assets/images/diagora.png',
-                  width: 200,
-                  height: 200,
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  "Hello $username !",
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+            return SingleChildScrollView(
+              child: Column(
+                children: [
+                  Image.asset(
+                    'assets/images/diagora.png',
+                    width: 200,
+                    height: 200,
                   ),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  "Today $formattedBegin, you have $nbDeliveryToday delivery.",
-                  style: const TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                _buildNavigationButton("Calendar", () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const CalendarPage()));
-                }),
-                _buildNavigationButton("Map", () {
-                  Navigator.push(context,
-                      MaterialPageRoute(builder: (context) => MapPage(userId: userData['user_id'])));
-                }),
-                _buildNavigationButton("Orders", () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const OrderView()));
-                }),
-                _buildNavigationButton("Vehicules", () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => VehiculesComponent(
-                        userId: userData['user_id'],
-                        pageTitle: 'Vehicules',
-                      ),
+                  const SizedBox(height: 10),
+                  Text(
+                    "Hello $username !",
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
                     ),
-                  );
-                }),
-              ],
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    "Today $formattedBegin, you have $nbDeliveryToday delivery.",
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  _buildNavigationButton("Calendar", () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const CalendarPage()));
+                  }),
+                  _buildNavigationButton("Map", () {
+                    Navigator.push(
+                        context, MaterialPageRoute(builder: (context) => MapPage(userId: userData['user_id'])));
+                  }),
+                  _buildNavigationButton("Orders", () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const OrderView()));
+                  }),
+                  _buildNavigationButton("Vehicules", () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => VehiculesComponent(
+                          userId: userData['user_id'],
+                          pageTitle: 'Vehicules',
+                        ),
+                      ),
+                    );
+                  }),
+                ],
+              ),
             );
           }
         },

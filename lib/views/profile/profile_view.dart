@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-
+import 'package:flutter/cupertino.dart';
 import 'package:image_picker/image_picker.dart';
 
 import 'package:diagora/services/api_service.dart';
@@ -57,7 +57,7 @@ class _ProfileViewState extends State<ProfileView> {
   }
 
   void _showImageSourcePicker() {
-    showDialog(
+    showCupertinoModalPopup(
       context: context,
       builder: (BuildContext context) {
         return ImageSourcePicker(
@@ -70,43 +70,45 @@ class _ProfileViewState extends State<ProfileView> {
   }
 
   @override
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profile'),
       ),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            GestureDetector(
-              onTap: _showImageSourcePicker,
-              child: CircleAvatar(
-                radius: 80,
-                backgroundColor: Colors.grey,
-                backgroundImage: _image != null ? FileImage(_image!) : null,
-                child: _image == null
-                    ? const Icon(
-                        Icons.person,
-                        size: 80,
-                        color: Colors.white,
-                      )
-                    : null,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              GestureDetector(
+                onTap: _showImageSourcePicker,
+                child: CircleAvatar(
+                  radius: 80,
+                  backgroundColor: Colors.grey,
+                  backgroundImage: _image != null ? FileImage(_image!) : null,
+                  child: _image == null
+                      ? const Icon(
+                          Icons.person,
+                          size: 80,
+                          color: Colors.white,
+                        )
+                      : null,
+                ),
               ),
-            ),
-            const SizedBox(height: 24),
-            ProfileInfos(itemName: "Username", itemValue: username),
-            ProfileInfos(itemName: "Email", itemValue: email),
-            ProfileInfos(itemName: "Permissions", itemValue: permissions),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => const ChangePassword()));
-              },
-              child: const Text('Change Password'),
-            ),
-          ],
+              const SizedBox(height: 24),
+              ProfileInfos(itemName: "Username", itemValue: username),
+              ProfileInfos(itemName: "Email", itemValue: email),
+              ProfileInfos(itemName: "Permissions", itemValue: permissions),
+              const SizedBox(height: 24),
+              CupertinoButton(
+                color: Theme.of(context).primaryColor,
+                onPressed: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => const ChangePassword()));
+                },
+                child: const Text('Change Password'),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -152,34 +154,36 @@ class _ProfileInfosState extends State<ProfileInfos> {
 class ImageSourcePicker extends StatelessWidget {
   final Function(ImageSource) onImageSourceSelected;
 
-  const ImageSourcePicker({super.key, required this.onImageSourceSelected});
+  const ImageSourcePicker({Key? key, required this.onImageSourceSelected}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
+    return CupertinoActionSheet(
       title: const Text(
         'Select Image Source',
         textAlign: TextAlign.center,
       ),
-      content: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          ElevatedButton(
-            onPressed: () {
-              onImageSourceSelected(ImageSource.gallery);
-              Navigator.of(context).pop();
-            },
-            child: const Text('Gallery'),
-          ),
-          const SizedBox(width: 15),
-          ElevatedButton(
-            onPressed: () {
-              onImageSourceSelected(ImageSource.camera);
-              Navigator.of(context).pop();
-            },
-            child: const Text('Camera'),
-          ),
-        ],
+      actions: [
+        CupertinoActionSheetAction(
+          onPressed: () {
+            onImageSourceSelected(ImageSource.gallery);
+            Navigator.of(context).pop();
+          },
+          child: const Text('Gallery'),
+        ),
+        CupertinoActionSheetAction(
+          onPressed: () {
+            onImageSourceSelected(ImageSource.camera);
+            Navigator.of(context).pop();
+          },
+          child: const Text('Camera'),
+        ),
+      ],
+      cancelButton: CupertinoActionSheetAction(
+        onPressed: () {
+          Navigator.of(context).pop();
+        },
+        child: const Text('Cancel'),
       ),
     );
   }

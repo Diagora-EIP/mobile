@@ -26,6 +26,8 @@ class OrderView extends StatefulWidget {
 }
 
 class OrderViewState extends State<OrderView> {
+  DateTime pickedDate = DateTime.now();
+
   final List<DummyOrder> data = [
     DummyOrder(
       name: "Téléphone",
@@ -116,13 +118,12 @@ class OrderViewState extends State<OrderView> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const NewDelivery(),
+                  builder: (context) => NewDelivery(pickedDate: pickedDate),
                 ),
               );
             },
           ),
         ],
-
       ),
       body: ListView.separated(
         itemCount: data.length,

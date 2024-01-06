@@ -97,7 +97,7 @@ class _CalendarPageState extends State<CalendarPage> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const NewDelivery(),
+                  builder: (context) => NewDelivery(pickedDate: today),
                 ),
               );
             },
@@ -108,7 +108,6 @@ class _CalendarPageState extends State<CalendarPage> {
         children: [
           TableCalendar(
             locale: "en_US",
-            // locale: fr_FR',
             headerStyle: const HeaderStyle(
               titleCentered: true,
             ),

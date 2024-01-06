@@ -25,9 +25,9 @@ class _StatistiquesState extends State<Statistiques> {
     Stat(
       hoursOfDays: List.generate(24, (index) => index),
       randomValues: List.generate(24, (index) => Random().nextDouble()),
-      name: "Delivery Hours",
+      name: "Best hours to do deliveries",
       description:
-          "This is the delivery hours.\nOn the x axis you have the hours of the day and on the y axis you have the number of deliveries",
+          "This is the best hours to do deliveries.\nOn the x axis you have the hours of the day and on the y axis you have the number of deliveries",
     ),
     Stat(
         hoursOfDays: List.generate(24, (index) => index),
@@ -35,6 +35,24 @@ class _StatistiquesState extends State<Statistiques> {
         name: "Km/h travelled",
         description:
             "This is the km/h travelled.\nOn the x axis you have the hours of the day and on the y axis you have the km/h travelled"),
+    Stat(
+        hoursOfDays: List.generate(24, (index) => index),
+        randomValues: List.generate(24, (index) => Random().nextDouble()),
+        name: "Average fuel consumption",
+        description:
+            "This is the Average fuel consumption.\nOn the x axis you have the hours of the day and on the y axis you have the km/h travelled"),
+    Stat(
+        hoursOfDays: List.generate(24, (index) => index),
+        randomValues: List.generate(24, (index) => Random().nextDouble()),
+        name: "Fuel consumption of one delivery",
+        description:
+            "This is the fuel consumption of one delivery.\nOn the x axis you have the hours of the day and on the y axis you have the km/h travelled"),
+    Stat(
+        hoursOfDays: List.generate(24, (index) => index),
+        randomValues: List.generate(24, (index) => Random().nextDouble()),
+        name: "Km done for one delivery",
+        description:
+            "This is Km done for one delivery.\nOn the x axis you have the hours of the day and on the y axis you have the km/h travelled"),
   ];
 
   @override
@@ -59,7 +77,7 @@ class _StatistiquesState extends State<Statistiques> {
                       crossAxisSpacing: 8.0,
                       mainAxisSpacing: 8.0,
                     ),
-                    itemCount: stats.length, // Only one item in the grid
+                    itemCount: stats.length,
                     itemBuilder: (BuildContext context, int index) {
                       Stat currentStat = stats[index];
                       return GestureDetector(
@@ -74,28 +92,28 @@ class _StatistiquesState extends State<Statistiques> {
                           );
                         },
                         child: Container(
-                          width: isScreenHorizontal ? 50 : 100.0, // Adjust the width as needed
-                          height: isScreenHorizontal ? 50 : 100.0, // Adjust the height as needed
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).primaryColor, // Adjust the color as needed
-                            // border color to black
-                            border: Border.all(
-                              color: Colors.white,
-                              width: 1.0,
-                            ),
-                            borderRadius: BorderRadius.circular(10.0),
-                          ),
-                          child: Center(
-                            child: Text(
-                              currentStat.name,
-                              style: const TextStyle(
+                            width: isScreenHorizontal ? 50 : 100.0, // Adjust the width as needed
+                            height: isScreenHorizontal ? 50 : 100.0, // Adjust the height as needed
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).primaryColor,
+                              border: Border.all(
                                 color: Colors.white,
-                                fontSize: 16.0,
-                                fontWeight: FontWeight.bold,
+                                width: 1.0,
                               ),
+                              borderRadius: BorderRadius.circular(10.0),
                             ),
-                          ),
-                        ),
+                            child: Align(
+                              alignment: Alignment.center,
+                              child: Text(
+                                currentStat.name,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16.0,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            )),
                       );
                     },
                   ),
