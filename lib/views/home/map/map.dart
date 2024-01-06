@@ -36,18 +36,17 @@ class MapPageState extends State<MapPage> {
     var dateStart = DateTime(date.year, date.month, date.day, 0, 0, 1);
     var dateEnd = DateTime(date.year, date.month, date.day, 23, 59, 59);
     String valuesData = await _api.mapItinenaries(dateStart, dateEnd);
+
+    pointAnnotationManager?.deleteAll();
+    polylineAnnotationManager?.deleteAll();
     if (valuesData == "false") return;
     dynamic itinerary = json.decode(valuesData);
-    if (itinerary["path"] != null &&
-        itinerary["path"]["points"] != null &&
-        itinerary["path"]["points"].length > 0) {
+    if (itinerary["path"] != null && itinerary["path"]["points"] != null && itinerary["path"]["points"].length > 0) {
       _addMarkers(itinerary["path"]["points"]);
     }
-    print(itinerary["stop_point"]);
     if (itinerary["stop_point"] != null &&
         itinerary["stop_point"]["road"] != null &&
         itinerary["stop_point"]["road"].length > 0) {
-      // {road: [{x: -122.390593, y: 37.77886, time_elapsed: 0}, {x: -122.390593, y: 37.77886, time_elapsed: 0}, {x: -122.390593, y: 37.77886, time_elapsed: 20.2}, {x: -122.389484, y: 37.779764, time_elapsed: 96.8}, {x: -122.396377, y: 37.774644, time_elapsed: 127.499999999}, {x: -122.392758, y: 37.749102, time_elapsed: 77.2}, {x: -122.405739, y: 37.735624, time_elapsed: 35.3}, {x: -122.414505, y: 37.732424, time_elapsed: 26.7}, {x: -122.418261, y: 37.732228, time_elapsed: 200.6}, {x: -122.438722, y: 37.721631, time_elapsed: 8.8}, {x: -122.439342, y: 37.721889, time_elapsed: 0}]}
       _addRoads(itinerary["stop_point"]["road"]);
     }
   }
@@ -55,8 +54,7 @@ class MapPageState extends State<MapPage> {
   void _flyToPosition({mapbox.Position? position}) async {
     if (position == null) {
       var currentPosition = await Geolocator.getCurrentPosition();
-      position =
-          mapbox.Position(currentPosition.longitude, currentPosition.latitude);
+      position = mapbox.Position(currentPosition.longitude, currentPosition.latitude);
     }
     mapboxMap?.flyTo(
         mapbox.CameraOptions(
@@ -74,8 +72,7 @@ class MapPageState extends State<MapPage> {
     mapboxMap?.annotations.createPointAnnotationManager().then((value) async {
       pointAnnotationManager = value;
 
-      final ByteData bytes =
-          await rootBundle.load('assets/images/marker-icon.png');
+      final ByteData bytes = await rootBundle.load('assets/images/marker-icon.png');
       final Uint8List list = bytes.buffer.asUint8List();
 
       var options = <mapbox.PointAnnotationOptions>[];
@@ -198,10 +195,7 @@ class MapPageState extends State<MapPage> {
             padding: const EdgeInsets.all(8.0),
             child: Text(
               DateFormat('MM/dd/yyyy').format(currentDate),
-              style: const TextStyle(
-                  fontSize: 16.0,
-                  fontWeight: FontWeight.w300,
-                  color: Colors.white),
+              style: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.w300, color: Colors.white),
             ),
           ),
         ),

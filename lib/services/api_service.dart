@@ -62,6 +62,7 @@ class ApiRoutes {
 
   // Schedule
   static const String createScheduleRoute = '/schedule/create'; // POST
+  static const String getScheduleRoute = '/schedule/get-between-date'; // POST
 
   // Vehicules
   static const String createVehicleRoute = '/vehicle'; // POST
@@ -566,8 +567,8 @@ class ApiService {
     DateTime end, {
     Client? client,
   }) async {
-    String beginTimeStamp = DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(begin.toUtc());
-    String endTimeStamp = DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(end.toUtc());
+    String beginTimeStamp = DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(begin.toLocal());
+    String endTimeStamp = DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(end.toLocal());
     client ??= _httpClient;
 
     Uri url =
@@ -652,6 +653,34 @@ class ApiService {
     return Future.value(false);
   }
 
+  Future<String> getSchedule(
+    DateTime begin,
+    DateTime end, {
+    Client? client,
+  }) async {
+    String beginTimeStamp = DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(begin.toLocal());
+    String endTimeStamp = DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(end.toLocal());
+    client ??= _httpClient;
+    Uri url = ApiRoutes.route("${ApiRoutes.getScheduleRoute}?start_date=$beginTimeStamp&end_date=$endTimeStamp");
+    try {
+      final response = await client.get(
+        url,
+        headers: {'Content-Type': 'application/json', "Authorization": "Bearer ${_token!}"},
+      );
+      _logger.d(response.statusCode);
+      _logger.d(response.body);
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        return Future.value(response.body);
+      } else {
+        _logger.e("getSchedule() failed with status code ${response.statusCode}: ${response.body}");
+        return Future.value("false");
+      }
+    } catch (e) {
+      _logger.e(e.toString());
+      return Future.value("false");
+    }
+  }
+
   /// Takes [DateTime] [begin], [end] as input and returns an output string if the api call succeed.
   ///
   /// The[begin], [end] parameter are required and cannot be null.
@@ -669,34 +698,27 @@ class ApiService {
     // String dateString = '2023-06-08 20:00:00.000';
     // DateTime end = DateTime.parse(dateString);
 ////////////////////////// end test
-
-    // String beginTimeStamp = DateFormat("yyyy-MM-dd").format(begin.toUtc());
-    // String endTimeStamp = DateFormat("yyyy-MM-dd").format(end.toUtc());
     client ??= _httpClient;
-    String? listItineraryId = _prefs?.getString("itineraire_id");
-    String? listItineraryDate = _prefs?.getString("itineraire_date");
-    int index = -1;
-    dynamic listItinerary;
 
-    if (listItineraryId != null && listItineraryDate != null) {
-      listItinerary = json.decode(listItineraryId);
-      dynamic listDate = json.decode(listItineraryDate);
-      for (int i = 0; i < listDate.length; i++) {
-        DateTime date = DateTime.parse(listDate[i]);
-        if (date.isAfter(begin) && date.isBefore(end)) {
-          index = i;
-        }
+    String schedule = await getSchedule(begin, end);
+
+    if (schedule == "false" || schedule == "[]") {
+      return "false";
+    }
+    List<dynamic> scheduleData = json.decode(schedule);
+    String itineraryId = "none";
+
+    for (var i = 0; i < scheduleData.length; i++) {
+      if (scheduleData[i]["itinerary_id"] != 0) {
+        itineraryId = scheduleData[i]["itinerary_id"];
+        break;
       }
     }
-    index = 1;
-    if (index == -1 || listItineraryId == null || listItineraryDate == null) {
-      return Future.value("false");
+    if (itineraryId == "none" || itineraryId == "0") {
+      return "false";
     }
-    Uri url = ApiRoutes.route(ApiRoutes.getItineraryRoute.replaceAll(":itinerary_id", "28"));
 
-    // Uri url = ApiRoutes.route(ApiRoutes.getItineraryRoute
-    //     .replaceAll(":itinerary_id", listItinerary[index].toString()));
-
+    Uri url = ApiRoutes.route(ApiRoutes.getItineraryRoute.replaceAll(":itinerary_id", itineraryId));
     try {
       final response = await client.get(
         url,
@@ -733,8 +755,8 @@ class ApiService {
     // DateTime end = DateTime.parse(dateString);
 ////////////////////////// end test
 
-    String beginTimeStamp = DateFormat("yyyy-MM-dd").format(begin.toUtc());
-    String endTimeStamp = DateFormat("yyyy-MM-dd").format(end.toUtc());
+    String beginTimeStamp = DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(begin.toLocal());
+    String endTimeStamp = DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(end.toLocal());
     client ??= _httpClient;
     Uri url;
     url = ApiRoutes.route("${ApiRoutes.getOrdersBetweenDatesRoute}?start_date=$beginTimeStamp&end_date=$endTimeStamp");
@@ -1018,7 +1040,6 @@ class ApiService {
         url = ApiRoutes.route(ApiRoutes.getCompanyRoute);
       } else {
         url = ApiRoutes.route(ApiRoutes.getAdminCompanyRoute.replaceAll(':company_id', companyId.toString()));
-        print(url);
       }
       Response response = await client.get(
         url,
