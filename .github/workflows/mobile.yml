@@ -32,29 +32,29 @@ jobs:
 
   # Build and push the docker image
   # Run condition: push or pull request on the CI branch and tests job is successful
-  Docker:
-    name: Build and Push Docker
-    runs-on: ubuntu-latest
-    needs: tests
+  # Docker:
+  #   name: Build and Push Docker
+  #   runs-on: ubuntu-latest
+  #   needs: tests
 
-    steps:
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
+  #   steps:
+  #     - name: Set up QEMU
+  #       uses: docker/setup-qemu-action@v2
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+  #     - name: Set up Docker Buildx
+  #       uses: docker/setup-buildx-action@v2
 
-      - name: Login to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+  #     - name: Login to Docker Hub
+  #       uses: docker/login-action@v2
+  #       with:
+  #         username: ${{ secrets.DOCKERHUB_USERNAME }}
+  #         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push
-        uses: docker/build-push-action@v4
-        with:
-          push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/frontend_react:latest
+  #     - name: Build and push
+  #       uses: docker/build-push-action@v4
+  #       with:
+  #         push: true
+  #         tags: ${{ secrets.DOCKERHUB_USERNAME }}/frontend_react:latest
 
   # Send a notification on Discord of the triggered error
   # Run condition: push or pull request on the CI branch and tests job is failed
