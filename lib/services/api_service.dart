@@ -151,6 +151,9 @@ class ApiService {
         _prefs?.setString('user', json.encode(responseData));
         _user = User.fromJson(responseData);
         _logger.i(responseData);
+        if (client != _httpClient) {
+          return true;
+        }
         analytics.logLogin(loginMethod: 'email').ignore();
         return true;
       } else {
@@ -194,6 +197,9 @@ class ApiService {
         _token = responseData['token'];
         _prefs?.setString('user', json.encode(responseData));
         _user = User.fromJson(responseData);
+        if (client != _httpClient) {
+          return true;
+        }
         analytics.logSignUp(signUpMethod: 'email').ignore();
         _logger.i(responseData);
         return true;

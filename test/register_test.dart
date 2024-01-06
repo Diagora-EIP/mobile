@@ -12,10 +12,9 @@ import 'package:diagora/views/auth/register_view.dart';
 /// No parameters
 /// No output
 void main() {
-
   SharedPreferences.setMockInitialValues({});
 
-  test('Testing: register failing', () async {
+  test('Testing: register is supposed to fail', () async {
     String answerString = '''
       {
           "statusCode": 409,
@@ -36,36 +35,29 @@ void main() {
     expect(res, false);
   });
 
-  test('Testing: register succeeding', () async {
+  test('Testing: register is supposed to be successful', () async {
     String answerString = '''
     {
-      "statusCode": 201,
-      "message": "User created",
-      "user": {
-            "user_id": 205,
-            "email": "email1@gmail.com",
-            "name": "name",
-            "password": "password1234Wrong",
-            "created_at": "2023-07-04T13:09:42.703487+00:00",
-            "reset-password": null
-      }
+        "user_id": 1,
+        "name": "test",
+        "email": "test@example.com",
+        "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
     }
     ''';
     final client = MockClient((request) async {
       return http.Response(answerString, 201);
     });
     final ApiService api = ApiService.getInstance();
-    const name = 'test0Wrong';
-    const email = 'test02Wrong@example.com';
-    const password = 'password1234Wrong';
+    const name = 'test';
+    const email = 'test@example.com';
+    const password = 'password1234';
 
     bool res = await api.register(name, email, password, client: client);
 
     expect(res, true);
   });
 
-  testWidgets('Testing: AppBar should be displayed',
-      (WidgetTester tester) async {
+  testWidgets('Testing: AppBar should be displayed', (WidgetTester tester) async {
     await tester.pumpWidget(const MaterialApp(home: RegisterView()));
     // Find the AppBar widget by its key.
     final appBarWidget = find.byType(AppBar);
@@ -83,8 +75,7 @@ void main() {
     expect(appBar.title, isA<Text>().having((t) => t.data, 'text', 'Register'));
   });
 
-  testWidgets('Testing: Image.asset should be displayed',
-      (WidgetTester tester) async {
+  testWidgets('Testing: Image.asset should be displayed', (WidgetTester tester) async {
     await tester.pumpWidget(const MaterialApp(home: RegisterView()));
 
     final imageWidget = find.byType(Image);
@@ -106,15 +97,13 @@ void main() {
     expect(image.image, isNotNull);
   });
 
-  testWidgets('Testing: RegisterView has correct UI components',
-      (WidgetTester tester) async {
+  testWidgets('Testing: RegisterView has correct UI components', (WidgetTester tester) async {
     await tester.pumpWidget(const MaterialApp(home: RegisterView()));
 
     final registerButton = find.widgetWithText(ElevatedButton, 'Register');
     expect(registerButton, findsOneWidget);
 
-    final loginButton =
-        find.widgetWithText(TextButton, 'Already have an account? Login');
+    final loginButton = find.widgetWithText(TextButton, 'Already have an account? Login');
     expect(loginButton, findsOneWidget);
 
     final nameField = find.widgetWithText(TextFormField, 'Name');
@@ -134,14 +123,12 @@ void main() {
     await tester.tap(registerButton);
   });
 
-  testWidgets('Testing: Tap on Already have an account ?',
-      (WidgetTester tester) async {
+  testWidgets('Testing: Tap on Already have an account ?', (WidgetTester tester) async {
     await tester.pumpWidget(const MaterialApp(home: RegisterView()));
 
     expect(find.text('Register'), findsWidgets);
 
-    final alreadyRegisterButton =
-        find.widgetWithText(TextButton, 'Already have an account? Login');
+    final alreadyRegisterButton = find.widgetWithText(TextButton, 'Already have an account? Login');
 
     await tester.tap(alreadyRegisterButton);
     await tester.pumpAndSettle();
@@ -169,8 +156,7 @@ void main() {
     await tester.enterText(passwordField, 'password123');
   });
 
-  testWidgets('Testing: Register form validation and navigation',
-      (WidgetTester tester) async {
+  testWidgets('Testing: Register form validation and navigation', (WidgetTester tester) async {
     await tester.pumpWidget(const MaterialApp(home: RegisterView()));
 
     final nameField = find.widgetWithText(TextFormField, 'Name');

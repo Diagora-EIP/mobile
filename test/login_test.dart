@@ -13,10 +13,9 @@ import 'package:diagora/views/auth/login_view.dart';
 /// No parameters
 /// No output
 void main() {
-
   SharedPreferences.setMockInitialValues({});
 
-  test('Testing: login failing', () async {
+  test('Login is supposed to fail', () async {
     final client = MockClient((request) async {
       return http.Response('{"message": "error"}', 400);
     });
@@ -30,27 +29,18 @@ void main() {
     expect(res, false);
   });
 
-  test('Testing: login succeeding', () async {
-final client = MockClient((request) async {
-  const jsonResponse = '''
-    {
-      "statusCode": 201,
-      "message": "User logged",
-      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MjgsImVtYWlsIjoidGVzdEBlcGl0ZWNoLmV1IiwiaWF0IjoxNjcwNDIxMTM3LCJleHAiOjE2ODMzODExMzd9.1W5RW7YNm9AlFGpsakTBpNqSXOAcD5l9FQTjtYICqSY",
-      "user": [
-        {
-          "user_id": 28,
-          "email": "test@epitech.eu",
-          "name": "zebi",
-          "password": "mobile01",
-          "created_at": "2022-12-06T14:48:10.903944+00:00",
-          "reset-password": null
-        }
-      ]
-    }
-  ''';
+  test('Login is supposed to be successful', () async {
+    final client = MockClient((request) async {
+      const jsonResponse = '''
+      {
+          "user_id": 53,
+          "name": "mobile01",
+          "email": "mobile01@gmail.com",
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
+      }
+        ''';
 
-  return http.Response(jsonResponse, 201);
+      return http.Response(jsonResponse, 201);
     });
     final ApiService api = ApiService.getInstance();
 
@@ -58,12 +48,10 @@ final client = MockClient((request) async {
     const password = 'mobile01';
 
     bool res = await api.login(email, password, client: client);
-
     expect(res, true);
   });
 
-  testWidgets('Testing: AppBar should be displayed',
-      (WidgetTester tester) async {
+  testWidgets('Testing: AppBar should be displayed', (WidgetTester tester) async {
     await tester.pumpWidget(const MaterialApp(home: LoginView()));
     // Find the AppBar widget by its key.
     final appBarWidget = find.byType(AppBar);
@@ -81,8 +69,7 @@ final client = MockClient((request) async {
     expect(appBar.title, isA<Text>().having((t) => t.data, 'text', 'Login'));
   });
 
-  testWidgets('Testing: Image.asset should be displayed',
-      (WidgetTester tester) async {
+  testWidgets('Testing: Image.asset should be displayed', (WidgetTester tester) async {
     await tester.pumpWidget(const MaterialApp(home: LoginView()));
 
     final imageWidget = find.byType(Image);
@@ -104,8 +91,7 @@ final client = MockClient((request) async {
     expect(image.image, isNotNull);
   });
 
-  testWidgets('Testing: LoginView form validation and navigation',
-      (WidgetTester tester) async {
+  testWidgets('Testing: LoginView form validation and navigation', (WidgetTester tester) async {
     await tester.pumpWidget(const MaterialApp(home: LoginView()));
 
     final emailField = find.widgetWithText(TextFormField, 'Email');
