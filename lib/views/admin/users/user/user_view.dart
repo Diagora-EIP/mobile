@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 import 'package:diagora/services/api_service.dart';
 
-import 'package:diagora/views/admin/users/user/schedules/shedules_view.dart';
-import 'package:diagora/components/vehicules.dart';
+// import 'package:diagora/views/admin/users/user/schedules/shedules_view.dart';
+// import 'package:diagora/components/vehicules.dart';
 
 import 'package:diagora/models/user_model.dart';
 import 'package:diagora/models/role_model.dart';
@@ -152,62 +152,65 @@ class UserViewState extends State<UserView> {
               widget.user.name = _user.name;
             });
           }
-          if (_role == null) {
-            Navigator.of(context).pop(true);
-          } else {
-            String? newPermission;
-            switch (_permissionController.text) {
-              case 'PermissionType.admin':
-                newPermission = 'admin';
-                break;
-              case 'PermissionType.manager':
-                newPermission = 'manager';
-                break;
-              case 'PermissionType.user':
-                newPermission = 'user';
-                break;
-              default:
-                newPermission = null;
-                break;
-            }
-            dynamic data = _role?.toJson();
-            data['permissions'] = newPermission;
-            switch (data['permissions']) {
-              case 'admin':
-                data['isAdmin'] = true;
-                data['isUser'] = true;
-                break;
-              case 'manager':
-                data['isAdmin'] = false;
-                data['isUser'] = true;
-                break;
-              case 'user':
-                data['isAdmin'] = false;
-                data['isUser'] = true;
-                break;
-            }
-            _apiService.patchRoles(Role.fromJson(data), userId: _role?.id).then((succeed) {
-              if (succeed) {
-                Navigator.of(context).pop(true);
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('An error occured while saving your account permissions.'),
-                    duration: Duration(seconds: 2),
-                  ),
-                );
-                if (mounted) {
-                  setState(() {
-                    loading = false;
-                  });
-                }
-              }
-            });
-          }
+          Navigator.of(context).pop(true);
+          // if (_role == null) {
+          //   Navigator.of(context).pop(true);
+          // } else {
+          //   String? newPermission;
+          //   switch (_permissionController.text) {
+          //     case 'PermissionType.admin':
+          //       newPermission = 'admin';
+          //       break;
+          //     case 'PermissionType.manager':
+          //       newPermission = 'manager';
+          //       break;
+          //     case 'PermissionType.user':
+          //       newPermission = 'user';
+          //       break;
+          //     default:
+          //       newPermission = null;
+          //       break;
+          //   }
+          //   dynamic data = {
+          //     "role": "user",
+          //   };
+          //   data['permissions'] = newPermission;
+          //   switch (data['permissions']) {
+          //     case 'admin':
+          //       data["role"] = "admin";
+          //       break;
+          //     case 'manager':
+          //       data["role"] = "manager";
+          //       break;
+          //     case 'user':
+          //       data["role"] = "user";
+          //       break;
+          //   }
+          //   _apiService
+          //       .patchRoles(data["role"], userId: _user.id)
+          //       .then((succeed) {
+          //     if (succeed) {
+          //       Navigator.of(context).pop(true);
+          //     } else {
+          //       ScaffoldMessenger.of(context).showSnackBar(
+          //         const SnackBar(
+          //           content: Text(
+          //               'An error occured while saving account permissions.'),
+          //           duration: Duration(seconds: 2),
+          //         ),
+          //       );
+          //       if (mounted) {
+          //         setState(() {
+          //           loading = false;
+          //         });
+          //       }
+          //     }
+          //   });
+          // }
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('An error occured while saving your account.'),
+              content: Text('An error occured while saving account.'),
               duration: Duration(seconds: 2),
             ),
           );
@@ -278,101 +281,115 @@ class UserViewState extends State<UserView> {
                       ),
                       const SizedBox(height: 20),
                       // Select field with options "Admin" (admin) and "User" (user)
-                      ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title:
-                            Text("Role", style: loading || _role == null ? const TextStyle(color: Colors.grey) : null),
-                        trailing: DropdownButton(
-                          value: _permissionController.text,
-                          items: const [
-                            DropdownMenuItem(
-                              value: 'PermissionType.admin',
-                              child: Text('Admin'),
-                            ),
-                            // DropdownMenuItem(
-                            //   value: 'PermissionType.manager',
-                            //   child: Text('Manager'),
-                            // ),
-                            DropdownMenuItem(
-                              value: 'PermissionType.user',
-                              child: Text('User'),
-                            ),
-                            DropdownMenuItem(
-                              value: 'null',
-                              child: Text('Undefined'),
-                            ),
-                          ],
-                          onChanged: loading || _role == null
-                              ? null
-                              : (value) {
-                                  if (value == null) return;
-                                  if (mounted) {
-                                    if (mounted) {
-                                      setState(() {
-                                        _permissionController.text = value.toString();
-                                      });
-                                    }
-                                  }
-                                },
-                        ),
-                      ),
+                      // ListTile(
+                      //   contentPadding: EdgeInsets.zero,
+                      //   title: Text("Role",
+                      //       style: loading || _role == null
+                      //           ? const TextStyle(color: Colors.grey)
+                      //           : null),
+                      //   trailing: DropdownButton(
+                      //     value: _permissionController.text,
+                      //     items: const [
+                      //       DropdownMenuItem(
+                      //         value: 'PermissionType.admin',
+                      //         child: Text('Admin'),
+                      //       ),
+                      //       // DropdownMenuItem(
+                      //       //   value: 'PermissionType.manager',
+                      //       //   child: Text('Manager'),
+                      //       // ),
+                      //       DropdownMenuItem(
+                      //         value: 'PermissionType.user',
+                      //         child: Text('User'),
+                      //       ),
+                      //       DropdownMenuItem(
+                      //         value: 'null',
+                      //         child: Text('Undefined'),
+                      //       ),
+                      //     ],
+                      //     onChanged: loading || _role == null
+                      //         ? null
+                      //         : (value) {
+                      //             if (value == null) return;
+                      //             if (mounted) {
+                      //               if (mounted) {
+                      //                 setState(() {
+                      //                   _permissionController.text =
+                      //                       value.toString();
+                      //                 });
+                      //               }
+                      //             }
+                      //           },
+                      //   ),
+                      // ),
                       ListTile(
                         contentPadding: EdgeInsets.zero,
                         title: Text("Company",
-                            style: loading || _company == null ? const TextStyle(color: Colors.grey) : null),
+                            style: loading || _company == null
+                                ? const TextStyle(color: Colors.grey)
+                                : null),
                         trailing: Text(
                           _company?.name ?? 'None',
-                          style: loading || _company == null ? const TextStyle(color: Colors.grey) : null,
+                          style: loading || _company == null
+                              ? const TextStyle(color: Colors.grey)
+                              : null,
                         ),
                       ),
-                      ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: Text("Manage calendar", style: loading ? const TextStyle(color: Colors.grey) : null),
-                        // Button to open schedules view
-                        trailing: loading
-                            ? null
-                            : IconButton(
-                                icon: const Icon(Icons.arrow_forward_ios),
-                                onPressed: () {
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder: (context) => SchedulesView(_user.id),
-                                    ),
-                                  );
-                                },
-                              ),
-                      ),
-                      ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: Text("Manage vehicules", style: loading ? const TextStyle(color: Colors.grey) : null),
-                        // Button to open schedules view
-                        trailing: loading
-                            ? null
-                            : IconButton(
-                                icon: const Icon(Icons.arrow_forward_ios),
-                                onPressed: () {
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder: (context) => VehiculesComponent(
-                                        userId: _user.id,
-                                        pageTitle: "Manage vehicules",
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                      ),
+                      // ListTile(
+                      //   contentPadding: EdgeInsets.zero,
+                      //   title: Text("Manage calendar",
+                      //       style: loading
+                      //           ? const TextStyle(color: Colors.grey)
+                      //           : null),
+                      //   // Button to open schedules view
+                      //   trailing: loading
+                      //       ? null
+                      //       : IconButton(
+                      //           icon: const Icon(Icons.arrow_forward_ios),
+                      //           onPressed: () {
+                      //             Navigator.of(context).push(
+                      //               MaterialPageRoute(
+                      //                 builder: (context) =>
+                      //                     SchedulesView(_user.id),
+                      //               ),
+                      //             );
+                      //           },
+                      //         ),
+                      // ),
+                      // ListTile(
+                      //   contentPadding: EdgeInsets.zero,
+                      //   title: Text("Manage vehicules",
+                      //       style: loading
+                      //           ? const TextStyle(color: Colors.grey)
+                      //           : null),
+                      //   // Button to open schedules view
+                      //   trailing: loading
+                      //       ? null
+                      //       : IconButton(
+                      //           icon: const Icon(Icons.arrow_forward_ios),
+                      //           onPressed: () {
+                      //             Navigator.of(context).push(
+                      //               MaterialPageRoute(
+                      //                 builder: (context) => VehiculesComponent(
+                      //                   userId: _user.id,
+                      //                   pageTitle: "Manage vehicules",
+                      //                 ),
+                      //               ),
+                      //             );
+                      //           },
+                      //         ),
+                      // ),
                     ],
                   ),
                 ),
-                if (creationDate.isNotEmpty) ...[
-                  Center(
-                    child: Text(
-                      creationDate,
-                      style: const TextStyle(color: Colors.grey),
-                    ),
-                  ),
-                ],
+                // if (creationDate.isNotEmpty) ...[
+                //   Center(
+                //     child: Text(
+                //       creationDate,
+                //       style: const TextStyle(color: Colors.grey),
+                //     ),
+                //   ),
+                // ],
               ],
             ),
           ),

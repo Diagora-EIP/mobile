@@ -1,10 +1,10 @@
-import 'package:diagora/components/vehicules.dart';
 import 'package:flutter/material.dart';
 
 import 'package:diagora/views/home/map/map.dart';
 import 'package:diagora/services/api_service.dart';
 import 'package:diagora/views/home/order/order_view.dart';
 import 'package:diagora/views/home/calendar/calendar.dart';
+// import 'package:diagora/components/vehicules.dart';
 
 import 'package:intl/intl.dart';
 
@@ -106,17 +106,6 @@ class _HomeViewState extends State<HomeView> {
                   }),
                   _buildNavigationButton("Orders", () {
                     Navigator.push(context, MaterialPageRoute(builder: (context) => const OrderView()));
-                  }),
-                  _buildNavigationButton("Vehicules", () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => VehiculesComponent(
-                          userId: userData['user_id'],
-                          pageTitle: 'Vehicules',
-                        ),
-                      ),
-                    );
                   }),
                 ],
               ),

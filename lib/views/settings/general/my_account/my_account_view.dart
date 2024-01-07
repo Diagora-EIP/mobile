@@ -33,10 +33,8 @@ class MyAccountViewState extends State<MyAccountView> {
         if (mounted) {
           setState(() {
             _user = user;
-            if (user.companyId != null) {
-              fetchUserCompany(user.companyId!);
-            } else {
-              loading = false;
+            if (user.company != null) {
+              _company = user.company;
             }
             _nameController.text = user.name;
             _emailController.text = user.email;
@@ -44,31 +42,6 @@ class MyAccountViewState extends State<MyAccountView> {
               creationDate =
                   'Account created the ${user.createdAt!.day.toString().padLeft(2, '0')}/${user.createdAt!.month.toString().padLeft(2, '0')}/${user.createdAt!.year}';
             }
-          });
-        }
-      } else {
-        Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('An error occured while fetching your account.'),
-            duration: Duration(seconds: 2),
-          ),
-        );
-      }
-    });
-  }
-
-  void fetchUserCompany(int id) {
-    if (mounted) {
-      setState(() {
-        loading = true;
-      });
-    }
-    _apiService.fetchCompany().then((company) {
-      if (company != null) {
-        if (mounted) {
-          setState(() {
-            _company = company;
             loading = false;
           });
         }
@@ -76,7 +49,7 @@ class MyAccountViewState extends State<MyAccountView> {
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('An error occured while fetching the company.'),
+            content: Text('An error occured while fetching your account.'),
             duration: Duration(seconds: 2),
           ),
         );
@@ -192,14 +165,14 @@ class MyAccountViewState extends State<MyAccountView> {
                     ],
                   ),
                 ),
-                if (creationDate.isNotEmpty) ...[
-                  Center(
-                    child: Text(
-                      creationDate,
-                      style: const TextStyle(color: Colors.grey),
-                    ),
-                  ),
-                ],
+                // if (creationDate.isNotEmpty) ...[
+                //   Center(
+                //     child: Text(
+                //       creationDate,
+                //       style: const TextStyle(color: Colors.grey),
+                //     ),
+                //   ),
+                // ],
               ],
             ),
           ),

@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:diagora/services/api_service.dart';
 
 class VehiculesComponent extends StatefulWidget {
-  final int userId;
+  final int companyId;
   final String pageTitle;
 
   const VehiculesComponent({
     Key? key,
-    required this.userId,
+    required this.companyId,
     required this.pageTitle,
   }) : super(key: key);
 
@@ -32,7 +32,7 @@ class VehiculesComponentState extends State<VehiculesComponent> {
       setState(() {
         fetching = true;
       });
-      data = await _api.getVehicules(userId: widget.userId);
+      data = await _api.getCompanyVehicules(companyId: widget.companyId);
       setState(() {
         fetching = false;
       });
@@ -58,10 +58,7 @@ class VehiculesComponentState extends State<VehiculesComponent> {
   void openModalVehicule({vehicule}) async {
     String action = vehicule == null ? 'Add vehicule' : 'Edit vehicule';
     var vehiculeData = {
-      "userId": widget.userId,
-      "name": vehicule == null ? "" : vehicule["vehicle_name"],
-      "dimentions": vehicule == null ? "" : vehicule["dimentions"],
-      "capacity": vehicule == null ? 0 : vehicule["capacity"],
+      "name": vehicule == null ? "" : vehicule["name"],
     };
     await showModalBottomSheet(
       context: context,
@@ -88,37 +85,6 @@ class VehiculesComponentState extends State<VehiculesComponent> {
                         });
                       },
                     ),
-                    TextFormField(
-                      initialValue: vehiculeData["dimentions"],
-                      decoration: const InputDecoration(
-                        labelText: 'Dimentions',
-                      ),
-                      onChanged: (value) {
-                        setState(() {
-                          vehiculeData["dimentions"] = value;
-                        });
-                      },
-                    ),
-                    TextFormField(
-                      initialValue: vehiculeData["capacity"].toString(),
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        labelText: 'Capacity',
-                      ),
-                      onChanged: (value) {
-                        if (value == "") {
-                          value = "0";
-                        }
-                        try {
-                          int.parse(value);
-                        } catch (e) {
-                          value = "0";
-                        }
-                        setState(() {
-                          vehiculeData["capacity"] = int.parse(value);
-                        });
-                      },
-                    ),
                   ],
                 ),
               ),
@@ -129,35 +95,12 @@ class VehiculesComponentState extends State<VehiculesComponent> {
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(8, 8, 8, 0),
                 child: OutlinedButton(
-                  onPressed: vehiculeData["capacity"] > 0 &&
-                    vehiculeData["name"] != "" &&
-                    vehiculeData["dimentions"] != ""
-                   ? () async {
-                    if (vehiculeData["capacity"] == 0) {
-                      // ignore: use_build_context_synchronously
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Capacity must be greater than 0.'),
-                          duration: Duration(seconds: 2),
-                        ),
-                      );
-                      return;
-                    }
+                  onPressed: vehiculeData["name"] != "" ? () async {
                     if (vehiculeData["name"] == "") {
                       // ignore: use_build_context_synchronously
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           content: Text('Name cannot be empty.'),
-                          duration: Duration(seconds: 2),
-                        ),
-                      );
-                      return;
-                    }
-                    if (vehiculeData["dimentions"] == "") {
-                      // ignore: use_build_context_synchronously
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Dimentions cannot be empty.'),
                           duration: Duration(seconds: 2),
                         ),
                       );
@@ -252,10 +195,8 @@ class VehiculesComponentState extends State<VehiculesComponent> {
         fetching = true;
       });
       var response = await _api.addVehicule(
-        userId: vehiculeData["userId"],
+        companyId: widget.companyId,
         name: vehiculeData["name"] ?? "",
-        dimentions: vehiculeData["dimentions"] ?? "",
-        capacity: vehiculeData["capacity"] ?? 0,
       );
       if (response == false) {
         throw Exception("Error while adding vehicule");
@@ -285,10 +226,7 @@ class VehiculesComponentState extends State<VehiculesComponent> {
       });
       var response = await _api.editVehicule(
         vehiculeId: vehiculeData["vehicle_id"],
-        userId: vehiculeData["userId"],
         name: vehiculeData["name"] ?? "",
-        dimentions: vehiculeData["dimentions"] ?? "",
-        capacity: vehiculeData["capacity"] ?? 0,
       );
       if (response == false) {
         throw Exception("Error while editting vehicule");
@@ -342,7 +280,7 @@ class VehiculesComponentState extends State<VehiculesComponent> {
           actions: [
             IconButton(
               icon: const Icon(Icons.add),
-              onPressed: fetching || _api.role?.role != Roles.manager ?
+              onPressed: fetching || _api.role?.role != Roles.admin ?
                 null : () => openModalVehicule(),
             ),
           ]),
@@ -371,10 +309,7 @@ class VehiculesComponentState extends State<VehiculesComponent> {
                           const Divider(),
                         ],
                         ListTile(
-                          title: Text(vehicule["vehicle_name"]),
-                          subtitle: Text(
-                            "Dimentions: ${vehicule["dimentions"]} | Capacity: ${vehicule["capacity"]}",
-                          ),
+                          title: Text(vehicule["name"]),
                           onTap: () {
                             openModalVehicule(vehicule: vehicule);
                           },

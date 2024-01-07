@@ -385,7 +385,7 @@ class ApiService {
       if (userId == null || userId == _user?.id) {
         url = ApiRoutes.route(ApiRoutes.getUserRoute);
       } else {
-        url = ApiRoutes.route(ApiRoutes.updateUserByIdRoute.replaceAll(':id', userId.toString()));
+        url = ApiRoutes.route(ApiRoutes.updateAdminUserRoute.replaceAll(':id', userId.toString()));
       }
       Response response = await client.patch(
         url,
@@ -849,18 +849,43 @@ class ApiService {
   //   }
   // }
 
-  Future<dynamic> getVehicules({
+  Future<dynamic> getMyVehicules({
     Client? client,
     bool injectToken = true,
-    int? userId,
   }) async {
     client ??= _httpClient;
-    Uri url;
-    if (userId == null || userId == _user!.id) {
-      url = ApiRoutes.route(ApiRoutes.getUserVehiclesRoute);
-    } else {
-      url = ApiRoutes.route(ApiRoutes.getUserCompanyVehiclesRoute.replaceAll(":id", userId.toString()));
+    Uri url = ApiRoutes.route(ApiRoutes.getUserVehiclesRoute);
+    try {
+      final response = await client.get(
+        url,
+        headers: {"Content-Type": "application/json", "Authorization": "Bearer ${_token!}"},
+      );
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        dynamic responseData = json.decode(response.body);
+        _logger.i(responseData);
+        if (responseData == "User does not have any vehicle") {
+          return ([]);
+        }
+        return (responseData);
+      } else if (response.statusCode == 404) {
+        return ([]);
+      } else {
+        _logger.e('getVehicules() failed with status code ${response.statusCode}: ${response.body}');
+        return (false);
+      }
+    } catch (e) {
+      _logger.e(e.toString());
+      return false;
     }
+  }
+
+  Future<dynamic> getCompanyVehicules({
+    Client? client,
+    bool injectToken = true,
+    required int companyId,
+  }) async {
+    client ??= _httpClient;
+    Uri url = ApiRoutes.route(ApiRoutes.getAdminCompanyVehiclesRoute.replaceAll(":company_id", companyId.toString()));
     try {
       final response = await client.get(
         url,
@@ -888,27 +913,17 @@ class ApiService {
   Future<dynamic> addVehicule({
     Client? client,
     bool injectToken = true,
-    int? userId,
+    required int companyId,
     required String name,
-    required String dimentions,
-    required int capacity,
   }) async {
     client ??= _httpClient;
-    Uri url;
-    if (userId == null || userId == user?.id) {
-      url = ApiRoutes.route(ApiRoutes.createVehicleRoute);
-    } else {
-      url = ApiRoutes.route(ApiRoutes.createAdminVehicleRoute.replaceAll(":company_id", userId.toString()));
-    }
+    Uri url = ApiRoutes.route(ApiRoutes.createAdminVehicleRoute.replaceAll(":company_id", companyId.toString()));
     try {
       final response = await client.post(
         url,
         headers: {"Content-Type": "application/json", "Authorization": "Bearer ${_token!}"},
         body: json.encode({
-          "userId": userId,
           "name": name,
-          "dimentions": dimentions,
-          "capacity": capacity,
         }),
       );
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -929,27 +944,16 @@ class ApiService {
     Client? client,
     bool injectToken = true,
     required int vehiculeId,
-    required int userId,
     required String name,
-    required String dimentions,
-    required int capacity,
   }) async {
     client ??= _httpClient;
-    Uri url;
-    if (userId == _user!.id) {
-      url = ApiRoutes.route(ApiRoutes.updateVehicleRoute.replaceAll(":vehicle_id", vehiculeId.toString()));
-    } else {
-      url = ApiRoutes.route(ApiRoutes.updateAdminVehicleRoute.replaceAll(":vehicle_id", vehiculeId.toString()));
-    }
+    Uri url = ApiRoutes.route(ApiRoutes.updateAdminVehicleRoute.replaceAll(":vehicle_id", vehiculeId.toString()));
     try {
       final response = await client.patch(
         url,
         headers: {"Content-Type": "application/json", "Authorization": "Bearer ${_token!}"},
         body: json.encode({
-          "userId": userId,
           "name": name,
-          "dimentions": dimentions,
-          "capacity": capacity,
         }),
       );
       if (response.statusCode == 200 || response.statusCode == 202) {
@@ -972,13 +976,13 @@ class ApiService {
     required int vehiculeId,
   }) async {
     client ??= _httpClient;
-    Uri url = ApiRoutes.route(ApiRoutes.deleteVehicleRoute.replaceAll(":vehicle_id", vehiculeId.toString()));
+    Uri url = ApiRoutes.route(ApiRoutes.deleteAdminVehicleRoute.replaceAll(":vehicle_id", vehiculeId.toString()));
     try {
       final response = await client.delete(
         url,
         headers: {"Content-Type": "application/json", "Authorization": "Bearer ${_token!}"},
       );
-      if (response.statusCode == 200 || response.statusCode == 202) {
+      if (response.statusCode == 200 || response.statusCode == 204) {
         _logger.i(response.body);
         return (true);
       } else {

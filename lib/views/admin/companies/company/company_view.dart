@@ -1,3 +1,4 @@
+import 'package:diagora/components/vehicules.dart';
 import 'package:flutter/material.dart';
 import 'package:accordion/accordion.dart';
 
@@ -249,26 +250,52 @@ class CompanyViewState extends State<CompanyView> {
                           setState(() {});
                         },
                       ),
+                      const SizedBox(height: 20),
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text("Manage vehicules",
+                            style: loading
+                                ? const TextStyle(color: Colors.grey)
+                                : null),
+                        // Button to open schedules view
+                        trailing: loading
+                            ? null
+                            : IconButton(
+                                icon: const Icon(Icons.arrow_forward_ios),
+                                onPressed: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (context) => VehiculesComponent(
+                                        companyId: widget.company != null
+                                            ? widget.company!.id
+                                            : -1,
+                                        pageTitle: "Manage company vehicules",
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                      ),
                     ],
                   ),
                 ),
-                if (creationDate.isNotEmpty) ...[
-                  Center(
-                    child: Text(
-                      creationDate,
-                      style: const TextStyle(color: Colors.grey),
-                    ),
-                  ),
-                ],
-                if (lastUpdateDate.isNotEmpty) ...[
-                  const SizedBox(height: 10),
-                  Center(
-                    child: Text(
-                      lastUpdateDate,
-                      style: const TextStyle(color: Colors.grey),
-                    ),
-                  ),
-                ],
+                // if (creationDate.isNotEmpty) ...[
+                //   Center(
+                //     child: Text(
+                //       creationDate,
+                //       style: const TextStyle(color: Colors.grey),
+                //     ),
+                //   ),
+                // ],
+                // if (lastUpdateDate.isNotEmpty) ...[
+                //   const SizedBox(height: 10),
+                //   Center(
+                //     child: Text(
+                //       lastUpdateDate,
+                //       style: const TextStyle(color: Colors.grey),
+                //     ),
+                //   ),
+                // ],
                 const SizedBox(height: 10),
                 Accordion(
                   headerPadding:
