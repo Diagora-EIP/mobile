@@ -24,7 +24,7 @@ class _CalendarPageState extends State<CalendarPage> {
   final ApiService _api = ApiService.getInstance();
   CalendarFormat _calendarFormat = CalendarFormat.month;
   DateTime today = DateTime.now();
-  List<dynamic> calendarList = [];
+  List<dynamic> scheduleList = [];
   bool deliveryToday = true;
 
   @override
@@ -35,11 +35,9 @@ class _CalendarPageState extends State<CalendarPage> {
 
   // Needs to have the same parameters as the function onDaySelected [DateTime day, DateTime focusDay]
   void _onDaySelected(DateTime day, DateTime focusDay) {
-    String chosenValueString = "";
-    List<dynamic> scheduleList = [];
     DateTime chosenStart = DateTime(focusDay.year, focusDay.month, focusDay.day, 1);
     DateTime chosenEnd = DateTime(focusDay.year, focusDay.month, focusDay.day, 23);
-    Future<String> allTodaysValues = _api.calendarOrders(chosenStart, chosenEnd);
+    Future<String> allTodaysValues = _api.getSchedule(chosenStart, chosenEnd);
 
     allTodaysValues.then((value) {
       // No delivery for today
@@ -47,12 +45,9 @@ class _CalendarPageState extends State<CalendarPage> {
         setState(() {
           deliveryToday = false;
         });
-        // Delivery for today
       } else {
-        chosenValueString = value;
-        scheduleList = json.decode(chosenValueString);
-        _shipmentOfTheDay(scheduleList);
         setState(() {
+          scheduleList = json.decode(value);
           deliveryToday = true;
         });
       }
@@ -67,23 +62,23 @@ class _CalendarPageState extends State<CalendarPage> {
     });
   }
 
-  void _shipmentOfTheDay(List<dynamic> scheduleListVal) {
-    List<dynamic> newCalendarList = [];
+  // void _shipmentOfTheDay(List<dynamic> scheduleListVal) {
+  //   List<dynamic> newCalendarList = [];
 
-    for (var schedule in scheduleListVal) {
-      DateTime dateTimeBegin = DateTime.parse(schedule["order_date"]);
-      DateTime dateTimeEnd = DateTime.parse(schedule["order_date"]);
-      newCalendarList.add([
-        schedule["description"],
-        schedule["delivery_address"],
-        DateFormat('hh:mm aaa').format(dateTimeBegin),
-        DateFormat('hh:mm aaa').format(dateTimeEnd)
-      ]);
-    }
-    setState(() {
-      calendarList = newCalendarList;
-    });
-  }
+  //   for (var schedule in scheduleListVal) {
+  //     DateTime dateTimeBegin = DateTime.parse(schedule["order_date"]);
+  //     DateTime dateTimeEnd = DateTime.parse(schedule["order_date"]);
+  //     newCalendarList.add([
+  //       schedule["description"],
+  //       schedule["delivery_address"],
+  //       DateFormat('hh:mm aaa').format(DateTime.parse(schedule["order_date"])),
+  //       DateFormat('hh:mm aaa').format(schedule["order_date"])
+  //     ]);
+  //   }
+  //   setState(() {
+  //     calendarList = newCalendarList;
+  //   });
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -166,7 +161,7 @@ class _CalendarPageState extends State<CalendarPage> {
           ),
           Expanded(
               child: deliveryToday
-                  ? MyListWidget(items: calendarList, chosen: today)
+                  ? MyListWidget(scheduleList: scheduleList, chosen: today)
                   : const Center(
                       child: Text(
                         "No delivery for today",
@@ -191,15 +186,15 @@ class _CalendarPageState extends State<CalendarPage> {
 
 // ignore: must_be_immutable
 class MyListWidget extends StatelessWidget {
-  final List<dynamic> items;
+  final List<dynamic> scheduleList;
   DateTime chosen;
 
-  MyListWidget({super.key, required this.items, required this.chosen});
+  MyListWidget({super.key, required this.scheduleList, required this.chosen});
 
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
-      itemCount: items.length,
+      itemCount: scheduleList.length,
       itemBuilder: (BuildContext context, int index) {
         final color = Color((Random().nextDouble() * 0xFFFFFF).toInt() << 0).withOpacity(1.0);
 
@@ -210,13 +205,14 @@ class MyListWidget extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => ItemDetailsPage(item: items[index], chosen: chosen),
+                    builder: (context) => ItemDetailsPage(scheduleList: scheduleList[index], chosen: chosen),
                   ),
                 );
               },
               child: ListTile(
-                title: Text(items[index][0], style: const TextStyle(fontWeight: FontWeight.bold)),
-                subtitle: Text(items[index][1]),
+                title: Text(scheduleList[index]["order"]["description"],
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
+                subtitle: Text(scheduleList[index]["order"]["delivery_address"]),
                 leading: Container(
                   width: 5.0,
                   decoration: BoxDecoration(
@@ -228,9 +224,10 @@ class MyListWidget extends StatelessWidget {
                   children: [
                     Padding(
                       padding: const EdgeInsets.only(bottom: 15.0),
-                      child: Text(items[index][2]),
+                      child: Text(
+                          DateFormat('hh:mm aaa').format(DateTime.parse(scheduleList[index]["order"]["order_date"]))),
                     ),
-                    Text(items[index][3]),
+                    Text(DateFormat('hh:mm aaa').format(DateTime.parse(scheduleList[index]["order"]["order_date"]))),
                   ],
                 ),
               ),
@@ -274,10 +271,10 @@ Future<Map<String, double>> getCoordinates(String address) async {
 
 // ignore: must_be_immutable
 class ItemDetailsPage extends StatefulWidget {
-  final List<dynamic> item;
+  final dynamic scheduleList;
   DateTime chosen;
 
-  ItemDetailsPage({Key? key, required this.item, required this.chosen}) : super(key: key);
+  ItemDetailsPage({Key? key, required this.scheduleList, required this.chosen}) : super(key: key);
 
   @override
   // ignore: library_private_types_in_public_api
@@ -314,7 +311,7 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
         ),
       ),
       body: FutureBuilder<LatLng>(
-        future: fetchCoordinates(widget.item[1]),
+        future: fetchCoordinates(widget.scheduleList["order"]["delivery_address"]),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
@@ -336,78 +333,80 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
             const zoomLevel = 10.0; // Adjust the zoom level as desired
 
             return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      widget.item[0].toUpperCase(),
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        widget.scheduleList["order"]["description"].toUpperCase(),
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
                       ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      widget.item[1],
-                      style: const TextStyle(fontSize: 18),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          widget.item[2],
-                          style: const TextStyle(fontSize: 18),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(width: 8),
-                        const Icon(
-                          Icons.arrow_forward,
-                          size: 18,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          widget.item[3],
-                          style: const TextStyle(fontSize: 18),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
-                    SizedBox(
-                      height: 400,
-                      child: FlutterMap(
-                        options: MapOptions(
-                          center: coord,
-                          zoom: zoomLevel,
-                        ),
+                      const SizedBox(height: 8),
+                      Text(
+                        widget.scheduleList["order"]["delivery_address"],
+                        style: const TextStyle(fontSize: 18),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          TileLayer(
-                            urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                            userAgentPackageName: 'com.example.app',
+                          Text(
+                            DateFormat('hh:mm aaa').format(DateTime.parse(widget.scheduleList["order"]["order_date"])),
+                            style: const TextStyle(fontSize: 18),
+                            textAlign: TextAlign.center,
                           ),
-                          MarkerLayer(
-                            markers: [
-                              Marker(
-                                width: 80.0,
-                                height: 80.0,
-                                point: coord,
-                                builder: (ctx) => const Icon(
-                                  Icons.place,
-                                  color: Colors.black,
-                                  size: 48,
-                                ),
-                              ),
-                            ],
+                          const SizedBox(width: 8),
+                          const Icon(
+                            Icons.arrow_forward,
+                            size: 18,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            DateFormat('hh:mm aaa').format(DateTime.parse(widget.scheduleList["order"]["order_date"])),
+                            style: const TextStyle(fontSize: 18),
+                            textAlign: TextAlign.center,
                           ),
                         ],
                       ),
-                    ),
-                  ],
+                      SizedBox(
+                        height: 400,
+                        child: FlutterMap(
+                          options: MapOptions(
+                            center: coord,
+                            zoom: zoomLevel,
+                          ),
+                          children: [
+                            TileLayer(
+                              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                              userAgentPackageName: 'com.example.app',
+                            ),
+                            MarkerLayer(
+                              markers: [
+                                Marker(
+                                  width: 80.0,
+                                  height: 80.0,
+                                  point: coord,
+                                  builder: (ctx) => const Icon(
+                                    Icons.place,
+                                    color: Colors.black,
+                                    size: 48,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             );
