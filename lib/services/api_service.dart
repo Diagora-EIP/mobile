@@ -625,30 +625,6 @@ class ApiService {
       );
       if (response.statusCode == 200 || response.statusCode == 201) {
         _logger.d(response.body);
-        dynamic responseData = json.decode(response.body);
-        String itineraryId = responseData['itinerary_id'];
-        String itineraryDate = responseData['delivery_date'];
-        String? listItineraryId = _prefs?.getString("itineraire_id");
-        String? listItineraryDate = _prefs?.getString("itineraire_date");
-
-        if (listItineraryId == null || listItineraryDate == null) {
-          _prefs?.setString("itineraire_id", json.encode([]));
-          _prefs?.setString("itineraire_date", json.encode([]));
-          listItineraryId = _prefs?.getString("itineraire_id");
-          listItineraryDate = _prefs?.getString("itineraire_date");
-        }
-        if (itineraryId != '0' && listItineraryId != null && listItineraryDate != null) {
-          dynamic listItinerary = json.decode(listItineraryId);
-          dynamic listDate = json.decode(listItineraryDate);
-          if (listItinerary.contains(itineraryId)) {
-            _logger.d("Itinerary already exist: ", itineraryId);
-            return Future.value(true);
-          }
-          listDate.add(itineraryDate);
-          listItinerary.add(itineraryId);
-          _prefs?.setString("itineraire_id", json.encode(listItinerary));
-          _prefs?.setString("itineraire_date", json.encode(listDate));
-        }
         return Future.value(true);
       }
     } catch (e) {
@@ -712,7 +688,7 @@ class ApiService {
       return "false";
     }
     List<dynamic> scheduleData = json.decode(schedule);
-    String itineraryId = "none";
+    int itineraryId = -1;
 
     for (var i = 0; i < scheduleData.length; i++) {
       if (scheduleData[i]["itinerary_id"] != 0) {
@@ -720,11 +696,11 @@ class ApiService {
         break;
       }
     }
-    if (itineraryId == "none" || itineraryId == "0") {
+    if (itineraryId == -1 || itineraryId == 0) {
       return "false";
     }
 
-    Uri url = ApiRoutes.route(ApiRoutes.getItineraryRoute.replaceAll(":itinerary_id", itineraryId));
+    Uri url = ApiRoutes.route(ApiRoutes.getItineraryRoute.replaceAll(":itinerary_id", itineraryId.toString()));
     try {
       final response = await client.get(
         url,
