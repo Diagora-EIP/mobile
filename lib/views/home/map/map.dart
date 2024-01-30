@@ -1,81 +1,172 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import 'package:latlong2/latlong.dart';
-import 'package:flutter_map/flutter_map.dart';
+import 'dart:convert';
+
+import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' as mapbox;
+import 'package:permission_handler/permission_handler.dart';
+import 'package:geolocator/geolocator.dart';
 
 import 'package:diagora/services/api_service.dart';
 
-import 'dart:math';
-import 'dart:convert';
-
 class MapPage extends StatefulWidget {
-  const MapPage({super.key});
+  final int userId;
+  const MapPage({
+    Key? key,
+    required this.userId,
+  }) : super(key: key);
 
   @override
-  State<MapPage> createState() => _MapPageState();
+  State<MapPage> createState() => MapPageState();
 }
 
-class _MapPageState extends State<MapPage> {
+class MapPageState extends State<MapPage> {
   final ApiService _api = ApiService.getInstance();
-  List<Polyline> polylines = [];
-  List<Marker> markerCoord = [];
-  List<LatLng> coordinates = [];
-  LatLng markerCoordinates = LatLng(0, 0);
-  double long = 0;
-  double lat = 0;
-  double lastLat = 0;
-  double lastLong = 0;
-  double currentZoom = 3.2;
-  double maxZoom = 10.0;
-  DateTime today = DateTime.now();
-  DateTime end = DateTime.now();
-  String todayValueString = "";
-  List<dynamic> calendarList = [];
-  List<dynamic> scheduleList = [];
-  late DateTime todayDate;
-  late DateTime todayStart;
-  late DateTime todayEnd;
-  int userId = -1;
-  dynamic userData;
-  bool deliveryToday = true;
+  String publicToken = const String.fromEnvironment("MAPBOX_PUBLIC_TOKEN");
 
-  void _showMarkerInfo(String address, String begin, String end) {
+  mapbox.MapboxMap? mapboxMap;
+  mapbox.PointAnnotationManager? pointAnnotationManager;
+  mapbox.PolylineAnnotationManager? polylineAnnotationManager;
+
+  late DateTime currentDate;
+
+  void _fetch() async {
+    var date = currentDate;
+    var dateStart = DateTime(date.year, date.month, date.day, 0, 0, 1);
+    var dateEnd = DateTime(date.year, date.month, date.day, 23, 59, 59);
+    String valuesData = await _api.mapItinenaries(dateStart, dateEnd);
+
+    pointAnnotationManager?.deleteAll();
+    polylineAnnotationManager?.deleteAll();
+    if (valuesData == "false") return;
+    dynamic itinerary = json.decode(valuesData);
+    if (itinerary["path"] != null && itinerary["path"]["points"] != null && itinerary["path"]["points"].length > 0) {
+      _addMarkers(itinerary["path"]["points"]);
+    }
+    if (itinerary["stop_point"] != null &&
+        itinerary["stop_point"]["road"] != null &&
+        itinerary["stop_point"]["road"].length > 0) {
+      _addRoads(itinerary["stop_point"]["road"]);
+    }
+  }
+
+  void _flyToPosition({mapbox.Position? position}) async {
+    if (position == null) {
+      var currentPosition = await Geolocator.getCurrentPosition();
+      position = mapbox.Position(currentPosition.longitude, currentPosition.latitude);
+    }
+    mapboxMap?.flyTo(
+        mapbox.CameraOptions(
+          center: mapbox.Point(
+            coordinates: position,
+          ).toJson(),
+          zoom: 10,
+          bearing: 0,
+          pitch: 3,
+        ),
+        mapbox.MapAnimationOptions(duration: 2000, startDelay: 0));
+  }
+
+  void _addMarkers(dynamic pointsArray) {
+    mapboxMap?.annotations.createPointAnnotationManager().then((value) async {
+      pointAnnotationManager = value;
+
+      final ByteData bytes = await rootBundle.load('assets/images/marker-icon.png');
+      final Uint8List list = bytes.buffer.asUint8List();
+
+      var options = <mapbox.PointAnnotationOptions>[];
+      for (dynamic point in pointsArray) {
+        options.add(mapbox.PointAnnotationOptions(
+          geometry: mapbox.Point(
+            coordinates: mapbox.Position(
+              point['x'],
+              point['y'],
+            ),
+          ).toJson(),
+          image: list,
+          iconSize: 0.15,
+        ));
+      }
+      pointAnnotationManager?.createMulti(options);
+    });
+  }
+
+  void _addRoads(dynamic pointsArray) {
+    mapboxMap?.annotations.createPolylineAnnotationManager().then((value) {
+      polylineAnnotationManager = value;
+
+      List<mapbox.Position> positions = [];
+      for (var point in pointsArray) {
+        double x = point["x"];
+        double y = point["y"];
+        positions.add(mapbox.Position(x, y));
+      }
+
+      var option = mapbox.PolylineAnnotationOptions(
+        geometry: mapbox.LineString(coordinates: positions).toJson(),
+        lineColor: Colors.blue.value,
+        lineWidth: 4,
+      );
+      polylineAnnotationManager?.create(option);
+    });
+  }
+
+  void _onMapCreated(mapbox.MapboxMap controller) async {
+    mapboxMap = controller;
+    // Show user location
+    mapboxMap?.location.updateSettings(mapbox.LocationComponentSettings(
+      enabled: true,
+      showAccuracyRing: true,
+      pulsingEnabled: true,
+      puckBearingEnabled: true,
+    ));
+    // Fly to user location
+    Future.delayed(const Duration(milliseconds: 100), () async {
+      _flyToPosition();
+    });
+  }
+
+  void _showDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Delivery Info'),
-          content: RichText(
-            text: TextSpan(
-              style: DefaultTextStyle.of(context).style,
-              children: <TextSpan>[
-                const TextSpan(
-                  text: 'Address: ',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+          title: const Text('Change Date'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              SizedBox(
+                height: 100,
+                width: 350,
+                child: CupertinoDatePicker(
+                  initialDateTime: currentDate,
+                  onDateTimeChanged: (DateTime newdate) {
+                    setState(() {
+                      currentDate = newdate;
+                    });
+                  },
+                  use24hFormat: true,
+                  maximumDate: DateTime.now().add(const Duration(days: 30)),
+                  minimumYear: 2010,
+                  maximumYear: 2025,
+                  minuteInterval: 1,
+                  mode: CupertinoDatePickerMode.date,
                 ),
-                TextSpan(text: '$address \n'),
-                const TextSpan(
-                  text: 'Start Time: ',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 10),
+              Center(
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _fetch();
+                  },
+                  child: const Text('Confirm'),
                 ),
-                TextSpan(text: '$begin\n'),
-                const TextSpan(
-                  text: 'End Time: ',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                TextSpan(text: end),
-              ],
-            ),
+              ),
+            ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Close'),
-            ),
-          ],
         );
       },
     );
@@ -83,80 +174,14 @@ class _MapPageState extends State<MapPage> {
 
   @override
   void initState() {
-    todayDate = DateTime.now();
-    todayStart = DateTime(todayDate.year, todayDate.month, todayDate.day, 1);
-    todayEnd = DateTime(todayDate.year, todayDate.month, todayDate.day, 23);
-    userData = _api.user?.toJson();
-    userId = userData['user_id'];
-    Future<String> allTodaysTrajValues =
-        _api.mapValues(todayStart, todayEnd, userId);
-
-    allTodaysTrajValues.then((response) {
-      if (response == 'false') {
-        return;
-      }
-      List<dynamic> responseData = json.decode(response);
-
-      for (int i = 0; i < responseData.length; i++) {
-        coordinates = [];
-        dynamic traj = responseData[i]['path'][0]['path'];
-        print("path: ");
-        print(responseData[i]['path'].length);
-
-        dynamic stopPoints = responseData[i]['stop_point'];
-        for (int a = 0; a < traj.length; a++) {
-          coordinates.add(LatLng(traj[a]['lat'], traj[a]['lon']));
-        }
-        print("stops: ");
-        print(stopPoints.length);
-        for (int a = 0; a < stopPoints.length; a++) {
-          // Get lat/long of the stop point
-          String lat = stopPoints[a]['lat'];
-          String long = stopPoints[a]['long'];
-          // Change lat/long to double
-          double doubleLat = double.parse(lat);
-          double doubleLong = double.parse(long);
-          // Create LatLong type
-          markerCoordinates = LatLng(doubleLat, doubleLong);
-          // Get address
-          String address = stopPoints[a]['autocompleteAdress'];
-          // Get time of the delivery (start/end)
-          DateTime begining = DateTime.parse(stopPoints[a]['begin']);
-          DateTime ending = DateTime.parse(stopPoints[a]['end']);
-          // Formatize the date
-          DateFormat outputFormat = DateFormat('yyyy-MM-dd HH:mm');
-          String formattedBegin = outputFormat.format(begining);
-          String formattedEnd = outputFormat.format(ending);
-          // Create a marker
-          markerCoord.add(Marker(
-              width: 80.0,
-              height: 80.0,
-              point: markerCoordinates,
-              builder: (ctx) => GestureDetector(
-                    onTap: () {
-                      _showMarkerInfo(address, formattedBegin, formattedEnd);
-                    },
-                    child: const Icon(
-                      Icons.location_on,
-                      color: Colors.black,
-                      size: 48,
-                    ),
-                  )));
-        }
-        final color = Color((Random().nextDouble() * 0xFFFFFF).toInt() << 0)
-            .withOpacity(1.0);
-        polylines.add(Polyline(
-          points: coordinates,
-          color: color,
-          strokeWidth: 2.0,
-        ));
-      }
-    }).catchError((error) {
-      // ignore: avoid_print
-      print("error in map values: $error ");
-    });
-
     super.initState();
+    if (publicToken.isEmpty) {
+      Navigator.pop(context);
+      throw Exception("MAPBOX_PUBLIC_TOKEN is not set");
+    }
+    Permission.locationWhenInUse.request();
+    currentDate = DateTime.now();
+    _fetch();
   }
 
   @override
@@ -164,31 +189,27 @@ class _MapPageState extends State<MapPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Map'),
-      ),
-      body: Stack(
-        children: [
-          FlutterMap(
-            options: MapOptions(
-              center: LatLng(51.509364, -0.128928),
-              zoom: currentZoom,
-              onPositionChanged: (mapPosition, boolValue) {
-                if (mapPosition.zoom! > maxZoom) {
-                  setState(() {
-                    currentZoom = maxZoom;
-                  });
-                }
-              },
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(30.0),
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              DateFormat('MM/dd/yyyy').format(currentDate),
+              style: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.w300, color: Colors.white),
             ),
-            children: [
-              TileLayer(
-                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                userAgentPackageName: 'com.example.app',
-              ),
-              PolylineLayer(polylines: polylines),
-              MarkerLayer(markers: markerCoord)
-            ],
+          ),
+        ),
+        actions: <Widget>[
+          IconButton(
+            icon: const Icon(Icons.date_range),
+            onPressed: () => _showDialog(context),
           ),
         ],
+      ),
+      body: mapbox.MapWidget(
+        key: const ValueKey("mapWidget"),
+        resourceOptions: mapbox.ResourceOptions(accessToken: publicToken),
+        onMapCreated: _onMapCreated,
       ),
     );
   }

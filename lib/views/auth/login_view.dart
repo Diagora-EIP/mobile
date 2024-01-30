@@ -27,80 +27,84 @@ class _LoginViewState extends State<LoginView> {
       appBar: AppBar(
         title: const Text('Login'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Center(
-                child: Image.asset(
-                  'assets/images/diagora.png',
-                  width: 200,
-                  height: 200,
-                ),
-              ),
-              TextFormField(
-                decoration: const InputDecoration(labelText: 'Email'),
-                validator: (value) {
-                  if (value!.isEmpty) {
-                    return 'Please enter your email';
-                  }
-                  return null;
-                },
-                onSaved: (value) => _email = value!,
-              ),
-              TextFormField(
-                decoration: const InputDecoration(labelText: 'Password'),
-                obscureText: true,
-                validator: (value) {
-                  if (value!.isEmpty) {
-                    return 'Please enter your password';
-                  }
-                  return null;
-                },
-                onSaved: (value) => _password = value!,
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  if (_formKey.currentState!.validate()) {
-                    _formKey.currentState!.save();
-                    bool returnValue = await _api.login(_email, _password);
-                    if (returnValue) {
-                      await _api.fetchPermissions();
-                      // ignore: use_build_context_synchronously
-                      Navigator.pushAndRemoveUntil(
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Form(
+            key: _formKey,
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Center(
+                    child: Image.asset(
+                      'assets/images/diagora.png',
+                      width: 200,
+                      height: 200,
+                    ),
+                  ),
+                  TextFormField(
+                    decoration: const InputDecoration(labelText: 'Email'),
+                    validator: (value) {
+                      if (value!.isEmpty) {
+                        return 'Please enter your email';
+                      }
+                      return null;
+                    },
+                    onSaved: (value) => _email = value!,
+                  ),
+                  TextFormField(
+                    decoration: const InputDecoration(labelText: 'Password'),
+                    obscureText: true,
+                    validator: (value) {
+                      if (value!.isEmpty) {
+                        return 'Please enter your password';
+                      }
+                      return null;
+                    },
+                    onSaved: (value) => _password = value!,
+                  ),
+                  ElevatedButton(
+                    onPressed: () async {
+                      if (_formKey.currentState!.validate()) {
+                        _formKey.currentState!.save();
+                        bool returnValue = await _api.login(_email, _password);
+                        if (returnValue) {
+                          await _api.fetchRoles();
+                          // ignore: use_build_context_synchronously
+                          Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const LoadingView(),
+                            ),
+                            (route) => false,
+                          );
+                        } else {
+                          // ignore: use_build_context_synchronously
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Login failed'),
+                            ),
+                          );
+                        }
+                      }
+                    },
+                    child: const Text('Login'),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const LoadingView(),
-                        ),
-                        (route) => false,
-                      );
-                    } else {
-                      // ignore: use_build_context_synchronously
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Login failed'),
+                          builder: (context) => const PasswordForgottenView(),
                         ),
                       );
-                    }
-                  }
-                },
-                child: const Text('Login'),
+                    },
+                    child: const Text('Forgot your password ?'),
+                  ),
+                ],
               ),
-              TextButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const PasswordForgottenView(),
-                    ),
-                  );
-                },
-                child: const Text('Forgot your password ?'),
-              ),
-            ],
+            ),
           ),
         ),
       ),

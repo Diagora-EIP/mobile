@@ -1,46 +1,46 @@
+import 'package:diagora/views/admin/companies/company/company_view.dart';
 import 'package:flutter/material.dart';
 import 'package:diagora/services/api_service.dart';
-import 'package:diagora/models/user_model.dart';
-import 'package:diagora/views/admin/users/user/user_view.dart';
+import 'package:diagora/models/company_model.dart';
 
-class UsersView extends StatefulWidget {
-  const UsersView({
+class CompaniesView extends StatefulWidget {
+  const CompaniesView({
     Key? key,
   }) : super(key: key);
 
   @override
-  UsersViewState createState() => UsersViewState();
+  CompaniesViewState createState() => CompaniesViewState();
 }
 
-class UsersViewState extends State<UsersView> {
+class CompaniesViewState extends State<CompaniesView> {
   final ApiService _apiService = const ApiService();
-  List<User> users = [];
-  List<User> filteredUsers = [];
+  List<Company> companies = [];
+  List<Company> filteredCompanies = [];
   bool loading = false;
 
   @override
   void initState() {
     super.initState();
-    fetchUsers();
+    fetchCompanies();
   }
 
-  void fetchUsers() {
+  void fetchCompanies() {
     setState(() {
       loading = true;
     });
-    _apiService.fetchUsers().then((users) {
-      if (users != null) {
+    _apiService.fetchCompanies().then((companies) {
+      if (companies != null) {
         setState(() {
-          this.users = users;
-          this.users.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
-          filteredUsers = this.users;
+          this.companies = companies;
+          this.companies.sort((a, b) => a.name!.compareTo(b.name!));
+          filteredCompanies = this.companies;
           loading = false;
         });
       } else {
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('An error occured while fetching users.'),
+            content: Text('An error occured while fetching companies.'),
             duration: Duration(seconds: 2),
           ),
         );
@@ -52,7 +52,25 @@ class UsersViewState extends State<UsersView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Users'),
+        title: const Text('Companies'),
+        actions: <Widget>[
+          loading == true // Add button
+              ? const IconButton(
+                  icon: Icon(Icons.add),
+                  onPressed: null,
+                )
+              : IconButton(
+                  icon: const Icon(Icons.add),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const CompanyView(company: null),
+                      ),
+                    );
+                  },
+                ),
+        ],
       ),
       body: Scrollbar(
         child: SingleChildScrollView(
@@ -61,7 +79,7 @@ class UsersViewState extends State<UsersView> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (loading == false) ...[
-                if (users.isNotEmpty) ...[
+                if (companies.isNotEmpty) ...[
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                     child: TextField(
@@ -74,11 +92,15 @@ class UsersViewState extends State<UsersView> {
                       ),
                       onChanged: (value) {
                         setState(() {
-                          filteredUsers = users
+                          filteredCompanies = companies
                               .where(
-                                (user) =>
-                                    user.name.toLowerCase().contains(value.toLowerCase()) ||
-                                    user.email.toLowerCase().contains(value.toLowerCase()),
+                                (company) =>
+                                    (company.name != null && company.name!
+                                        .toLowerCase()
+                                        .contains(value.toLowerCase())) ||
+                                    (company.address != null && company.address!
+                                        .toLowerCase()
+                                        .contains(value.toLowerCase())),
                               )
                               .toList();
                         });
@@ -86,20 +108,20 @@ class UsersViewState extends State<UsersView> {
                     ),
                   ),
                 ],
-                if (filteredUsers.isEmpty) ...[
+                if (filteredCompanies.isEmpty) ...[
                   const SizedBox(height: 60),
                   const Center(
                     child: Text(
-                      'No user found.',
+                      'No company found.',
                       style: TextStyle(color: Colors.grey),
                     ),
                   ),
                 ],
-                for (User user in filteredUsers) ...[
-                  // If the user's name starts with a new character, a header row with the character is created
-                  if (users.indexOf(user) == 0 ||
-                      user.name[0].toLowerCase() != users[users.indexOf(user) - 1].name[0].toLowerCase()) ...[
-                    if (users.indexOf(user) != 0) ...[
+                for (Company company in filteredCompanies) ...[
+                  // If the company's name starts with a new character, a header row with the character is created
+                  if (companies.indexOf(company) == 0 ||
+                      (company.name != null && company.name?[0] != companies[companies.indexOf(company) - 1].name?[0])) ...[
+                    if (companies.indexOf(company) != 0) ...[
                       const SizedBox(height: 10),
                     ],
                     Align(
@@ -107,7 +129,7 @@ class UsersViewState extends State<UsersView> {
                       child: Padding(
                         padding: const EdgeInsets.only(left: 16.0, top: 16.0),
                         child: Text(
-                          user.name[0].toUpperCase(),
+                          company.name?[0].toUpperCase() ?? '',
                           style: const TextStyle(fontWeight: FontWeight.bold),
                           textAlign: TextAlign.left,
                         ),
@@ -116,15 +138,15 @@ class UsersViewState extends State<UsersView> {
                   ],
                   const Divider(),
                   ListTile(
-                      title: Text(user.name),
-                      subtitle: Text(user.email),
+                      title: Text(company.name ?? 'Unknown'),
+                      subtitle: null, // Text(company.address ?? ''),
                       leading: // Avatar
                           CircleAvatar(
                         backgroundColor: Colors.grey,
                         child: Text(
-                          user.name.length == 1
-                              ? user.name.toUpperCase()
-                              : user.name[0].toUpperCase() + user.name[1].toUpperCase(),
+                          company.name != null && company.name?.length == 1
+                              ? company.name == null ? "U" : company.name!.toUpperCase()
+                              : company.name == null ? "" : company.name![0].toUpperCase() + company.name![1].toUpperCase(),
                           style: const TextStyle(color: Colors.white),
                         ),
                       ),
@@ -132,7 +154,7 @@ class UsersViewState extends State<UsersView> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => UserView(user: user),
+                            builder: (context) => CompanyView(company: company),
                           ),
                         );
                       }),

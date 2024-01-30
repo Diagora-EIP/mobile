@@ -4,6 +4,7 @@ import 'package:diagora/views/home/map/map.dart';
 import 'package:diagora/services/api_service.dart';
 import 'package:diagora/views/home/order/order_view.dart';
 import 'package:diagora/views/home/calendar/calendar.dart';
+// import 'package:diagora/components/vehicules.dart';
 
 import 'package:intl/intl.dart';
 
@@ -49,7 +50,7 @@ class _HomeViewState extends State<HomeView> {
   }
 
   Future<int> fetchNbDeliveryToday() async {
-    int nbDeliv = await _api.nbDeliveryToday(todayStart, todayEnd, userData['user_id']);
+    int nbDeliv = await _api.nbDeliveryToday(todayStart, todayEnd);
     if (nbDeliv == -1) {
       nbDeliv = 0;
     }
@@ -71,48 +72,43 @@ class _HomeViewState extends State<HomeView> {
             return Text('Error: ${snapshot.error}');
           } else {
             int nbDeliveryToday = snapshot.data ?? 0;
-            return Column(
-              children: [
-                Image.asset(
-                  'assets/images/diagora.png',
-                  width: 200,
-                  height: 200,
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  "Hello $username !",
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
+            return SingleChildScrollView(
+              child: Column(
+                children: [
+                  Image.asset(
+                    'assets/images/diagora.png',
+                    width: 200,
+                    height: 200,
                   ),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  "Today $formattedBegin, you have $nbDeliveryToday delivery.",
-                  style: const TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey,
+                  const SizedBox(height: 10),
+                  Text(
+                    "Hello $username !",
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 20),
-                _buildNavigationButton("Calendar", () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const CalendarPage()));
-                }),
-                _buildNavigationButton("Map", () {
-                  Navigator.push(context,
-                      MaterialPageRoute(builder: (context) => const MapPage()));
-                }),
-                _buildNavigationButton("Orders", () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const OrderView()));
-                }),
-              ],
+                  const SizedBox(height: 10),
+                  Text(
+                    "Today $formattedBegin, you have $nbDeliveryToday delivery.",
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  _buildNavigationButton("Calendar", () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const CalendarPage()));
+                  }),
+                  _buildNavigationButton("Map", () {
+                    Navigator.push(
+                        context, MaterialPageRoute(builder: (context) => MapPage(userId: userData['user_id'])));
+                  }),
+                  _buildNavigationButton("Orders", () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const OrderView()));
+                  }),
+                ],
+              ),
             );
           }
         },

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:diagora/views/home/calendar/new_delivery.dart';
+
 /// Classe permettant de simuler une commande.
 class DummyOrder {
   final String name;
@@ -24,6 +26,8 @@ class OrderView extends StatefulWidget {
 }
 
 class OrderViewState extends State<OrderView> {
+  DateTime pickedDate = DateTime.now();
+
   final List<DummyOrder> data = [
     DummyOrder(
       name: "Téléphone",
@@ -107,6 +111,19 @@ class OrderViewState extends State<OrderView> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Mes commandes'),
+        actions: <Widget>[
+          IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => NewDelivery(pickedDate: pickedDate),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: ListView.separated(
         itemCount: data.length,

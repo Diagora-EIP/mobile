@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'package:diagora/views/auth/register_view.dart';
 import 'package:diagora/views/wrapper/wrapper_view.dart';
+import 'package:diagora/views/auth/register_view.dart';
 import 'package:diagora/services/api_service.dart';
 
 class LoadingView extends StatefulWidget {
@@ -42,8 +42,8 @@ class LoadingViewState extends State<LoadingView> {
         (route) => false,
       );
     } else {
-      await _api.fetchPermissions();
-      if (_api.permissions != null) {
+      await _api.fetchRoles();
+      if (_api.role != null) {
         // ignore: use_build_context_synchronously
         Navigator.pushAndRemoveUntil(
           context,
@@ -64,11 +64,14 @@ class LoadingViewState extends State<LoadingView> {
             actions: [
               TextButton(
                 onPressed: () async {
-                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const RegisterView()),
+                  );
                   await _api.logout();
-                  redirect();
                 },
-                child: const Text('Se déconnecter', style: TextStyle(color: Colors.red)),
+                child: const Text('Se déconnecter',
+                    style: TextStyle(color: Colors.red)),
               ),
               TextButton(
                 onPressed: () {

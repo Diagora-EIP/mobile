@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:diagora/services/api_service.dart';
 import 'package:diagora/models/user_model.dart';
+import 'package:diagora/models/company_model.dart';
 
 class MyAccountView extends StatefulWidget {
   const MyAccountView({
@@ -14,6 +15,7 @@ class MyAccountView extends StatefulWidget {
 class MyAccountViewState extends State<MyAccountView> {
   final ApiService _apiService = const ApiService();
   late User _user;
+  Company? _company;
   bool loading = false;
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
@@ -30,14 +32,17 @@ class MyAccountViewState extends State<MyAccountView> {
       if (user != null) {
         if (mounted) {
           setState(() {
-            loading = false;
             _user = user;
+            if (user.company != null) {
+              _company = user.company;
+            }
             _nameController.text = user.name;
             _emailController.text = user.email;
             if (user.createdAt != null) {
               creationDate =
                   'Account created the ${user.createdAt!.day.toString().padLeft(2, '0')}/${user.createdAt!.month.toString().padLeft(2, '0')}/${user.createdAt!.year}';
             }
+            loading = false;
           });
         }
       } else {
@@ -147,17 +152,27 @@ class MyAccountViewState extends State<MyAccountView> {
                           labelText: 'Email',
                         ),
                       ),
+                      const SizedBox(height: 20),
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text("Company",
+                            style: loading || _company == null ? const TextStyle(color: Colors.grey) : null),
+                        trailing: Text(
+                          _company?.name ?? 'None',
+                          style: loading || _company == null ? const TextStyle(color: Colors.grey) : null,
+                        ),
+                      ),
                     ],
                   ),
                 ),
-                if (creationDate.isNotEmpty) ...[
-                  Center(
-                    child: Text(
-                      creationDate,
-                      style: const TextStyle(color: Colors.grey),
-                    ),
-                  ),
-                ],
+                // if (creationDate.isNotEmpty) ...[
+                //   Center(
+                //     child: Text(
+                //       creationDate,
+                //       style: const TextStyle(color: Colors.grey),
+                //     ),
+                //   ),
+                // ],
               ],
             ),
           ),

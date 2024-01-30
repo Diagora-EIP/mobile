@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 
 import 'package:diagora/services/api_service.dart';
-import 'package:diagora/models/permissions_model.dart';
 
 import 'package:diagora/views/home/home.dart';
-import 'package:diagora/views/auth/register_view.dart';
+import 'package:diagora/views/stats/stats.dart';
+import 'package:diagora/models/role_model.dart';
 import 'package:diagora/views/admin/admin_view.dart';
+import 'package:diagora/views/auth/register_view.dart';
 import 'package:diagora/views/manage/manage_view.dart';
 import 'package:diagora/views/profile/profile_view.dart';
+import 'package:diagora/views/my_package/my_package.dart';
 import 'package:diagora/views/settings/settings_view.dart';
 
 class WrapperView extends StatefulWidget {
@@ -24,44 +26,48 @@ class WrapperViewState extends State<WrapperView> {
   int _currentTabIndex = 0;
   bool showAdmin = false;
   bool showManage = false;
+  bool showClient = false;
 
   /// Les onglets utilisés par l'utilisateur. Les onglets sont ajoutés en fonction des permissions de l'utilisateur dans la fonction [initViews].
   final List<Widget> _finalTabs = [];
 
   /// Initialise les onglets en fonction des permissions de l'utilisateur pour remplir la liste [_finalTabs].
   void initViews() {
-    switch (_api.permissions?.permissions) {
-      case PermissionType.admin: // Si l'utilisateur est un admin
-        _finalTabs.addAll([
-          const HomeView(),
-          const AdminView(),
-          const ProfileView(),
-          SettingsView(
-            logout: logout,
-          ),
-        ]);
-        showAdmin = true;
-        break;
-      case PermissionType.manager: // Si l'utilisateur est un manager
-        _finalTabs.addAll([
-          const HomeView(),
-          const ManageView(),
-          const ProfileView(),
-          SettingsView(
-            logout: logout,
-          ),
-        ]);
-        showManage = true;
-        break;
-      default: // Si l'utilisateur est un utilisateur normal
-        _finalTabs.addAll([
-          const HomeView(),
-          const ProfileView(),
-          SettingsView(
-            logout: logout,
-          ),
-        ]);
-        break;
+    if (_api.role?.role == Roles.admin) {
+      // Si l'utilisateur est un admin
+      _finalTabs.addAll([
+        const HomeView(),
+        const AdminView(),
+        const Statistiques(),
+        const ProfileView(),
+        SettingsView(
+          logout: logout,
+        ),
+      ]);
+      showAdmin = true;
+    }
+    else if (_api.role?.role == Roles.manager) {
+      // Si l'utilisateur est un manager
+      _finalTabs.addAll([
+        const HomeView(),
+        const ManageView(),
+        const ProfileView(),
+        SettingsView(
+          logout: logout,
+        ),
+      ]);
+      showManage = true;
+    }
+    else {
+      // Si l'utilisateur est un utilisateur normal
+      _finalTabs.addAll([
+        const HomeView(),
+        const MyPackages(),
+        const ProfileView(),
+        SettingsView(
+          logout: logout,
+        ),
+      ]);
     }
   }
 
@@ -126,12 +132,23 @@ class WrapperViewState extends State<WrapperView> {
                 icon: Icon(Icons.admin_panel_settings),
                 label: 'Admin',
               ),
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.bar_chart),
+                label: 'Statistiques',
+              ),
             ],
             if (showManage) ...[
               // Si l'utilisateur est un manager
               const BottomNavigationBarItem(
                 icon: Icon(Icons.manage_accounts),
                 label: 'Manage',
+              ),
+            ],
+            if (!showAdmin && !showManage) ...[
+              // Si l'utilisateur est un utilisateur normal
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.shopping_bag),
+                label: 'My Packages',
               ),
             ],
             const BottomNavigationBarItem(
