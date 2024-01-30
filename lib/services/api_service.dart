@@ -13,7 +13,7 @@ import 'package:diagora/models/role_model.dart';
 
 /// Classe qui contient toutes les routes de l'API. Utilisez [route] pour créer une Uri.
 class ApiRoutes {
-  // static const String baseUrl = 'http://51.103.122.92:3000';
+  // static const String baseUrl = 'https://api.diagora.me';
   static const String baseUrl = 'http://localhost:3000';
 
   // Authentification
