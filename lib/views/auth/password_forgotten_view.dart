@@ -94,7 +94,6 @@ class EnterToken extends StatefulWidget {
 
 class _EnterTokenState extends State<EnterToken> {
   final _formKey = GlobalKey<FormState>();
-  String _token = "";
   String _newPassword = "";
   final ApiService _api = ApiService.getInstance();
 
@@ -111,16 +110,6 @@ class _EnterTokenState extends State<EnterToken> {
           child: Column(
             children: [
               TextFormField(
-                decoration: const InputDecoration(labelText: 'Token'),
-                validator: (value) {
-                  if (value!.isEmpty) {
-                    return 'Please enter your token';
-                  }
-                  return null;
-                },
-                onSaved: (value) => _token = value!,
-              ),
-              TextFormField(
                 decoration: const InputDecoration(labelText: 'New Password'),
                 validator: (value) {
                   if (value!.isEmpty) {
@@ -135,7 +124,7 @@ class _EnterTokenState extends State<EnterToken> {
                   if (_formKey.currentState!.validate()) {
                     _formKey.currentState!.save();
                     bool returnValue =
-                        await _api.resetPasswordWithToken(_token, _newPassword);
+                        await _api.resetPasswordWithToken(_newPassword);
                     if (returnValue) {
                       // ignore: use_build_context_synchronously
                       Navigator.pushAndRemoveUntil(
@@ -149,7 +138,8 @@ class _EnterTokenState extends State<EnterToken> {
                       // ignore: use_build_context_synchronously
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('Error: password must be longer than or equal to 4 characters'),
+                          content: Text(
+                              'Error: password must be longer than or equal to 4 characters'),
                         ),
                       );
                     }

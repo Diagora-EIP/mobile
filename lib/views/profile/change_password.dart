@@ -81,8 +81,7 @@ class _ChangePasswordState extends State<ChangePassword> {
                   if (_formKey.currentState!.validate() &&
                       _newPassword == _newPasswordConfirm) {
                     _formKey.currentState!.save();
-                    bool returnValue = await _api.resetPasswordWithoutToken(
-                        _email, _newPasswordConfirm, _userId);
+                    bool returnValue = await _api.resetPasswordWithToken(_newPasswordConfirm);
                     if (returnValue) {
                       // ignore: use_build_context_synchronously
                       Navigator.pushAndRemoveUntil(
