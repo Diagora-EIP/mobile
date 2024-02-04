@@ -167,6 +167,14 @@ class ApiService {
     }
   }
 
+  void createUserTest() {
+    _user = User(
+      id: 1,
+      name: "Test",
+      email: "test@gmail.com",
+      );
+    }
+
   /// Permet de s'inscrire à l'application.
   ///
   /// Prend en paramètre un [name], un [email] et un [password].
@@ -204,7 +212,7 @@ class ApiService {
         _logger.i(responseData);
         return true;
       } else {
-        _logger.e('register() failed with status code ${response.statusCode}');
+        _logger.e('register() failed with status code ${response.statusCode}: ${response.body}');
         return false;
       }
     } catch (e) {
@@ -243,7 +251,7 @@ class ApiService {
         _logger.i('Logout successful');
         return true;
       } else {
-        _logger.e('logout() failed with status code ${response.statusCode}');
+        _logger.e('logout() failed with status code ${response.statusCode}: ${response.body}');
         return false;
       }
     } catch (e) {

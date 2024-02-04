@@ -83,7 +83,7 @@ class UserViewState extends State<UserView> {
           // else if (_role?.isManager == true) {
           //   _permissionController.text = 'PermissionType.manager';
           // }
-          else if (_role?.role == Roles.user) {
+          else if (_role?.role == Roles.client) {
             _permissionController.text = 'PermissionType.user';
           } else {
             _permissionController.text = 'null';

@@ -4,11 +4,10 @@ import 'package:diagora/views/settings/display/theme/theme_view.dart';
 
 class SettingsView extends StatefulWidget {
   final Function() logout;
+  final Function()? changeRoleView;
 
-  const SettingsView({
-    Key? key,
-    required this.logout,
-  }) : super(key: key);
+  const SettingsView({Key? key, required this.logout, this.changeRoleView})
+      : super(key: key);
 
   @override
   SettingsViewState createState() => SettingsViewState();
@@ -71,6 +70,13 @@ class SettingsViewState extends State<SettingsView> {
                   ),
                 ),
               ),
+              if (widget.changeRoleView != null) ...[
+                ListTile(
+                  leading: const Icon(Icons.change_circle_rounded),
+                  title: const Text('Change view'),
+                  onTap: widget.changeRoleView,
+                ),
+              ],
               const Align(
                 alignment: Alignment.centerLeft,
                 child: Padding(
