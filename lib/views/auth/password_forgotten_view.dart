@@ -116,11 +116,12 @@ class _CheckEmailState extends State<CheckEmail> {
             const Padding(padding: EdgeInsets.only(top: 50.0)),
             ElevatedButton(
                 onPressed: () => {
-                      Navigator.pushReplacement(
+                      Navigator.pushAndRemoveUntil(
                         context,
                         MaterialPageRoute(
                           builder: (context) => const LoginView(),
                         ),
+                        (route) => false,
                       )
                     },
                 child: const Text('Back to login',

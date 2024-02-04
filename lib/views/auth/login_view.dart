@@ -1,3 +1,4 @@
+import 'package:diagora/views/auth/register_view.dart';
 import 'package:diagora/views/loading/loading_view.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
@@ -100,7 +101,18 @@ class _LoginViewState extends State<LoginView> {
                         ),
                       );
                     },
-                    child: const Text('Forgot your password ?'),
+                    child: const Text('Forgot your password?'),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const RegisterView(),
+                        ),
+                      );
+                    },
+                    child: const Text('Don\'t have an account yet? Register'),
                   ),
                 ],
               ),
