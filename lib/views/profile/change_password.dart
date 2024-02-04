@@ -14,8 +14,6 @@ class _ChangePasswordState extends State<ChangePassword> {
   final _formKey = GlobalKey<FormState>();
   late String _newPassword = "";
   late String _newPasswordConfirm = "";
-  int _userId = -1;
-  late String _email = "";
   dynamic userData;
 
   final ApiService _api = ApiService.getInstance();
@@ -23,11 +21,6 @@ class _ChangePasswordState extends State<ChangePassword> {
   @override
   initState() {
     super.initState();
-    userData = _api.user?.toJson();
-    setState(() {
-      _userId = userData['user_id'];
-      _email = userData['email'];
-    });
   }
 
   @override

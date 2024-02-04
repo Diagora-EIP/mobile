@@ -55,16 +55,15 @@ class _PasswordForgottenViewState extends State<PasswordForgottenView> {
                 onPressed: () async {
                   if (_formKey.currentState!.validate()) {
                     _formKey.currentState!.save();
-                    bool returnValue = await _api.generatePasswordToken(_email);
+                    bool returnValue = await _api.passwordForgotten(_email);
                     if (returnValue) {
                       // ignore: use_build_context_synchronously
                       Navigator.pushAndRemoveUntil(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const EnterToken(),
-                        ),
-                        (route) => false,
-                      );
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const CheckEmail(),
+                          ),
+                          ((route) => false));
                     } else {
                       // ignore: use_build_context_synchronously
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -85,70 +84,49 @@ class _PasswordForgottenViewState extends State<PasswordForgottenView> {
   }
 }
 
-class EnterToken extends StatefulWidget {
-  const EnterToken({super.key});
+class CheckEmail extends StatefulWidget {
+  const CheckEmail({super.key});
 
   @override
-  State<EnterToken> createState() => _EnterTokenState();
+  State<CheckEmail> createState() => _CheckEmailState();
 }
 
-class _EnterTokenState extends State<EnterToken> {
-  final _formKey = GlobalKey<FormState>();
-  String _newPassword = "";
-  final ApiService _api = ApiService.getInstance();
-
+class _CheckEmailState extends State<CheckEmail> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Enter token'),
+        title: const Text('Check your email'),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              TextFormField(
-                decoration: const InputDecoration(labelText: 'New Password'),
-                validator: (value) {
-                  if (value!.isEmpty) {
-                    return 'Please enter your new password';
-                  }
-                  return null;
-                },
-                onSaved: (value) => _newPassword = value!,
+        padding: const EdgeInsets.only(top: 70.0, left: 16.0, right: 16.0),
+        child: Column(
+          children: [
+            Center(
+              child: Image.asset(
+                'assets/images/diagora.png',
+                width: 200,
+                height: 200,
               ),
-              ElevatedButton(
-                onPressed: () async {
-                  if (_formKey.currentState!.validate()) {
-                    _formKey.currentState!.save();
-                    bool returnValue =
-                        await _api.resetPasswordWithToken(_newPassword);
-                    if (returnValue) {
-                      // ignore: use_build_context_synchronously
-                      Navigator.pushAndRemoveUntil(
+            ),
+            const Text(
+              'An email has been sent to you.\n\nPlease check your email and follow the instructions.',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const Padding(padding: EdgeInsets.only(top: 50.0)),
+            ElevatedButton(
+                onPressed: () => {
+                      Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
                           builder: (context) => const LoginView(),
                         ),
-                        (route) => false,
-                      );
-                    } else {
-                      // ignore: use_build_context_synchronously
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                              'Error: password must be longer than or equal to 4 characters'),
-                        ),
-                      );
-                    }
-                  }
-                },
-                child: const Text('Submit'),
-              ),
-            ],
-          ),
+                      )
+                    },
+                child: const Text('Back to login',
+                    style:
+                        TextStyle(fontSize: 20, fontWeight: FontWeight.bold))),
+          ],
         ),
       ),
     );

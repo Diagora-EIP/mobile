@@ -20,8 +20,7 @@ class ApiRoutes {
   static const String registerUserRoute = '/user/register'; // POST
   static const String loginUserRoute = '/user/login'; // POST
   static const String logoutUserRoute = '/user/logout'; // POST
-  static const String resetPasswordRoute = '/resetPassword'; // POST
-  static const String updatePasswordRoute = '/resetPassword'; // PATCH
+  static const String passwordForgottenRoute = '/send-email/:email'; // POST
   static const String updatePasswordWithTokenRoute = '/resetPassword'; // PATCH
 
   // Utilisateur
@@ -480,77 +479,21 @@ class ApiService {
   /// Peut prendre en paramètre un [client] qui est un [Client]
   ///
   /// Retourne un [bool] qui indique si la connexion a réussi.
-  Future<bool> resetPasswordWithoutToken(
-    String email,
-    String newPassword,
-    int userId, {
-    Client? client,
-  }) async {
-    try {
-      client ??= _httpClient;
-      Uri url = ApiRoutes.route(ApiRoutes.resetPasswordRoute);
-      Response response = await client.post(
-        url,
-        body: json.encode(
-          {"email": email, 'password': newPassword, "user_id": userId},
-        ),
-        headers: {
-          'Content-Type': 'application/json',
-          'MAILJET_API_KEY': 'a9ed23123ce9013f301d2c6c7b038105',
-          'MAILJET_API_SECRET': 'c1582325f03a0be32490c4af7c012350'
-        },
-      );
-      if (response.statusCode == 204) {
-        dynamic responseData = json.decode(response.body);
-        _logger.i(responseData);
-        return true;
-      } else {
-        _logger.e(
-            'resetPasswordWithoutToken() failed with status code ${response.statusCode}: ${response.body}');
-        return false;
-      }
-    } catch (e) {
-      _logger.e(e.toString());
-      return false;
-    }
-  }
-
-  /// Permet changer de mot de passe.
-  ///
-  /// Prend en paramètre un [email].
-  ///
-  /// Peut prendre en paramètre un [client] qui est un [Client]
-  ///
-  /// Retourne un [bool] qui indique si la connexion a réussi.
-  Future<bool> generatePasswordToken(
+  Future<bool> passwordForgotten(
     String email, {
     Client? client,
   }) async {
     try {
       client ??= _httpClient;
-      Uri url = ApiRoutes.route(ApiRoutes.resetPasswordRoute);
-      Response response = await client.post(
-        url,
-        body: json.encode(
-          {
-            'email': email,
-          },
-        ),
-        headers: {
-          'Content-Type': 'application/json',
-          'MAILJET_API_KEY': 'a9ed23123ce9013f301d2c6c7b038105',
-          'MAILJET_API_SECRET': 'c1582325f03a0be32490c4af7c012350'
-        },
-      );
-      if (response.statusCode == 200 ||
-          response.statusCode == 201 ||
-          response.statusCode == 204) {
-        // dynamic responseData = json.decode(response.body);
-        // _logger.i(responseData);
+      Uri url = ApiRoutes.route(
+          ApiRoutes.passwordForgottenRoute.replaceAll(":email", email));
+      Response response = await client.post(url,
+          headers: {'Content-Type': 'application/json'}, body: json.encode({}));
+      if (response.statusCode == 204) {
         return true;
       } else {
         _logger.e(
-            'generatePasswordToken() failed with status code ${response.statusCode}: ${response.body}');
+            'resetPasswordWithoutToken() failed with status code ${response.statusCode}: ${response.body}');
         return false;
       }
     } catch (e) {
@@ -620,7 +563,7 @@ class ApiService {
         "${ApiRoutes.getOrdersBetweenDatesRoute}?start_date=$beginTimeStamp&end_date=$endTimeStamp");
 
     try {
-      final response = await client.get(
+      Response response = await client.get(
         url,
         headers: {
           'Content-Type': 'application/json',
@@ -655,7 +598,7 @@ class ApiService {
     // String orderDate = DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(todayDate.toLocal());
 
     try {
-      final response = await client.post(
+      Response response = await client.post(
         url,
         headers: {
           'Content-Type': 'application/json',
@@ -695,7 +638,7 @@ class ApiService {
     Uri url = ApiRoutes.route(
         "${ApiRoutes.getScheduleRoute}?start_date=$beginTimeStamp&end_date=$endTimeStamp");
     try {
-      final response = await client.get(
+      Response response = await client.get(
         url,
         headers: {
           'Content-Type': 'application/json',
@@ -757,7 +700,7 @@ class ApiService {
     Uri url = ApiRoutes.route(ApiRoutes.getItineraryRoute
         .replaceAll(":itinerary_id", itineraryId.toString()));
     try {
-      final response = await client.get(
+      Response response = await client.get(
         url,
         headers: {
           'Content-Type': 'application/json',
@@ -804,7 +747,7 @@ class ApiService {
     url = ApiRoutes.route(
         "${ApiRoutes.getOrdersBetweenDatesRoute}?start_date=$beginTimeStamp&end_date=$endTimeStamp");
     try {
-      final response = await client.get(
+      Response response = await client.get(
         url,
         headers: {
           'Content-Type': 'application/json',
@@ -834,7 +777,7 @@ class ApiService {
   //   client ??= _httpClient;
   //   Uri url = ApiRoutes.route(ApiRoutes.userScheduleRoute.replaceAll(':user_id', userId.toString()));
   //   try {
-  //     final response = await client.post(
+  //     Response response = await client.post(
   //       url,
   //       headers: {
   //         'Content-Type': 'application/json',
@@ -867,7 +810,7 @@ class ApiService {
   //   Uri url = ApiRoutes.route(ApiRoutes.scheduleRoute
   //       .replaceAll(":schedule_id", scheduleId.toString()));
   //   try {
-  //     final response = await client.patch(
+  //     Response response = await client.patch(
   //       url,
   //       headers: {
   //         "Content-Type": "application/json",
@@ -896,7 +839,7 @@ class ApiService {
     client ??= _httpClient;
     Uri url = ApiRoutes.route(ApiRoutes.getUserVehiclesRoute);
     try {
-      final response = await client.get(
+      Response response = await client.get(
         url,
         headers: {
           "Content-Type": "application/json",
@@ -932,7 +875,7 @@ class ApiService {
     Uri url = ApiRoutes.route(ApiRoutes.getAdminCompanyVehiclesRoute
         .replaceAll(":company_id", companyId.toString()));
     try {
-      final response = await client.get(
+      Response response = await client.get(
         url,
         headers: {
           "Content-Type": "application/json",
@@ -969,7 +912,7 @@ class ApiService {
     Uri url = ApiRoutes.route(ApiRoutes.createAdminVehicleRoute
         .replaceAll(":company_id", companyId.toString()));
     try {
-      final response = await client.post(
+      Response response = await client.post(
         url,
         headers: {
           "Content-Type": "application/json",
@@ -1004,7 +947,7 @@ class ApiService {
     Uri url = ApiRoutes.route(ApiRoutes.updateAdminVehicleRoute
         .replaceAll(":vehicle_id", vehiculeId.toString()));
     try {
-      final response = await client.patch(
+      Response response = await client.patch(
         url,
         headers: {
           "Content-Type": "application/json",
@@ -1038,7 +981,7 @@ class ApiService {
     Uri url = ApiRoutes.route(ApiRoutes.deleteAdminVehicleRoute
         .replaceAll(":vehicle_id", vehiculeId.toString()));
     try {
-      final response = await client.delete(
+      Response response = await client.delete(
         url,
         headers: {
           "Content-Type": "application/json",
