@@ -25,11 +25,14 @@ class WrapperViewState extends State<WrapperView> {
   final ApiService _api = ApiService.getInstance();
   int _currentTabIndex = 0;
   bool showAdmin = false;
-  bool showManage = false;
+  bool showManager = false;
+  bool managerView = true;
+  bool showLivreur = false;
   bool showClient = false;
 
   /// Les onglets utilisés par l'utilisateur. Les onglets sont ajoutés en fonction des permissions de l'utilisateur dans la fonction [initViews].
   final List<Widget> _finalTabs = [];
+  final List<Widget> _managerTabs = [];
 
   /// Initialise les onglets en fonction des permissions de l'utilisateur pour remplir la liste [_finalTabs].
   void initViews() {
@@ -45,29 +48,42 @@ class WrapperViewState extends State<WrapperView> {
         ),
       ]);
       showAdmin = true;
-    }
-    else if (_api.role?.role == Roles.manager) {
+    } else if (_api.role?.role == Roles.manager) {
       // Si l'utilisateur est un manager
       _finalTabs.addAll([
         const HomeView(),
         const ManageView(),
+        const Statistiques(),
+        const ProfileView(),
+        SettingsView(logout: logout, changeRoleView: changeRoleView),
+      ]);
+      _managerTabs.addAll([
+        const HomeView(),
+        const ProfileView(),
+        SettingsView(logout: logout, changeRoleView: changeRoleView),
+      ]);
+      showManager = true;
+    } else if (_api.role?.role == Roles.livreur) {
+      // Si l'utilisateur est un livreur
+      _finalTabs.addAll([
+        const HomeView(),
         const ProfileView(),
         SettingsView(
           logout: logout,
         ),
       ]);
-      showManage = true;
-    }
-    else {
-      // Si l'utilisateur est un utilisateur normal
+      showLivreur = true;
+    } else if (_api.role?.role == Roles.client ||
+        _api.role?.role == Roles.user) {
+      // Si l'utilisateur est un client
       _finalTabs.addAll([
-        const HomeView(),
         const MyPackages(),
         const ProfileView(),
         SettingsView(
           logout: logout,
         ),
       ]);
+      showClient = true;
     }
   }
 
@@ -86,6 +102,13 @@ class WrapperViewState extends State<WrapperView> {
     );
   }
 
+  void changeRoleView() {
+    setState(() {
+      _currentTabIndex = 0;
+      managerView = !managerView;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -99,6 +122,18 @@ class WrapperViewState extends State<WrapperView> {
         body: IndexedStack(
           index: _currentTabIndex,
           children: [
+            if (showManager && managerView == false) ...{
+              // Si l'utilisateur est un manager voulant voir les onglets de livreur
+              for (final tab in _managerTabs)
+                Navigator(
+                  key: ValueKey(tab),
+                  onGenerateRoute: (RouteSettings settings) {
+                    return MaterialPageRoute(builder: (BuildContext context) {
+                      return tab;
+                    });
+                  },
+                ),
+            } else ...{
             for (final tab in _finalTabs)
               Navigator(
                 key: ValueKey(tab),
@@ -108,6 +143,7 @@ class WrapperViewState extends State<WrapperView> {
                   });
                 },
               ),
+            }
           ],
         ),
         bottomNavigationBar: BottomNavigationBar(
@@ -122,29 +158,46 @@ class WrapperViewState extends State<WrapperView> {
           selectedFontSize: 13,
           unselectedFontSize: 13,
           items: [
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.home),
-              label: 'Home',
-            ),
             if (showAdmin) ...[
               // Si l'utilisateur est un admin
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.home),
+                label: 'Home',
+              ),
               const BottomNavigationBarItem(
                 icon: Icon(Icons.admin_panel_settings),
                 label: 'Admin',
               ),
               const BottomNavigationBarItem(
                 icon: Icon(Icons.bar_chart),
-                label: 'Statistiques',
+                label: 'statistics',
               ),
             ],
-            if (showManage) ...[
+            if (showManager) ...[
               // Si l'utilisateur est un manager
               const BottomNavigationBarItem(
-                icon: Icon(Icons.manage_accounts),
-                label: 'Manage',
+                icon: Icon(Icons.home),
+                label: 'Home',
+              ),
+              if (managerView) ...[
+                const BottomNavigationBarItem(
+                  icon: Icon(Icons.manage_accounts),
+                  label: 'Manage',
+                ),
+                const BottomNavigationBarItem(
+                  icon: Icon(Icons.bar_chart),
+                  label: 'statistics',
+                ),
+              ],
+            ],
+            if (showLivreur) ...[
+              // Si l'utilisateur est un livreur
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.home),
+                label: 'Home',
               ),
             ],
-            if (!showAdmin && !showManage) ...[
+            if (showClient) ...[
               // Si l'utilisateur est un utilisateur normal
               const BottomNavigationBarItem(
                 icon: Icon(Icons.shopping_bag),

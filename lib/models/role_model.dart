@@ -1,8 +1,9 @@
 enum Roles {
   admin,
   manager,
-  client,
+  livreur,
   user,
+  client
 }
 
 /// Modèle de donnée pour les permissions d'un utilisateur.
@@ -45,6 +46,8 @@ class Role {
         return Roles.client;
       case 'user':
         return Roles.user;
+      case 'livreur':
+        return Roles.livreur;
       default:
         return null; // Invalid value
     }
