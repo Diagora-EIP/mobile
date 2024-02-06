@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 
 import 'package:logger/logger.dart';
 
@@ -18,6 +19,7 @@ class _PasswordForgottenViewState extends State<PasswordForgottenView> {
 
   final _formKey = GlobalKey<FormState>();
   late String _email;
+  bool isLoading = false;
 
   final ApiService _api = ApiService.getInstance();
 
@@ -51,20 +53,25 @@ class _PasswordForgottenViewState extends State<PasswordForgottenView> {
                 },
                 onSaved: (value) => _email = value!,
               ),
-              ElevatedButton(
+              const Padding(padding: EdgeInsets.only(top: 25.0)),
+              CupertinoButton(
                 onPressed: () async {
                   if (_formKey.currentState!.validate()) {
                     _formKey.currentState!.save();
-                    bool returnValue = await _api.generatePasswordToken(_email);
+
+                    setState(() {
+                      isLoading = true;
+                    });
+
+                    bool returnValue = await _api.passwordForgotten(_email);
                     if (returnValue) {
                       // ignore: use_build_context_synchronously
                       Navigator.pushAndRemoveUntil(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const EnterToken(),
-                        ),
-                        (route) => false,
-                      );
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const CheckEmail(),
+                          ),
+                          ((route) => false));
                     } else {
                       // ignore: use_build_context_synchronously
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -75,7 +82,14 @@ class _PasswordForgottenViewState extends State<PasswordForgottenView> {
                     }
                   }
                 },
-                child: const Text('Submit'),
+                color: Theme.of(context).primaryColor,
+                child: isLoading
+                    ? const CircularProgressIndicator(
+                        backgroundColor: Colors.transparent,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        color: Colors.transparent,
+                      )
+                    : const Text('Submit'),
               ),
             ],
           ),
@@ -85,80 +99,50 @@ class _PasswordForgottenViewState extends State<PasswordForgottenView> {
   }
 }
 
-class EnterToken extends StatefulWidget {
-  const EnterToken({super.key});
+class CheckEmail extends StatefulWidget {
+  const CheckEmail({super.key});
 
   @override
-  State<EnterToken> createState() => _EnterTokenState();
+  State<CheckEmail> createState() => _CheckEmailState();
 }
 
-class _EnterTokenState extends State<EnterToken> {
-  final _formKey = GlobalKey<FormState>();
-  String _token = "";
-  String _newPassword = "";
-  final ApiService _api = ApiService.getInstance();
-
+class _CheckEmailState extends State<CheckEmail> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Enter token'),
+        title: const Text('Check your email'),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              TextFormField(
-                decoration: const InputDecoration(labelText: 'Token'),
-                validator: (value) {
-                  if (value!.isEmpty) {
-                    return 'Please enter your token';
-                  }
-                  return null;
-                },
-                onSaved: (value) => _token = value!,
+        padding: const EdgeInsets.only(top: 70.0, left: 16.0, right: 16.0),
+        child: Column(
+          children: [
+            Center(
+              child: Image.asset(
+                'assets/images/diagora.png',
+                width: 200,
+                height: 200,
               ),
-              TextFormField(
-                decoration: const InputDecoration(labelText: 'New Password'),
-                validator: (value) {
-                  if (value!.isEmpty) {
-                    return 'Please enter your new password';
-                  }
-                  return null;
-                },
-                onSaved: (value) => _newPassword = value!,
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  if (_formKey.currentState!.validate()) {
-                    _formKey.currentState!.save();
-                    bool returnValue =
-                        await _api.resetPasswordWithToken(_token, _newPassword);
-                    if (returnValue) {
-                      // ignore: use_build_context_synchronously
+            ),
+            const Text(
+              'An email has been sent to you.\n\nPlease check your email and follow the instructions.',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const Padding(padding: EdgeInsets.only(top: 50.0)),
+            CupertinoButton(
+                onPressed: () => {
                       Navigator.pushAndRemoveUntil(
                         context,
                         MaterialPageRoute(
                           builder: (context) => const LoginView(),
                         ),
                         (route) => false,
-                      );
-                    } else {
-                      // ignore: use_build_context_synchronously
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Error: password must be longer than or equal to 4 characters'),
-                        ),
-                      );
-                    }
-                  }
-                },
-                child: const Text('Submit'),
-              ),
-            ],
-          ),
+                      )
+                    },
+                color: Theme.of(context).primaryColor,
+                child: const Text('Back to login',
+                    style: TextStyle(fontSize: 20))),
+          ],
         ),
       ),
     );

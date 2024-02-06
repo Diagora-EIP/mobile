@@ -1,7 +1,7 @@
-import 'package:diagora/views/loading/loading_view.dart';
-import 'package:flutter/material.dart';
-
 import 'package:logger/logger.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:diagora/views/loading/loading_view.dart';
 
 import 'package:diagora/services/api_service.dart';
 import 'package:diagora/views/auth/login_view.dart';
@@ -17,6 +17,7 @@ class RegisterView extends StatefulWidget {
 class _RegisterViewState extends State<RegisterView> {
   final _formKey = GlobalKey<FormState>();
   late String _name, _email, _password;
+  bool isLoading = false;
 
   final Logger logger = Logger();
 
@@ -74,11 +75,18 @@ class _RegisterViewState extends State<RegisterView> {
                   },
                   onSaved: (value) => _password = value!,
                 ),
-                ElevatedButton(
+                const Padding(padding: EdgeInsets.only(top: 25.0)),
+                CupertinoButton(
                   onPressed: () async {
                     if (_formKey.currentState!.validate()) {
                       _formKey.currentState!.save();
-                      bool returnValue = await _api.register(_name, _email, _password);
+
+                      setState(() {
+                        isLoading = true;
+                      });
+
+                      bool returnValue =
+                          await _api.register(_name, _email, _password);
                       if (returnValue) {
                         await _api.fetchRoles();
                         // ignore: use_build_context_synchronously
@@ -99,11 +107,22 @@ class _RegisterViewState extends State<RegisterView> {
                       }
                     }
                   },
-                  child: const Text('Register'),
+                  color: Theme.of(context).primaryColor,
+                  child: isLoading
+                      ? const CircularProgressIndicator(
+                          backgroundColor: Colors.transparent,
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.white),
+                          color: Colors.transparent,
+                        )
+                      : const Text('Register'),
                 ),
                 TextButton(
                   onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const LoginView()));
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const LoginView()));
                   },
                   child: const Text('Already have an account? Login'),
                 ),
