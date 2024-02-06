@@ -103,7 +103,10 @@ class _ProfileViewState extends State<ProfileView> {
               CupertinoButton(
                 color: Theme.of(context).primaryColor,
                 onPressed: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => const ChangePassword()));
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const ChangePassword()));
                 },
                 child: const Text('Change Password'),
               ),
@@ -119,7 +122,8 @@ class ProfileInfos extends StatefulWidget {
   final String itemName;
   final String itemValue;
 
-  const ProfileInfos({super.key, required this.itemName, required this.itemValue});
+  const ProfileInfos(
+      {super.key, required this.itemName, required this.itemValue});
 
   @override
   State<ProfileInfos> createState() => _ProfileInfosState();
@@ -134,17 +138,33 @@ class _ProfileInfosState extends State<ProfileInfos> {
         FractionallySizedBox(
           widthFactor: 2 / 3,
           child: Container(
+              height: 30,
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 color: Theme.of(context).primaryColor,
-                borderRadius: BorderRadius.circular(5.0),
+                borderRadius: BorderRadius.circular(3.0),
               ),
-              child: Text(widget.itemName, style: const TextStyle(fontSize: 16, color: Colors.white))),
+              child: Text(widget.itemName,
+                  style: const TextStyle(fontSize: 16, color: Colors.white))),
         ),
         const SizedBox(height: 8),
-        Text(
-          widget.itemValue,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        FractionallySizedBox(
+          widthFactor: 2 / 3,
+          child: Container(
+            height: 25,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: Colors.grey[300],
+              borderRadius: BorderRadius.circular(3.0),
+            ),
+            child: Text(
+              widget.itemValue,
+              style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black),
+            ),
+          ),
         ),
       ],
     );
@@ -154,7 +174,8 @@ class _ProfileInfosState extends State<ProfileInfos> {
 class ImageSourcePicker extends StatelessWidget {
   final Function(ImageSource) onImageSourceSelected;
 
-  const ImageSourcePicker({Key? key, required this.onImageSourceSelected}) : super(key: key);
+  const ImageSourcePicker({Key? key, required this.onImageSourceSelected})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {

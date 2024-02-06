@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 
 import 'package:diagora/services/api_service.dart';
 import 'package:diagora/views/profile/profile_view.dart';
@@ -14,6 +15,7 @@ class _ChangePasswordState extends State<ChangePassword> {
   final _formKey = GlobalKey<FormState>();
   late String _newPassword = "";
   late String _newPasswordConfirm = "";
+  bool isLoading = false;
   dynamic userData;
 
   final ApiService _api = ApiService.getInstance();
@@ -21,6 +23,10 @@ class _ChangePasswordState extends State<ChangePassword> {
   @override
   initState() {
     super.initState();
+  }
+
+  bool _hasANumber(String password) {
+    return password.contains(RegExp(r'[0-9]'));
   }
 
   @override
@@ -36,7 +42,7 @@ class _ChangePasswordState extends State<ChangePassword> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const Text("Enter Your New Password"),
+              const Text("Enter your new password"),
               TextFormField(
                 decoration: const InputDecoration(
                   labelText: 'New Password',
@@ -47,15 +53,25 @@ class _ChangePasswordState extends State<ChangePassword> {
                   if (value!.isEmpty) {
                     return 'Please enter your password';
                   }
+                  if (value.length < 8) {
+                    return 'Password must be at least 8 characters long';
+                  }
+                  if (_hasANumber(_newPassword) == false) {
+                    return 'Password must contain at least one number';
+                  }
                   return null;
                 },
                 onSaved: (value) => _newPassword = value!,
+                onChanged: (value) {
+                  setState(() {
+                    _newPassword = value;
+                  });
+                },
               ),
               const SizedBox(height: 20),
-              const Text("Confirm Your New Password"),
+              const Text("Confirm your new password"),
               TextFormField(
-                decoration:
-                    const InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Confirm New Password',
                   contentPadding: EdgeInsets.only(left: 10),
                 ),
@@ -64,37 +80,60 @@ class _ChangePasswordState extends State<ChangePassword> {
                   if (value!.isEmpty) {
                     return 'Please enter your new password';
                   }
+                  if (value != _newPassword) {
+                    return 'Passwords do not match';
+                  }
                   return null;
                 },
                 onSaved: (value) => _newPasswordConfirm = value!,
+                onChanged: (value) {
+                  setState(() {
+                    _newPasswordConfirm = value;
+                  });
+                },
               ),
               const SizedBox(height: 20),
-              ElevatedButton(
+              CupertinoButton(
                 onPressed: () async {
-                  if (_formKey.currentState!.validate() &&
-                      _newPassword == _newPasswordConfirm) {
+                  if (_formKey.currentState!.validate()) {
                     _formKey.currentState!.save();
-                    bool returnValue = await _api.resetPasswordWithToken(_newPasswordConfirm);
-                    if (returnValue) {
-                      // ignore: use_build_context_synchronously
-                      Navigator.pushAndRemoveUntil(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const ProfileView(),
-                        ),
-                        (route) => false,
-                      );
-                    } else {
-                      // ignore: use_build_context_synchronously
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Cannot change the password'),
-                        ),
-                      );
-                    }
+                  } else {
+                    return;
+                  }
+
+                  setState(() {
+                    isLoading = true;
+                  });
+
+                  bool returnValue =
+                      await _api.resetPasswordWithToken(_newPasswordConfirm);
+
+                  if (returnValue) {
+                    // ignore: use_build_context_synchronously
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ProfileView(),
+                      ),
+                      (route) => false,
+                    );
+                  } else {
+                    // ignore: use_build_context_synchronously
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Cannot change the password'),
+                      ),
+                    );
                   }
                 },
-                child: const Text('Change Password'),
+                color: Theme.of(context).primaryColor,
+                child: isLoading
+                    ? const CircularProgressIndicator(
+                        backgroundColor: Colors.transparent,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        color: Colors.transparent,
+                      )
+                    : const Text('Change Password'),
               ),
             ],
           ),

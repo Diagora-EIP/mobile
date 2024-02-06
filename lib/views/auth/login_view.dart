@@ -1,9 +1,10 @@
-import 'package:diagora/views/auth/register_view.dart';
-import 'package:diagora/views/loading/loading_view.dart';
-import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 
 import 'package:diagora/services/api_service.dart';
+import 'package:diagora/views/auth/register_view.dart';
+import 'package:diagora/views/loading/loading_view.dart';
 import 'package:diagora/views/auth/password_forgotten_view.dart';
 
 class LoginView extends StatefulWidget {
@@ -19,6 +20,7 @@ class _LoginViewState extends State<LoginView> {
 
   final _formKey = GlobalKey<FormState>();
   late String _email, _password;
+  bool isLoading = false;
 
   final ApiService _api = ApiService.getInstance();
 
@@ -65,10 +67,16 @@ class _LoginViewState extends State<LoginView> {
                     },
                     onSaved: (value) => _password = value!,
                   ),
-                  ElevatedButton(
+                  const Padding(padding: EdgeInsets.only(top: 25.0)),
+                  CupertinoButton(
                     onPressed: () async {
                       if (_formKey.currentState!.validate()) {
                         _formKey.currentState!.save();
+
+                        setState(() {
+                          isLoading = true;
+                        });
+
                         bool returnValue = await _api.login(_email, _password);
                         if (returnValue) {
                           await _api.fetchRoles();
@@ -90,7 +98,15 @@ class _LoginViewState extends State<LoginView> {
                         }
                       }
                     },
-                    child: const Text('Login'),
+                    color: Theme.of(context).primaryColor,
+                    child: isLoading
+                        ? const CircularProgressIndicator(
+                            backgroundColor: Colors.transparent,
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.white),
+                            color: Colors.transparent,
+                          )
+                        : const Text('Login'),
                   ),
                   TextButton(
                     onPressed: () {

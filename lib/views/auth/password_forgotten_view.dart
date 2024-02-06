@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 
 import 'package:logger/logger.dart';
 
@@ -18,6 +19,7 @@ class _PasswordForgottenViewState extends State<PasswordForgottenView> {
 
   final _formKey = GlobalKey<FormState>();
   late String _email;
+  bool isLoading = false;
 
   final ApiService _api = ApiService.getInstance();
 
@@ -51,10 +53,16 @@ class _PasswordForgottenViewState extends State<PasswordForgottenView> {
                 },
                 onSaved: (value) => _email = value!,
               ),
-              ElevatedButton(
+              const Padding(padding: EdgeInsets.only(top: 25.0)),
+              CupertinoButton(
                 onPressed: () async {
                   if (_formKey.currentState!.validate()) {
                     _formKey.currentState!.save();
+
+                    setState(() {
+                      isLoading = true;
+                    });
+
                     bool returnValue = await _api.passwordForgotten(_email);
                     if (returnValue) {
                       // ignore: use_build_context_synchronously
@@ -74,7 +82,14 @@ class _PasswordForgottenViewState extends State<PasswordForgottenView> {
                     }
                   }
                 },
-                child: const Text('Submit'),
+                color: Theme.of(context).primaryColor,
+                child: isLoading
+                    ? const CircularProgressIndicator(
+                        backgroundColor: Colors.transparent,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        color: Colors.transparent,
+                      )
+                    : const Text('Submit'),
               ),
             ],
           ),
@@ -114,7 +129,7 @@ class _CheckEmailState extends State<CheckEmail> {
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const Padding(padding: EdgeInsets.only(top: 50.0)),
-            ElevatedButton(
+            CupertinoButton(
                 onPressed: () => {
                       Navigator.pushAndRemoveUntil(
                         context,
@@ -124,9 +139,9 @@ class _CheckEmailState extends State<CheckEmail> {
                         (route) => false,
                       )
                     },
+                color: Theme.of(context).primaryColor,
                 child: const Text('Back to login',
-                    style:
-                        TextStyle(fontSize: 20, fontWeight: FontWeight.bold))),
+                    style: TextStyle(fontSize: 20))),
           ],
         ),
       ),
