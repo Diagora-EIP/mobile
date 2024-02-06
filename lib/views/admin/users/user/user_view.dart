@@ -65,6 +65,7 @@ class UserViewState extends State<UserView> {
         loading = true;
       });
     }
+
     _apiService.fetchRoles(userId: id).then((permissions) {
       if (mounted) {
         setState(() {
@@ -103,6 +104,7 @@ class UserViewState extends State<UserView> {
         loading = true;
       });
     }
+
     _apiService.fetchCompany(companyId: id).then((company) {
       if (company != null) {
         if (mounted) {

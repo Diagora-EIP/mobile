@@ -53,7 +53,7 @@ class _ProfileViewState extends State<ProfileView> {
     email = userData['email'];
 
     permissionsData = _api.role?.toJson();
-    permissions = permissionsData['permissions'] ?? 'user';
+    permissions = permissionsData['name'] ?? 'user';
   }
 
   void _showImageSourcePicker() {

@@ -30,7 +30,7 @@ class Role {
   dynamic toJson() {
     return {
       'permission_id': id,
-      'name': role.toString(),
+      'name': _getRoleName(role),
       'description': description,
     };
   }
@@ -52,4 +52,23 @@ class Role {
         return null; // Invalid value
     }
   }
+
+  static String _getRoleName(Roles? role) {
+    if (role == null) return '';
+    switch (role) {
+      case Roles.admin:
+        return 'admin';
+      case Roles.manager:
+        return 'manager';
+      case Roles.client:
+        return 'client';
+      case Roles.user:
+        return 'user';
+      case Roles.livreur:
+        return 'livreur';
+      default:
+        return ''; // Invalid value
+    }
+  }
+
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_map/flutter_map.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -26,6 +27,7 @@ class _CalendarPageState extends State<CalendarPage> {
   DateTime today = DateTime.now();
   List<dynamic> scheduleList = [];
   bool deliveryToday = true;
+  bool isLoading = false;
 
   @override
   void initState() {
@@ -35,11 +37,20 @@ class _CalendarPageState extends State<CalendarPage> {
 
   // Needs to have the same parameters as the function onDaySelected [DateTime day, DateTime focusDay]
   void _onDaySelected(DateTime day, DateTime focusDay) {
-    DateTime chosenStart = DateTime(focusDay.year, focusDay.month, focusDay.day, 1);
-    DateTime chosenEnd = DateTime(focusDay.year, focusDay.month, focusDay.day, 23);
+    setState(() {
+      isLoading = true;
+    });
+
+    DateTime chosenStart =
+        DateTime(focusDay.year, focusDay.month, focusDay.day, 1);
+    DateTime chosenEnd =
+        DateTime(focusDay.year, focusDay.month, focusDay.day, 23);
     Future<String> allTodaysValues = _api.getSchedule(chosenStart, chosenEnd);
 
     allTodaysValues.then((value) {
+      setState(() {
+        isLoading = false;
+      });
       // No delivery for today
       if (value == "[]") {
         setState(() {
@@ -129,50 +140,42 @@ class _CalendarPageState extends State<CalendarPage> {
               style: const TextStyle(
                 fontSize: 16,
                 color: Colors.black,
-                fontWeight: FontWeight.bold,
               ),
             ),
           ),
-          TextButton(
+          CupertinoButton(
+            color: Theme.of(context).primaryColor,
             onPressed: () => {
               setState(() {
                 today = DateTime.now();
                 _onDaySelected(today, today);
               })
             },
-            child: Container(
-              padding: const EdgeInsets.all(12.0),
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: Colors.blue,
-                  width: 2,
-                ),
-                borderRadius: BorderRadius.circular(8.0),
-              ),
-              child: const Text(
-                "Back to Today",
-                style: TextStyle(
-                  fontSize: 18,
-                  color: Colors.blue,
-                  fontWeight: FontWeight.bold,
-                ),
+            child: const Text(
+              "Back to Today",
+              style: TextStyle(
+                fontSize: 18,
+                color: Colors.white,
               ),
             ),
           ),
           Expanded(
-              child: deliveryToday
-                  ? MyListWidget(scheduleList: scheduleList, chosen: today)
-                  : const Center(
-                      child: Text(
-                        "No delivery for today",
-                        style: TextStyle(
-                          fontSize: 20,
-                          color: Color.fromARGB(255, 0, 0, 0),
-                          fontWeight: FontWeight.bold,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ))
+              child: isLoading
+                  ? const Center(
+                      child: CircularProgressIndicator(),
+                    )
+                  : deliveryToday
+                      ? MyListWidget(scheduleList: scheduleList, chosen: today)
+                      : const Center(
+                          child: Text(
+                            "No delivery for today",
+                            style: TextStyle(
+                              fontSize: 20,
+                              color: Color.fromARGB(255, 0, 0, 0),
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ))
         ],
       ),
     );
@@ -196,7 +199,8 @@ class MyListWidget extends StatelessWidget {
     return ListView.builder(
       itemCount: scheduleList.length,
       itemBuilder: (BuildContext context, int index) {
-        final color = Color((Random().nextDouble() * 0xFFFFFF).toInt() << 0).withOpacity(1.0);
+        final color = Color((Random().nextDouble() * 0xFFFFFF).toInt() << 0)
+            .withOpacity(1.0);
 
         return Column(
           children: <Widget>[
@@ -205,14 +209,16 @@ class MyListWidget extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => ItemDetailsPage(scheduleList: scheduleList[index], chosen: chosen),
+                    builder: (context) => ItemDetailsPage(
+                        scheduleList: scheduleList[index], chosen: chosen),
                   ),
                 );
               },
               child: ListTile(
                 title: Text(scheduleList[index]["order"]["description"],
                     style: const TextStyle(fontWeight: FontWeight.bold)),
-                subtitle: Text(scheduleList[index]["order"]["delivery_address"]),
+                subtitle:
+                    Text(scheduleList[index]["order"]["delivery_address"]),
                 leading: Container(
                   width: 5.0,
                   decoration: BoxDecoration(
@@ -224,10 +230,11 @@ class MyListWidget extends StatelessWidget {
                   children: [
                     Padding(
                       padding: const EdgeInsets.only(bottom: 15.0),
-                      child: Text(
-                          DateFormat('hh:mm aaa').format(DateTime.parse(scheduleList[index]["order"]["order_date"]))),
+                      child: Text(DateFormat('hh:mm aaa').format(DateTime.parse(
+                          scheduleList[index]["order"]["order_date"]))),
                     ),
-                    Text(DateFormat('hh:mm aaa').format(DateTime.parse(scheduleList[index]["order"]["order_date"]))),
+                    Text(DateFormat('hh:mm aaa').format(DateTime.parse(
+                        scheduleList[index]["order"]["order_date"]))),
                   ],
                 ),
               ),
@@ -248,8 +255,8 @@ class MyListWidget extends StatelessWidget {
 Future<Map<String, double>> getCoordinates(String address) async {
   Map<String, double> locationMap = {'lat': 0.0, 'long': 0.0};
   try {
-    final response =
-        await http.get(Uri.parse('https://nominatim.openstreetmap.org/search?q=$address&format=json&limit=1'));
+    final response = await http.get(Uri.parse(
+        'https://nominatim.openstreetmap.org/search?q=$address&format=json&limit=1'));
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
@@ -274,7 +281,8 @@ class ItemDetailsPage extends StatefulWidget {
   final dynamic scheduleList;
   DateTime chosen;
 
-  ItemDetailsPage({Key? key, required this.scheduleList, required this.chosen}) : super(key: key);
+  ItemDetailsPage({Key? key, required this.scheduleList, required this.chosen})
+      : super(key: key);
 
   @override
   // ignore: library_private_types_in_public_api
@@ -311,7 +319,8 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
         ),
       ),
       body: FutureBuilder<LatLng>(
-        future: fetchCoordinates(widget.scheduleList["order"]["delivery_address"]),
+        future:
+            fetchCoordinates(widget.scheduleList["order"]["delivery_address"]),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
@@ -341,7 +350,8 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Text(
-                        widget.scheduleList["order"]["description"].toUpperCase(),
+                        widget.scheduleList["order"]["description"]
+                            .toUpperCase(),
                         style: const TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
@@ -359,7 +369,8 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            DateFormat('hh:mm aaa').format(DateTime.parse(widget.scheduleList["order"]["order_date"])),
+                            DateFormat('hh:mm aaa').format(DateTime.parse(
+                                widget.scheduleList["order"]["order_date"])),
                             style: const TextStyle(fontSize: 18),
                             textAlign: TextAlign.center,
                           ),
@@ -370,7 +381,8 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            DateFormat('hh:mm aaa').format(DateTime.parse(widget.scheduleList["order"]["order_date"])),
+                            DateFormat('hh:mm aaa').format(DateTime.parse(
+                                widget.scheduleList["order"]["order_date"])),
                             style: const TextStyle(fontSize: 18),
                             textAlign: TextAlign.center,
                           ),
@@ -385,7 +397,8 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
                           ),
                           children: [
                             TileLayer(
-                              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                              urlTemplate:
+                                  'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                               userAgentPackageName: 'com.example.app',
                             ),
                             MarkerLayer(

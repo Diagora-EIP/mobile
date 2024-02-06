@@ -110,7 +110,6 @@ class _StatistiquesState extends State<Statistiques> {
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 16.0,
-                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
                             )),

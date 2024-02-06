@@ -1,10 +1,10 @@
-import 'package:diagora/components/vehicules.dart';
 import 'package:flutter/material.dart';
 import 'package:accordion/accordion.dart';
 
+import 'package:diagora/models/user_model.dart';
 import 'package:diagora/services/api_service.dart';
 import 'package:diagora/models/company_model.dart';
-import 'package:diagora/models/user_model.dart';
+import 'package:diagora/components/vehicules.dart';
 
 class CompanyView extends StatefulWidget {
   final Company? company;
@@ -185,6 +185,9 @@ class CompanyViewState extends State<CompanyView> {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final backgroundColor = isDarkMode ? Colors.grey[800] : Colors.white;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(loading
@@ -199,7 +202,9 @@ class CompanyViewState extends State<CompanyView> {
           },
         ),
         actions: <Widget>[
-          loading == true || _nameController.text.isEmpty || _addressController.text.isEmpty
+          loading == true ||
+                  _nameController.text.isEmpty ||
+                  _addressController.text.isEmpty
               ? const IconButton(
                   icon: Icon(Icons.check),
                   onPressed: null,
@@ -207,7 +212,8 @@ class CompanyViewState extends State<CompanyView> {
               : IconButton(
                   icon: const Icon(Icons.check),
                   onPressed: () {
-                    if (_nameController.text.isNotEmpty && _addressController.text.isNotEmpty) {
+                    if (_nameController.text.isNotEmpty &&
+                        _addressController.text.isNotEmpty) {
                       _submitForm(context);
                     }
                   },
@@ -303,6 +309,7 @@ class CompanyViewState extends State<CompanyView> {
                   disableScrolling: true,
                   scaleWhenAnimating: false,
                   openAndCloseAnimation: true,
+                  contentBackgroundColor: backgroundColor,
                   children: [
                     AccordionSection(
                       contentVerticalPadding: 8,
@@ -371,11 +378,12 @@ class AccordionContentState extends State<AccordionContent> {
             this.users.sort(
                 (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
             // Keep only users in this company and without company
-            this.users.removeWhere((user) => user.company != null && user.company!.id != widget.companyId);
+            this.users.removeWhere((user) =>
+                user.company != null && user.company!.id != widget.companyId);
             filteredUsers = this.users;
             if (widget.companyId > 0) {
               for (User user in users) {
-                if (user.company?.id== widget.companyId) {
+                if (user.company?.id == widget.companyId) {
                   widget.updateUserId(user.id, true);
                 }
               }
@@ -409,10 +417,12 @@ class AccordionContentState extends State<AccordionContent> {
                 child: TextField(
                   decoration: InputDecoration(
                     hintText: 'Search',
-                    prefixIcon: const Icon(Icons.search),
+                    prefixIcon: const Icon(Icons.search, color: Colors.grey),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
+                    // Set the background color for the TextField
+                    filled: true,
                   ),
                   onChanged: (value) {
                     if (mounted) {
@@ -447,7 +457,8 @@ class AccordionContentState extends State<AccordionContent> {
             for (User user in filteredUsers) ...[
               // If the user's name starts with a new character, a header row with the character is created
               if (users.indexOf(user) == 0 ||
-                  user.name[0] != users[users.indexOf(user) - 1].name[0]) ...[
+                  user.name[0].toLowerCase() !=
+                      users[users.indexOf(user) - 1].name[0].toLowerCase()) ...[
                 if (users.indexOf(user) != 0) ...[
                   const SizedBox(height: 10),
                 ],

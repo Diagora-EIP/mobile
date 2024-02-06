@@ -30,9 +30,11 @@ class User {
       encryptedPassword: json['password'] ?? '',
       createdAt: DateTime.parse(json['created_at'] ?? DateTime(0).toString()),
       resetPassword: json['reset-password'] ?? '',
-      company: json['company'] != null ? Company.fromJson(json['company']) : null,
-      companyId: json['company_id'] ?? -1,
+      company:
+          json['company'] != null ? Company.fromJson(json['company']) : null,
+      companyId: json['company'] != null ? json['company']['company_id'] : -1,
     );
+
     return user;
   }
 
