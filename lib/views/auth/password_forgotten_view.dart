@@ -44,6 +44,7 @@ class _PasswordForgottenViewState extends State<PasswordForgottenView> {
                 ),
               ),
               TextFormField(
+                keyboardType: TextInputType.emailAddress,
                 decoration: const InputDecoration(labelText: 'Email'),
                 validator: (value) {
                   if (value!.isEmpty) {
@@ -126,7 +127,8 @@ class _CheckEmailState extends State<CheckEmail> {
             ),
             const Text(
               'An email has been sent to you.\n\nPlease check your email and follow the instructions.',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 20),
             ),
             const Padding(padding: EdgeInsets.only(top: 50.0)),
             CupertinoButton(

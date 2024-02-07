@@ -139,7 +139,6 @@ class _CalendarPageState extends State<CalendarPage> {
               "On ${DateFormat('EEEE, MMM d, yyyy').format(today)}",
               style: const TextStyle(
                 fontSize: 16,
-                color: Colors.black,
               ),
             ),
           ),
@@ -171,7 +170,6 @@ class _CalendarPageState extends State<CalendarPage> {
                             "No delivery for today",
                             style: TextStyle(
                               fontSize: 20,
-                              color: Color.fromARGB(255, 0, 0, 0),
                             ),
                             textAlign: TextAlign.center,
                           ),
