@@ -55,6 +55,7 @@ class _RegisterViewState extends State<RegisterView> {
                   onSaved: (value) => _name = value!,
                 ),
                 TextFormField(
+                  keyboardType: TextInputType.emailAddress,
                   decoration: const InputDecoration(labelText: 'Email'),
                   validator: (value) {
                     if (value!.isEmpty) {
@@ -98,10 +99,14 @@ class _RegisterViewState extends State<RegisterView> {
                           (route) => false,
                         );
                       } else {
+                        setState(() {
+                          isLoading = false;
+                        });
                         // ignore: use_build_context_synchronously
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text('Register failed'),
+                            duration: Duration(seconds: 2),
                           ),
                         );
                       }

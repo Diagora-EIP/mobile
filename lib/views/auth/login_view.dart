@@ -47,6 +47,7 @@ class _LoginViewState extends State<LoginView> {
                     ),
                   ),
                   TextFormField(
+                    keyboardType: TextInputType.emailAddress,
                     decoration: const InputDecoration(labelText: 'Email'),
                     validator: (value) {
                       if (value!.isEmpty) {
@@ -89,10 +90,14 @@ class _LoginViewState extends State<LoginView> {
                             (route) => false,
                           );
                         } else {
+                          setState(() {
+                            isLoading = false;
+                          });
                           // ignore: use_build_context_synchronously
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text('Login failed'),
+                              duration: Duration(seconds: 2),
                             ),
                           );
                         }

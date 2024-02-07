@@ -14,7 +14,8 @@ import 'package:diagora/models/role_model.dart';
 /// Classe qui contient toutes les routes de l'API. Utilisez [route] pour créer une Uri.
 class ApiRoutes {
   // static const String baseUrl = 'https://api.diagora.me';
-  static const String baseUrl = 'http://localhost:3000';
+  // static const String baseUrl = 'http://localhost:3000';
+  static const String baseUrl = 'https://ce63-130-212-95-93.ngrok-free.app';
   // static const String baseUrl = 'http://10.143.229.252:3000'; // Android studio test | Put computer IP
 
   // Authentification
@@ -188,8 +189,8 @@ class ApiService {
       id: 1,
       name: "Test",
       email: "test@gmail.com",
-      );
-    }
+    );
+  }
 
   /// Permet de s'inscrire à l'application.
   ///
@@ -228,7 +229,8 @@ class ApiService {
         _logger.i(responseData);
         return true;
       } else {
-        _logger.e('register() failed with status code ${response.statusCode}: ${response.body}');
+        _logger.e(
+            'register() failed with status code ${response.statusCode}: ${response.body}');
         return false;
       }
     } catch (e) {
@@ -267,7 +269,8 @@ class ApiService {
         _logger.i('Logout successful');
         return true;
       } else {
-        _logger.e('logout() failed with status code ${response.statusCode}: ${response.body}');
+        _logger.e(
+            'logout() failed with status code ${response.statusCode}: ${response.body}');
         return false;
       }
     } catch (e) {
