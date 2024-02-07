@@ -45,10 +45,10 @@ class _RegisterViewState extends State<RegisterView> {
                   ),
                 ),
                 TextFormField(
-                  decoration: const InputDecoration(labelText: 'Name'),
+                  decoration: const InputDecoration(labelText: 'Full name'),
                   validator: (value) {
                     if (value!.isEmpty) {
-                      return 'Please enter your name';
+                      return 'Please enter your full name';
                     }
                     return null;
                   },

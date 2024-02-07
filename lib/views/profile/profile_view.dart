@@ -24,6 +24,7 @@ class _ProfileViewState extends State<ProfileView> {
   String permissions = '';
   dynamic permissionsData;
   dynamic userData;
+
   File? _image;
 
   Future<void> _pickImage(ImageSource source) async {
@@ -69,36 +70,158 @@ class _ProfileViewState extends State<ProfileView> {
     );
   }
 
+  String _capitalizeFirstLetter(String input) {
+    if (input.isEmpty) {
+      return input;
+    }
+    return input[0].toUpperCase() + input.substring(1);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profile'),
       ),
-      body: Center(
-        child: SingleChildScrollView(
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.only(top: 45, left: 14),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              GestureDetector(
-                onTap: _showImageSourcePicker,
-                child: CircleAvatar(
-                  radius: 80,
-                  backgroundColor: Colors.grey,
-                  backgroundImage: _image != null ? FileImage(_image!) : null,
-                  child: _image == null
-                      ? const Icon(
-                          Icons.person,
-                          size: 80,
-                          color: Colors.white,
-                        )
-                      : null,
-                ),
+              Row(
+                children: [
+                  GestureDetector(
+                    onTap: _showImageSourcePicker,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Theme.of(context)
+                              .primaryColor, // Set the border color to blue
+                          width: 2.0, // Set the border width
+                        ),
+                      ),
+                      child: CircleAvatar(
+                        radius: 50,
+                        backgroundColor: Colors.grey,
+                        backgroundImage:
+                            _image != null ? FileImage(_image!) : null,
+                        child: _image == null
+                            ? const Icon(
+                                Icons.person,
+                                size: 80,
+                                color: Colors.white,
+                              )
+                            : null,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 24),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(username.toUpperCase(),
+                          style: const TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold)),
+                      Text(_capitalizeFirstLetter(permissions),
+                          style: const TextStyle(
+                              color: Color.fromARGB(255, 76, 76, 76))),
+                    ],
+                  ),
+                ],
               ),
-              const SizedBox(height: 24),
-              ProfileInfos(itemName: "Username", itemValue: username),
-              ProfileInfos(itemName: "Email", itemValue: email),
-              ProfileInfos(itemName: "Permissions", itemValue: permissions),
+              const Padding(padding: EdgeInsets.only(top: 14, bottom: 14)),
+              Row(
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Colors.blue, // Set the border color to blue
+                        width: 2.0, // Set the border width
+                      ),
+                    ),
+                    child: const CircleAvatar(
+                      radius: 12,
+                      backgroundColor: Colors.white,
+                      child: Icon(Icons.person, color: Colors.blue),
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  const Text("Account Information",
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                ],
+              ),
+              const Divider(
+                height: 20,
+                color: Color.fromARGB(255, 76, 76, 76),
+              ),
+              ListView(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                children: <Widget>[
+                  ListTile(
+                    leading: const Icon(Icons.person),
+                    minLeadingWidth: 0,
+                    horizontalTitleGap: 10,
+                    title: Row(
+                      children: [
+                        const Text('Name ',
+                            style: TextStyle(fontSize: 14, color: Colors.grey)),
+                        Text(username,
+                            style: const TextStyle(
+                                fontSize: 14, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                  ),
+                  const Divider(),
+                  ListTile(
+                    leading: const Icon(Icons.email),
+                    minLeadingWidth: 0,
+                    horizontalTitleGap: 10,
+                    title: Row(
+                      children: [
+                        const Text('Email ',
+                            style: TextStyle(fontSize: 14, color: Colors.grey)),
+                        Text(email,
+                            style: const TextStyle(
+                                fontSize: 14, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                  ),
+                  const Divider(),
+                  ListTile(
+                    leading: const Icon(Icons.lock),
+                    minLeadingWidth: 0,
+                    horizontalTitleGap: 10,
+                    title: Row(
+                      children: [
+                        const Text('Permissions ',
+                            style: TextStyle(fontSize: 14, color: Colors.grey)),
+                        Text(_capitalizeFirstLetter(permissions),
+                            style: const TextStyle(
+                                fontSize: 14, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                  ),
+                  const Divider(),
+                  ListTile(
+                    leading: const Icon(Icons.work),
+                    minLeadingWidth: 0,
+                    horizontalTitleGap: 10,
+                    title: Row(
+                      children: [
+                        const Text('Company ',
+                            style: TextStyle(fontSize: 14, color: Colors.grey)),
+                        Text(_capitalizeFirstLetter("company"),
+                            style: const TextStyle(
+                                fontSize: 14, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
               const SizedBox(height: 24),
               CupertinoButton(
                 color: Theme.of(context).primaryColor,
@@ -114,59 +237,6 @@ class _ProfileViewState extends State<ProfileView> {
           ),
         ),
       ),
-    );
-  }
-}
-
-class ProfileInfos extends StatefulWidget {
-  final String itemName;
-  final String itemValue;
-
-  const ProfileInfos(
-      {super.key, required this.itemName, required this.itemValue});
-
-  @override
-  State<ProfileInfos> createState() => _ProfileInfosState();
-}
-
-class _ProfileInfosState extends State<ProfileInfos> {
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        const SizedBox(height: 24),
-        FractionallySizedBox(
-          widthFactor: 2 / 3,
-          child: Container(
-              height: 30,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: Theme.of(context).primaryColor,
-                borderRadius: BorderRadius.circular(3.0),
-              ),
-              child: Text(widget.itemName,
-                  style: const TextStyle(fontSize: 16, color: Colors.white))),
-        ),
-        const SizedBox(height: 8),
-        FractionallySizedBox(
-          widthFactor: 2 / 3,
-          child: Container(
-            height: 25,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: Colors.grey[300],
-              borderRadius: BorderRadius.circular(3.0),
-            ),
-            child: Text(
-              widget.itemValue,
-              style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black),
-            ),
-          ),
-        ),
-      ],
     );
   }
 }
