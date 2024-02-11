@@ -4,7 +4,6 @@ import 'package:diagora/views/home/map/map.dart';
 import 'package:diagora/services/api_service.dart';
 import 'package:diagora/views/home/order/order_view.dart';
 import 'package:diagora/views/home/calendar/calendar.dart';
-// import 'package:diagora/components/vehicules.dart';
 
 import 'package:intl/intl.dart';
 
@@ -15,7 +14,7 @@ class HomeView extends StatefulWidget {
   State<HomeView> createState() => _HomeViewState();
 }
 
-class _HomeViewState extends State<HomeView> {
+class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
   final ApiService _api = ApiService.getInstance();
   dynamic userData;
   String username = '';
@@ -25,7 +24,7 @@ class _HomeViewState extends State<HomeView> {
   late DateTime todayEnd;
 
   late Future<int> getNbDeliveryToday;
-  late int nbDeliveryToday;
+  int nbDeliveryToday = 0;
 
   String capitalizeFirstLetter(String input) {
     if (input.isEmpty) {
@@ -36,6 +35,8 @@ class _HomeViewState extends State<HomeView> {
 
   @override
   void initState() {
+    super.initState();
+
     userData = _api.user?.toJson();
     username = capitalizeFirstLetter(userData['name']);
 
@@ -43,18 +44,40 @@ class _HomeViewState extends State<HomeView> {
     todayStart = DateTime(todayDate.year, todayDate.month, todayDate.day, 1);
     todayEnd = DateTime(todayDate.year, todayDate.month, todayDate.day, 23);
 
-    DateFormat outputFormat = DateFormat('MM/dd/yyyy');
+    DateFormat outputFormat = DateFormat('dd.MM.yyyy');
     formattedBegin = outputFormat.format(todayDate);
 
-    super.initState();
+    fetchNbDeliveryToday();
+
+    WidgetsBinding.instance.addObserver(this);
   }
 
-  Future<int> fetchNbDeliveryToday() async {
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) fetchNbDeliveryToday();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    fetchNbDeliveryToday();
+  }
+
+  void fetchNbDeliveryToday() async {
     int nbDeliv = await _api.nbDeliveryToday(todayStart, todayEnd);
+
     if (nbDeliv == -1) {
       nbDeliv = 0;
     }
-    return nbDeliv;
+    setState(() {
+      nbDeliveryToday = nbDeliv;
+    });
   }
 
   @override
@@ -63,55 +86,58 @@ class _HomeViewState extends State<HomeView> {
       appBar: AppBar(
         title: const Text('Home'),
       ),
-      body: FutureBuilder<int>(
-        future: fetchNbDeliveryToday(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Text('Error: ${snapshot.error}');
-          } else {
-            int nbDeliveryToday = snapshot.data ?? 0;
-            return SingleChildScrollView(
-              child: Column(
-                children: [
-                  Image.asset(
-                    'assets/images/diagora.png',
-                    width: 200,
-                    height: 200,
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    "Hello $username !",
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    "Today $formattedBegin, you have $nbDeliveryToday delivery.",
-                    style: const TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  _buildNavigationButton("Calendar", () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const CalendarPage()));
-                  }),
-                  _buildNavigationButton("Map", () {
-                    Navigator.push(
-                        context, MaterialPageRoute(builder: (context) => MapPage(userId: userData['user_id'])));
-                  }),
-                  _buildNavigationButton("Orders", () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const OrderView()));
-                  }),
-                ],
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            Image.asset(
+              'assets/images/diagora.png',
+              width: 200,
+              height: 200,
+            ),
+            const SizedBox(height: 10),
+            Text(
+              "Hello $username !",
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
               ),
-            );
-          }
-        },
+            ),
+            const SizedBox(height: 10),
+            Text(
+              "Today $formattedBegin, you have $nbDeliveryToday delivery.",
+              style: const TextStyle(
+                fontSize: 16,
+                color: Colors.grey,
+              ),
+            ),
+            const SizedBox(height: 20),
+            _buildNavigationButton("Calendar", () {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const CalendarView(),
+                ),
+                (route) => false,
+              );
+            }),
+            _buildNavigationButton("Map", () async {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          MapPage(userId: userData['user_id'])));
+            }),
+            _buildNavigationButton("Orders", () async {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const OrderView(),
+                ),
+                (route) => false,
+              );
+            }),
+          ],
+        ),
       ),
     );
   }

@@ -7,21 +7,22 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_map/flutter_map.dart';
 import 'package:table_calendar/table_calendar.dart';
 
+import 'package:diagora/views/home/home.dart';
 import 'package:diagora/services/api_service.dart';
 import 'package:diagora/views/home/calendar/new_delivery.dart';
 
 import 'dart:math';
 import 'dart:convert';
 
-class CalendarPage extends StatefulWidget {
-  const CalendarPage({super.key});
+class CalendarView extends StatefulWidget {
+  const CalendarView({super.key});
 
   @override
   // ignore: library_private_types_in_public_api
-  _CalendarPageState createState() => _CalendarPageState();
+  _CalendarViewState createState() => _CalendarViewState();
 }
 
-class _CalendarPageState extends State<CalendarPage> {
+class _CalendarViewState extends State<CalendarView> {
   final ApiService _api = ApiService.getInstance();
   CalendarFormat _calendarFormat = CalendarFormat.month;
   DateTime today = DateTime.now();
@@ -57,8 +58,12 @@ class _CalendarPageState extends State<CalendarPage> {
           deliveryToday = false;
         });
       } else {
+        // There is delivery for today
         setState(() {
           scheduleList = json.decode(value);
+          scheduleList.sort((a, b) {
+            return a["order"]["order_date"].compareTo(b["order"]["order_date"]);
+          });
           deliveryToday = true;
         });
       }
@@ -73,38 +78,49 @@ class _CalendarPageState extends State<CalendarPage> {
     });
   }
 
-  // void _shipmentOfTheDay(List<dynamic> scheduleListVal) {
-  //   List<dynamic> newCalendarList = [];
-
-  //   for (var schedule in scheduleListVal) {
-  //     DateTime dateTimeBegin = DateTime.parse(schedule["order_date"]);
-  //     DateTime dateTimeEnd = DateTime.parse(schedule["order_date"]);
-  //     newCalendarList.add([
-  //       schedule["description"],
-  //       schedule["delivery_address"],
-  //       DateFormat('hh:mm aaa').format(DateTime.parse(schedule["order_date"])),
-  //       DateFormat('hh:mm aaa').format(schedule["order_date"])
-  //     ]);
-  //   }
-  //   setState(() {
-  //     calendarList = newCalendarList;
-  //   });
-  // }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pushAndRemoveUntil(
+              context,
+              PageRouteBuilder(
+                pageBuilder: (context, animation, secondaryAnimation) =>
+                    const HomeView(),
+                transitionsBuilder:
+                    (context, animation, secondaryAnimation, child) {
+                  const Offset begin = Offset(-1.0, 0.0);
+                  const Offset end = Offset(0.0, 0.0);
+                  var curve = Curves.easeInOut;
+
+                  var tween = Tween(begin: begin, end: end)
+                      .chain(CurveTween(curve: curve));
+                  var offsetAnimation = animation.drive(tween);
+
+                  return SlideTransition(
+                    position: offsetAnimation,
+                    child: child,
+                  );
+                },
+              ),
+              (route) => false,
+            );
+          },
+        ),
         title: const Text('Calendar'),
         actions: <Widget>[
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: () {
-              Navigator.push(
+              Navigator.pushAndRemoveUntil(
                 context,
                 MaterialPageRoute(
                   builder: (context) => NewDelivery(pickedDate: today),
                 ),
+                (route) => false,
               );
             },
           ),
@@ -145,10 +161,15 @@ class _CalendarPageState extends State<CalendarPage> {
           CupertinoButton(
             color: Theme.of(context).primaryColor,
             onPressed: () => {
-              setState(() {
-                today = DateTime.now();
-                _onDaySelected(today, today);
-              })
+              if (today.day != DateTime.now().day ||
+                  today.month != DateTime.now().month ||
+                  today.year != DateTime.now().year)
+                {
+                  setState(() {
+                    today = DateTime.now();
+                    _onDaySelected(today, today);
+                  })
+                }
             },
             child: const Text(
               "Back to Today",

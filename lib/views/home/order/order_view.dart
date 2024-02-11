@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:diagora/views/home/home.dart';
 import 'package:diagora/views/home/calendar/new_delivery.dart';
 
 /// Classe permettant de simuler une commande.
@@ -110,6 +111,34 @@ class OrderViewState extends State<OrderView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pushAndRemoveUntil(
+              context,
+              PageRouteBuilder(
+                pageBuilder: (context, animation, secondaryAnimation) =>
+                    const HomeView(),
+                transitionsBuilder:
+                    (context, animation, secondaryAnimation, child) {
+                  const Offset begin = Offset(-1.0, 0.0);
+                  const Offset end = Offset(0.0, 0.0);
+                  var curve = Curves.easeInOut;
+
+                  var tween = Tween(begin: begin, end: end)
+                      .chain(CurveTween(curve: curve));
+                  var offsetAnimation = animation.drive(tween);
+
+                  return SlideTransition(
+                    position: offsetAnimation,
+                    child: child,
+                  );
+                },
+              ),
+              (route) => false,
+            );
+          },
+        ),
         title: const Text('Mes commandes'),
         actions: <Widget>[
           IconButton(

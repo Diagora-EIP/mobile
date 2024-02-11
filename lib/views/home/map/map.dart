@@ -41,7 +41,9 @@ class MapPageState extends State<MapPage> {
     polylineAnnotationManager?.deleteAll();
     if (valuesData == "false") return;
     dynamic itinerary = json.decode(valuesData);
-    if (itinerary["path"] != null && itinerary["path"]["points"] != null && itinerary["path"]["points"].length > 0) {
+    if (itinerary["path"] != null &&
+        itinerary["path"]["points"] != null &&
+        itinerary["path"]["points"].length > 0) {
       _addMarkers(itinerary["path"]["points"]);
     }
     if (itinerary["stop_point"] != null &&
@@ -54,7 +56,8 @@ class MapPageState extends State<MapPage> {
   void _flyToPosition({mapbox.Position? position}) async {
     if (position == null) {
       var currentPosition = await Geolocator.getCurrentPosition();
-      position = mapbox.Position(currentPosition.longitude, currentPosition.latitude);
+      position =
+          mapbox.Position(currentPosition.longitude, currentPosition.latitude);
     }
     mapboxMap?.flyTo(
         mapbox.CameraOptions(
@@ -72,7 +75,8 @@ class MapPageState extends State<MapPage> {
     mapboxMap?.annotations.createPointAnnotationManager().then((value) async {
       pointAnnotationManager = value;
 
-      final ByteData bytes = await rootBundle.load('assets/images/marker-icon.png');
+      final ByteData bytes =
+          await rootBundle.load('assets/images/marker-icon.png');
       final Uint8List list = bytes.buffer.asUint8List();
 
       var options = <mapbox.PointAnnotationOptions>[];
@@ -188,6 +192,12 @@ class MapPageState extends State<MapPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
         title: const Text('Map'),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(30.0),
@@ -195,7 +205,10 @@ class MapPageState extends State<MapPage> {
             padding: const EdgeInsets.all(8.0),
             child: Text(
               DateFormat('MM/dd/yyyy').format(currentDate),
-              style: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.w300, color: Colors.white),
+              style: const TextStyle(
+                  fontSize: 16.0,
+                  fontWeight: FontWeight.w300,
+                  color: Colors.white),
             ),
           ),
         ),

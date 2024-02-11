@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 
 import 'package:diagora/services/api_service.dart';
+import 'package:diagora/views/home/calendar/calendar.dart';
 
 class NewDelivery extends StatefulWidget {
   final DateTime pickedDate;
@@ -17,7 +18,6 @@ class _NewDeliveryState extends State<NewDelivery> {
   final name = TextEditingController();
   final address = TextEditingController();
   late DateTime chosenDate;
-  DateTime today = DateTime.now();
   bool isLoading = false;
 
   @override
@@ -31,7 +31,9 @@ class _NewDeliveryState extends State<NewDelivery> {
     setState(() {
       isLoading = true;
     });
-    _api.addDelveryAutomatique(name.text, address.text, chosenDate, today).then((value) {
+    _api
+        .addDelveryAutomatique(name.text, address.text, chosenDate)
+        .then((value) {
       setState(() {
         isLoading = false;
       });
@@ -51,6 +53,34 @@ class _NewDeliveryState extends State<NewDelivery> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pushAndRemoveUntil(
+              context,
+              PageRouteBuilder(
+                pageBuilder: (context, animation, secondaryAnimation) =>
+                    const CalendarView(),
+                transitionsBuilder:
+                    (context, animation, secondaryAnimation, child) {
+                  const Offset begin = Offset(-1.0, 0.0);
+                  const Offset end = Offset(0.0, 0.0);
+                  var curve = Curves.easeInOut;
+
+                  var tween = Tween(begin: begin, end: end)
+                      .chain(CurveTween(curve: curve));
+                  var offsetAnimation = animation.drive(tween);
+
+                  return SlideTransition(
+                    position: offsetAnimation,
+                    child: child,
+                  );
+                },
+              ),
+              (route) => false,
+            );
+          },
+        ),
         title: const Text('New Delivery'),
       ),
       body: Center(
@@ -116,7 +146,8 @@ class _NewDeliveryState extends State<NewDelivery> {
                             });
                           },
                           use24hFormat: true,
-                          maximumDate: DateTime.now().add(const Duration(days: 30)),
+                          maximumDate:
+                              DateTime.now().add(const Duration(days: 30)),
                           minimumYear: 2010,
                           maximumYear: 2025,
                           minuteInterval: 1,

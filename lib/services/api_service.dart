@@ -14,8 +14,8 @@ import 'package:diagora/models/role_model.dart';
 /// Classe qui contient toutes les routes de l'API. Utilisez [route] pour créer une Uri.
 class ApiRoutes {
   // static const String baseUrl = 'https://api.diagora.me';
-  // static const String baseUrl = 'http://localhost:3000';
-  static const String baseUrl = 'https://ce63-130-212-95-93.ngrok-free.app';
+  static const String baseUrl = 'http://localhost:3000';
+  // static const String baseUrl = 'https://ce63-130-212-95-93.ngrok-free.app';
   // static const String baseUrl = 'http://10.143.229.252:3000'; // Android studio test | Put computer IP
 
   // Authentification
@@ -583,6 +583,7 @@ class ApiService {
         },
       );
       if (response.statusCode == 200 || response.statusCode == 202) {
+        _logger.d(response.body);
         return (response.body);
       } else {
         _logger.e(
@@ -598,17 +599,13 @@ class ApiService {
   Future<bool> addDelveryAutomatique(
     String name,
     String address,
-    DateTime chosenDate,
-    DateTime todayDate, {
+    DateTime chosenDate, {
     Client? client,
   }) async {
-    Uri url = ApiRoutes.route(ApiRoutes.createScheduleRoute);
-    client ??= _httpClient;
-
     String deliveryDate =
         DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(chosenDate.toLocal());
-    // String orderDate = DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(todayDate.toLocal());
-
+    client ??= _httpClient;
+    Uri url = ApiRoutes.route(ApiRoutes.createScheduleRoute);
     try {
       Response response = await client.post(
         url,
@@ -629,12 +626,13 @@ class ApiService {
         _logger.d(response.body);
         return Future.value(true);
       }
+      _logger.e(
+          "addDelveryAutomatique() failed with status code ${response.statusCode}: ${response.body}");
+      return Future.value(false);
     } catch (e) {
       _logger.d(e);
       return Future.value(false);
     }
-    _logger.d("Error in addDelveryAutomatique");
-    return Future.value(false);
   }
 
   Future<String> getSchedule(
@@ -757,7 +755,7 @@ class ApiService {
     client ??= _httpClient;
     Uri url;
     url = ApiRoutes.route(
-        "${ApiRoutes.getOrdersBetweenDatesRoute}?start_date=$beginTimeStamp&end_date=$endTimeStamp");
+        "${ApiRoutes.getScheduleRoute}?start_date=$beginTimeStamp&end_date=$endTimeStamp");
     try {
       Response response = await client.get(
         url,
