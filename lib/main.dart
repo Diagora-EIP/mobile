@@ -17,6 +17,7 @@ import 'package:diagora/views/loading/loading_view.dart';
 void main() async {
   // Firebase initialization
   WidgetsFlutterBinding.ensureInitialized();
+
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );

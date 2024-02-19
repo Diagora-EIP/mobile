@@ -1,8 +1,13 @@
+import 'package:maps_launcher/maps_launcher.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:logger/logger.dart';
 import 'package:intl/intl.dart';
+import 'dart:io' show Platform;
 import 'dart:convert';
+import 'dart:async';
 
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' as mapbox;
 import 'package:permission_handler/permission_handler.dart';
@@ -24,10 +29,28 @@ class MapPage extends StatefulWidget {
 class MapPageState extends State<MapPage> {
   final ApiService _api = ApiService.getInstance();
   String publicToken = const String.fromEnvironment("MAPBOX_PUBLIC_TOKEN");
+  final Logger _logger = Logger();
+  final List<Map<String, dynamic>> _deliveryStatus = [];
 
   mapbox.MapboxMap? mapboxMap;
   mapbox.PointAnnotationManager? pointAnnotationManager;
   mapbox.PolylineAnnotationManager? polylineAnnotationManager;
+
+  Position _currentPosition = Position(
+    latitude: 0.0,
+    longitude: 0.0,
+    timestamp: DateTime.now(),
+    accuracy: 0.0,
+    altitude: 0.0,
+    altitudeAccuracy: 0.0,
+    heading: 0.0,
+    speed: 0.0,
+    headingAccuracy: 0.0,
+    speedAccuracy: 0.0,
+  );
+
+  bool isDeliveryStarted = false;
+  bool anyDeliveryToday = false;
 
   late DateTime currentDate;
 
@@ -39,7 +62,16 @@ class MapPageState extends State<MapPage> {
 
     pointAnnotationManager?.deleteAll();
     polylineAnnotationManager?.deleteAll();
-    if (valuesData == "false") return;
+
+    if (valuesData == "false") {
+      setState(() {
+        anyDeliveryToday = false;
+      });
+      return;
+    }
+    setState(() {
+      anyDeliveryToday = true;
+    });
     dynamic itinerary = json.decode(valuesData);
     if (itinerary["path"] != null &&
         itinerary["path"]["points"] != null &&
@@ -89,8 +121,14 @@ class MapPageState extends State<MapPage> {
             ),
           ).toJson(),
           image: list,
-          iconSize: 0.15,
+          iconSize: 0.10,
         ));
+        _deliveryStatus.add({
+          'lat': point['x'],
+          'long': point['y'],
+          'isDelivered': false,
+          'address': point['address'],
+        });
       }
       pointAnnotationManager?.createMulti(options);
     });
@@ -131,6 +169,170 @@ class MapPageState extends State<MapPage> {
     });
   }
 
+  void openAppleMaps(double latitude, double longitude, String address) async {
+    try {
+      MapsLauncher.launchCoordinates(latitude, longitude, address);
+    } catch (e) {
+      _logger.e('Error: $e');
+    }
+  }
+
+  void registerPosition() async {
+    _currentPosition = await Geolocator.getCurrentPosition();
+
+    if (isDeliveryStarted) {
+      _api.registerPosition(_currentPosition);
+    }
+  }
+
+  void launchWaze(double lat, double lng) async {
+    var url = 'waze://?ll=${lat.toString()},${lng.toString()}';
+    Uri uri = Uri.parse(url);
+
+    try {
+      await launchUrl(uri);
+    } catch (e) {
+      _logger.e('Error: $e');
+    }
+  }
+
+  void launchGoogleMaps(double lat, double lng) async {
+    var url = 'google.navigation:q=${lat.toString()},${lng.toString()}';
+    Uri uri = Uri.parse(url);
+
+    try {
+      await launchUrl(uri);
+    } catch (e) {
+      _logger.e('Error: $e');
+    }
+  }
+
+  Map<String, dynamic> _nextDeliveryPosition() {
+    for (var i = 0; i < _deliveryStatus.length; i++) {
+      if (!_deliveryStatus[i]['isDelivered']) {
+        return {
+          'latitude': _deliveryStatus[i]['lat'],
+          'longitude': _deliveryStatus[i]['long'],
+          'address': _deliveryStatus[i]['address'],
+        };
+      }
+    }
+    return {};
+  }
+
+  void _chooseGps(BuildContext context) {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (BuildContext context) {
+        return CupertinoActionSheet(
+          title: const Text('Choose Navigation App'),
+          actions: <Widget>[
+            Platform.isIOS
+                ? CupertinoActionSheetAction(
+                    onPressed: () {
+                      // Open Apple Maps
+                      // Add your Apple Maps integration logic here
+                      Map<String, dynamic> nextPosition =
+                          _nextDeliveryPosition();
+                      openAppleMaps(nextPosition['latitude'],
+                          nextPosition['longitude'], nextPosition['address']);
+                      Navigator.of(context).pop();
+                    },
+                    child: const Text('Apple Maps'),
+                  )
+                : const SizedBox(),
+            CupertinoActionSheetAction(
+              onPressed: () {
+                // Open Google Maps
+                // Add your Google Maps integration logic here
+                launchGoogleMaps(
+                    _currentPosition.latitude, _currentPosition.longitude);
+                Navigator.of(context).pop();
+              },
+              child: const Text('Google Maps'),
+            ),
+            CupertinoActionSheetAction(
+              onPressed: () {
+                // Open Waze
+                // Add your Waze integration logic here
+                launchWaze(
+                    _currentPosition.latitude, _currentPosition.longitude);
+                Navigator.of(context).pop();
+              },
+              child: const Text('Waze'),
+            ),
+          ],
+          cancelButton: CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('Cancel'),
+          ),
+        );
+      },
+    );
+  }
+
+  void _startDelivery(BuildContext context) async {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return CupertinoAlertDialog(
+          title: const Text('Start Delivery'),
+          content: const Text('Do you want to start delivery?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _api.registerPosition(_currentPosition);
+                setState(() {
+                  isDeliveryStarted = true;
+                });
+                _chooseGps(context);
+              },
+              child: const Text('Start'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _stopDelivery(BuildContext context) async {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return CupertinoAlertDialog(
+          title: const Text('Stop Delivery'),
+          content: const Text('Do you want to stop the delivery?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                setState(() {
+                  isDeliveryStarted = false;
+                });
+              },
+              child: const Text('Stop'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _showDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -143,7 +345,7 @@ class MapPageState extends State<MapPage> {
             children: <Widget>[
               SizedBox(
                 height: 100,
-                width: 350,
+                width: 500,
                 child: CupertinoDatePicker(
                   initialDateTime: currentDate,
                   onDateTimeChanged: (DateTime newdate) {
@@ -152,14 +354,14 @@ class MapPageState extends State<MapPage> {
                     });
                   },
                   use24hFormat: true,
-                  maximumDate: DateTime.now().add(const Duration(days: 30)),
+                  maximumDate: DateTime(2030, 12, 30),
                   minimumYear: 2010,
-                  maximumYear: 2025,
+                  maximumYear: 2030,
                   minuteInterval: 1,
                   mode: CupertinoDatePickerMode.date,
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 15),
               Center(
                 child: ElevatedButton(
                   onPressed: () {
@@ -186,6 +388,11 @@ class MapPageState extends State<MapPage> {
     Permission.locationWhenInUse.request();
     currentDate = DateTime.now();
     _fetch();
+    registerPosition();
+
+    Timer.periodic(const Duration(seconds: 20), (Timer timer) {
+      registerPosition();
+    });
   }
 
   @override
@@ -204,7 +411,7 @@ class MapPageState extends State<MapPage> {
           child: Padding(
             padding: const EdgeInsets.all(8.0),
             child: Text(
-              DateFormat('MM/dd/yyyy').format(currentDate),
+              DateFormat('dd.MM.yyyy').format(currentDate),
               style: const TextStyle(
                   fontSize: 16.0,
                   fontWeight: FontWeight.w300,
@@ -219,11 +426,61 @@ class MapPageState extends State<MapPage> {
           ),
         ],
       ),
-      body: mapbox.MapWidget(
-        key: const ValueKey("mapWidget"),
-        resourceOptions: mapbox.ResourceOptions(accessToken: publicToken),
-        onMapCreated: _onMapCreated,
-      ),
+      body: Stack(children: [
+        mapbox.MapWidget(
+          key: const ValueKey("mapWidget"),
+          resourceOptions: mapbox.ResourceOptions(accessToken: publicToken),
+          onMapCreated: _onMapCreated,
+        ),
+        Align(
+          alignment: Alignment.topRight,
+          child: CupertinoButton(
+            padding: const EdgeInsets.only(top: 60.0, right: 16.0),
+            onPressed: () {
+              _flyToPosition();
+            },
+            child: const Icon(
+              Icons.gps_fixed,
+              color: Colors.blue,
+            ),
+          ),
+        ),
+        anyDeliveryToday
+            ? isDeliveryStarted
+                ? Positioned(
+                    bottom: 16.0,
+                    left: MediaQuery.of(context).size.width / 2 - 30.0,
+                    child: FloatingActionButton(
+                      onPressed: () {
+                        _stopDelivery(context);
+                      },
+                      backgroundColor: Colors.red,
+                      child: const Icon(Icons.local_shipping),
+                    ),
+                  )
+                : Positioned(
+                    bottom: 16.0,
+                    left: MediaQuery.of(context).size.width / 2 - 30.0,
+                    child: FloatingActionButton(
+                      onPressed: () {
+                        _startDelivery(context);
+                      },
+                      child: const Icon(Icons.local_shipping),
+                    ),
+                  )
+            : Positioned(
+                bottom: 16.0,
+                left: MediaQuery.of(context).size.width / 2 - 50.0,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10.0),
+                  child: Container(
+                      color: Theme.of(context).primaryColor,
+                      padding: const EdgeInsets.all(8.0),
+                      child: const Text('No delivery today',
+                          style: TextStyle(color: Colors.white))),
+                ),
+              ),
+      ]),
     );
   }
 }

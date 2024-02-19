@@ -38,7 +38,28 @@ class _NewDeliveryState extends State<NewDelivery> {
         isLoading = false;
       });
       if (value) {
-        Navigator.pop(context);
+        Navigator.pushAndRemoveUntil(
+          context,
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                const CalendarView(),
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+              const Offset begin = Offset(-1.0, 0.0);
+              const Offset end = Offset(0.0, 0.0);
+              var curve = Curves.easeInOut;
+
+              var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+              var offsetAnimation = animation.drive(tween);
+
+              return SlideTransition(
+                position: offsetAnimation,
+                child: child,
+              );
+            },
+          ),
+          (route) => false,
+        );
       }
     });
   }

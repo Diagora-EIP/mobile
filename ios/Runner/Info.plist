@@ -51,5 +51,20 @@
 	</array>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>$(PRODUCT_NAME) needs access to location when open.</string>
+
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Allow location access for navigation</string>
+
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>comgooglemaps</string>
+		<string>waze</string>
+	</array>
+
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+	</array>
+
 </dict>
 </plist>

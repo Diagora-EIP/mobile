@@ -1,15 +1,16 @@
 import 'dart:convert';
 
-import 'package:diagora/models/company_model.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart';
 import 'package:logger/logger.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:diagora/services/performance_client.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:diagora/models/user_model.dart';
 import 'package:diagora/models/role_model.dart';
+import 'package:diagora/models/company_model.dart';
 
 /// Classe qui contient toutes les routes de l'API. Utilisez [route] pour créer une Uri.
 class ApiRoutes {
@@ -58,6 +59,10 @@ class ApiRoutes {
       '/order/get-between-date'; // GET
   static const String updateOrderRoute = '/order/update/:order_id'; // PATCH
   static const String deleteOrderRoute = '/order/delete/:order_id'; // DELETE
+
+  // Position
+  static const String registerLivreurPositionRoute =
+      '/follow-up/register-point'; // POST
 
   // Itineraries
   static const String getItineraryRoute = '/itinerary/get/:itinerary_id'; // GET
@@ -593,6 +598,29 @@ class ApiService {
     } catch (e) {
       _logger.e(e.toString());
       return "false";
+    }
+  }
+
+  void registerPosition(Position position) async {
+    Uri url = ApiRoutes.route(ApiRoutes.registerLivreurPositionRoute);
+
+    try {
+      Response response = await _httpClient.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          "Authorization": "Bearer ${_token!}"
+        },
+        body: json.encode(position),
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        _logger.d(response.body);
+      } else {
+        _logger.e(
+            "startDelivery() failed with status code ${response.statusCode}: ${response.body}");
+      }
+    } catch (e) {
+      _logger.e(e.toString());
     }
   }
 

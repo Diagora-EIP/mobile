@@ -1,6 +1,9 @@
-import 'package:diagora/models/role_model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+
+import 'package:diagora/models/role_model.dart';
 import 'package:diagora/services/api_service.dart';
+
 
 class VehiculesComponent extends StatefulWidget {
   final int companyId;
@@ -157,7 +160,7 @@ class VehiculesComponentState extends State<VehiculesComponent> {
     return showDialog<void>(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
+        return CupertinoAlertDialog(
           title: const Text('Delete this vehicule?'),
           content: const SingleChildScrollView(
             child: ListBody(

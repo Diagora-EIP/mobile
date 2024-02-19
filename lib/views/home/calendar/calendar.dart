@@ -8,6 +8,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 import 'package:diagora/views/home/home.dart';
+import 'package:diagora/models/role_model.dart';
 import 'package:diagora/services/api_service.dart';
 import 'package:diagora/views/home/calendar/new_delivery.dart';
 
@@ -112,18 +113,20 @@ class _CalendarViewState extends State<CalendarView> {
         ),
         title: const Text('Calendar'),
         actions: <Widget>[
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () {
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => NewDelivery(pickedDate: today),
-                ),
-                (route) => false,
-              );
-            },
-          ),
+          _api.role?.role == Roles.manager || _api.role?.role == Roles.admin
+              ? IconButton(
+                  icon: const Icon(Icons.add),
+                  onPressed: () {
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => NewDelivery(pickedDate: today),
+                      ),
+                      (route) => false,
+                    );
+                  },
+                )
+              : const SizedBox(),
         ],
       ),
       body: Column(

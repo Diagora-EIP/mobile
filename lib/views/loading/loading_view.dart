@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 
 import 'package:diagora/views/wrapper/wrapper_view.dart';
 import 'package:diagora/views/auth/register_view.dart';
 import 'package:diagora/services/api_service.dart';
+
 
 class LoadingView extends StatefulWidget {
   const LoadingView({
@@ -56,7 +58,7 @@ class LoadingViewState extends State<LoadingView> {
         // ignore: use_build_context_synchronously
         showDialog(
           context: context,
-          builder: (context) => AlertDialog(
+          builder: (context) => CupertinoAlertDialog(
             title: const Text('Erreur'),
             content: const Text(
               'Une erreur est survenue lors de la connexion à l\'application. Veuillez réessayer.',
