@@ -169,14 +169,6 @@ class MapPageState extends State<MapPage> {
     });
   }
 
-  void openAppleMaps(double latitude, double longitude, String address) async {
-    try {
-      MapsLauncher.launchCoordinates(latitude, longitude, address);
-    } catch (e) {
-      _logger.e('Error: $e');
-    }
-  }
-
   void registerPosition() async {
     _currentPosition = await Geolocator.getCurrentPosition();
 
@@ -185,8 +177,18 @@ class MapPageState extends State<MapPage> {
     }
   }
 
-  void launchWaze(double lat, double lng) async {
-    var url = 'waze://?ll=${lat.toString()},${lng.toString()}';
+  void launchAppleMaps(
+      double latitude, double longitude, String address) async {
+    try {
+      MapsLauncher.launchCoordinates(latitude, longitude, address);
+    } catch (e) {
+      _logger.e('Error: $e');
+    }
+  }
+
+  void launchWaze(double latitude, double longitude, String address) async {
+    String encodedAddress = Uri.encodeComponent(address);
+    var url = 'waze://?q=$encodedAddress';
     Uri uri = Uri.parse(url);
 
     try {
@@ -196,8 +198,9 @@ class MapPageState extends State<MapPage> {
     }
   }
 
-  void launchGoogleMaps(double lat, double lng) async {
-    var url = 'google.navigation:q=${lat.toString()},${lng.toString()}';
+  void launchGoogleMaps(
+      double latitude, double longitude, String address) async {
+    var url = 'https://www.google.com/maps/search/?api=1&query=$address';
     Uri uri = Uri.parse(url);
 
     try {
@@ -234,7 +237,7 @@ class MapPageState extends State<MapPage> {
                       // Add your Apple Maps integration logic here
                       Map<String, dynamic> nextPosition =
                           _nextDeliveryPosition();
-                      openAppleMaps(nextPosition['latitude'],
+                      launchAppleMaps(nextPosition['latitude'],
                           nextPosition['longitude'], nextPosition['address']);
                       Navigator.of(context).pop();
                     },
@@ -245,8 +248,9 @@ class MapPageState extends State<MapPage> {
               onPressed: () {
                 // Open Google Maps
                 // Add your Google Maps integration logic here
-                launchGoogleMaps(
-                    _currentPosition.latitude, _currentPosition.longitude);
+                Map<String, dynamic> nextPosition = _nextDeliveryPosition();
+                launchGoogleMaps(nextPosition['latitude'],
+                    nextPosition['longitude'], nextPosition['address']);
                 Navigator.of(context).pop();
               },
               child: const Text('Google Maps'),
@@ -255,8 +259,9 @@ class MapPageState extends State<MapPage> {
               onPressed: () {
                 // Open Waze
                 // Add your Waze integration logic here
-                launchWaze(
-                    _currentPosition.latitude, _currentPosition.longitude);
+                Map<String, dynamic> nextPosition = _nextDeliveryPosition();
+                launchWaze(nextPosition['latitude'], nextPosition['longitude'],
+                    nextPosition['address']);
                 Navigator.of(context).pop();
               },
               child: const Text('Waze'),
@@ -448,14 +453,28 @@ class MapPageState extends State<MapPage> {
         anyDeliveryToday
             ? isDeliveryStarted
                 ? Positioned(
-                    bottom: 16.0,
-                    left: MediaQuery.of(context).size.width / 2 - 30.0,
-                    child: FloatingActionButton(
-                      onPressed: () {
-                        _stopDelivery(context);
-                      },
-                      backgroundColor: Colors.red,
-                      child: const Icon(Icons.local_shipping),
+                    bottom: 16,
+                    left: MediaQuery.of(context).size.width / 2 - 60.0,
+                    child: Row(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(right: 10),
+                          child: FloatingActionButton(
+                            onPressed: () {
+                              _stopDelivery(context);
+                            },
+                            backgroundColor: Colors.red,
+                            child: const Icon(Icons.local_shipping),
+                          ),
+                        ),
+                        FloatingActionButton(
+                          onPressed: () {
+                            _chooseGps(context);
+                          },
+                          backgroundColor: Theme.of(context).primaryColor,
+                          child: const Icon(Icons.map),
+                        ),
+                      ],
                     ),
                   )
                 : Positioned(

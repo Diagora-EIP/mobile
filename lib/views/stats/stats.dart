@@ -17,7 +17,11 @@ class Stat {
   final String name;
   final String description;
 
-  Stat({required this.hoursOfDays, required this.randomValues, required this.name, required this.description});
+  Stat(
+      {required this.hoursOfDays,
+      required this.randomValues,
+      required this.name,
+      required this.description});
 }
 
 class _StatistiquesState extends State<Statistiques> {
@@ -57,7 +61,8 @@ class _StatistiquesState extends State<Statistiques> {
 
   @override
   Widget build(BuildContext context) {
-    bool isScreenHorizontal = MediaQuery.of(context).orientation == Orientation.landscape;
+    bool isScreenHorizontal =
+        MediaQuery.of(context).orientation == Orientation.landscape;
 
     return Scaffold(
       appBar: AppBar(
@@ -65,7 +70,9 @@ class _StatistiquesState extends State<Statistiques> {
       ),
       body: Center(
         child: Padding(
-          padding: EdgeInsets.only(left: isScreenHorizontal ? 50 : 0.0, right: isScreenHorizontal ? 50 : 0.0),
+          padding: EdgeInsets.only(
+              left: isScreenHorizontal ? 50 : 0.0,
+              right: isScreenHorizontal ? 50 : 0.0),
           child: Padding(
             padding: const EdgeInsets.all(15.0),
             child: Column(
@@ -92,8 +99,12 @@ class _StatistiquesState extends State<Statistiques> {
                           );
                         },
                         child: Container(
-                            width: isScreenHorizontal ? 50 : 100.0, // Adjust the width as needed
-                            height: isScreenHorizontal ? 50 : 100.0, // Adjust the height as needed
+                            width: isScreenHorizontal
+                                ? 50
+                                : 100.0, // Adjust the width as needed
+                            height: isScreenHorizontal
+                                ? 50
+                                : 100.0, // Adjust the height as needed
                             decoration: BoxDecoration(
                               color: Theme.of(context).primaryColor,
                               border: Border.all(
@@ -102,14 +113,17 @@ class _StatistiquesState extends State<Statistiques> {
                               ),
                               borderRadius: BorderRadius.circular(10.0),
                             ),
-                            child: Align(
-                              alignment: Alignment.center,
-                              child: Text(
-                                currentStat.name,
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16.0,
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Align(
+                                alignment: Alignment.center,
+                                child: Text(
+                                  currentStat.name,
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16.0,
+                                  ),
                                 ),
                               ),
                             )),
