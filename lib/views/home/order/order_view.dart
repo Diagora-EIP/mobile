@@ -1,6 +1,9 @@
+import 'dart:convert';
+import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 
 import 'package:diagora/views/home/home.dart';
+import 'package:diagora/services/api_service.dart';
 
 /// Classe permettant de simuler une commande.
 class DummyOrder {
@@ -26,7 +29,69 @@ class OrderView extends StatefulWidget {
 }
 
 class OrderViewState extends State<OrderView> {
-  DateTime pickedDate = DateTime.now();
+  final ApiService _api = ApiService.getInstance();
+  DateTime today = DateTime.now();
+  List<dynamic> scheduleList = [];
+  bool deliveryToday = true;
+  bool isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _onDaySelected(today, today);
+  }
+
+  void _onDaySelected(DateTime day, DateTime focusDay) {
+    if (mounted) {
+      setState(() {
+        isLoading = true;
+      });
+    }
+
+    DateTime chosenStart =
+        DateTime(focusDay.year, focusDay.month, focusDay.day, 1);
+    DateTime chosenEnd =
+        DateTime(focusDay.year + 1, focusDay.month, focusDay.day, 23);
+    Future<String> allTodaysValues = _api.getSchedule(chosenStart, chosenEnd);
+
+    allTodaysValues.then((value) {
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
+      // No delivery for today
+      if (value == "[]") {
+        if (mounted) {
+          setState(() {
+            deliveryToday = false;
+          });
+        }
+      } else {
+        // There is delivery for today
+        if (mounted) {
+          setState(() {
+            scheduleList = json.decode(value);
+            scheduleList.sort((a, b) {
+              return a["order"]["order_date"]
+                  .compareTo(b["order"]["order_date"]);
+            });
+            deliveryToday = true;
+          });
+        }
+      }
+    }).catchError((error) {
+      setState(() {
+        deliveryToday = false;
+      });
+    });
+    // Change the variable today to the day selected
+    if (mounted) {
+      setState(() {
+        today = focusDay;
+      });
+    }
+  }
 
   final List<DummyOrder> data = [
     DummyOrder(
@@ -140,55 +205,72 @@ class OrderViewState extends State<OrderView> {
         ),
         title: const Text('Mes commandes'),
       ),
-      body: ListView.separated(
-        itemCount: data.length,
-        itemBuilder: (context, index) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 8.0,
-              vertical: 4.0,
-            ),
-            child: Card(
-              child: ListTile(
-                title: Text(
-                    "${data[index].name} (${data[index].status == 0 ? "En attente" : data[index].status == 1 ? "En cours" : "Terminée"})"),
-                subtitle: Text(
-                  "${data[index].status == 2 ? "Livré le" : "Commandé le"} ${data[index].date.day.toString().padLeft(2, '0')}/${data[index].date.month.toString().padLeft(2, '0')}/${data[index].date.year}",
-                ),
-                leading: Icon(
-                  data[index].status == 0
-                      ? Icons.watch_later_outlined
-                      : data[index].status == 1
-                          ? Icons.timer
-                          : Icons.done,
-                  color: data[index].status == 0
-                      ? Colors.orange
-                      : data[index].status == 1
-                          ? Colors.blue
-                          : Colors.green,
-                ),
-                trailing: const Icon(Icons.arrow_forward_ios),
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        data[index].status == 0
-                            ? "Commande en attente"
-                            : data[index].status == 1
-                                ? "Commande en cours"
-                                : "Commande terminée",
+      body: isLoading
+          ? const Center(
+              child: CircularProgressIndicator(),
+            )
+          : deliveryToday
+              ? ListView.separated(
+                  itemCount: scheduleList.length,
+                  itemBuilder: (context, index) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8.0,
+                        vertical: 4.0,
                       ),
-                      duration: const Duration(seconds: 1),
-                      showCloseIcon: true,
-                    ),
-                  );
-                },
-              ),
-            ),
-          );
-        },
-        separatorBuilder: (context, index) => const Divider(),
-      ),
+                      child: Card(
+                        child: ListTile(
+                          title: Text(
+                              "${scheduleList[index]["order"]["description"]}"),
+                          // "${scheduleList[index]["order"]["description"]} (${data[index].status == 0 ? "En attente" : data[index].status == 1 ? "En cours" : "Terminée"})"),
+                          subtitle: Text(
+                            "Commandé le ${DateFormat('dd/MM/yyyy').format(DateTime.parse(
+                          scheduleList[index]["order"]["order_date"]))}",
+
+                            // "${data[index].status == 2 ? "Livré le" : "Commandé le"} ${data[index].date.day.toString().padLeft(2, '0')}/${data[index].date.month.toString().padLeft(2, '0')}/${data[index].date.year}",
+                          ),
+                          leading: const Padding(
+                            padding: EdgeInsets.all(8.0),
+                            child: Icon(
+                              Icons.watch_later_outlined,
+                              color: Colors.orange,
+                              // data[index].status == 0
+                              //     ? Icons.watch_later_outlined
+                              //     : data[index].status == 1
+                              //         ? Icons.timer
+                              //         : Icons.done,
+                              // color: data[index].status == 0
+                              //     ? Colors.orange
+                              //     : data[index].status == 1
+                              //         ? Colors.blue
+                              //         : Colors.green,
+                            ),
+                          ),
+                          trailing: const Icon(Icons.arrow_forward_ios),
+                          onTap: () {
+                            // ScaffoldMessenger.of(context).showSnackBar(
+                            //   SnackBar(
+                            //     content: Text(
+                            //       data[index].status == 0
+                            //           ? "Commande en attente"
+                            //           : data[index].status == 1
+                            //               ? "Commande en cours"
+                            //               : "Commande terminée",
+                            //     ),
+                            //     duration: const Duration(seconds: 1),
+                            //     showCloseIcon: true,
+                            //   ),
+                            // );
+                          },
+                        ),
+                      ),
+                    );
+                  },
+                  separatorBuilder: (context, index) => const Divider(),
+                )
+              : const Center(
+                  child: Text("Aucune commande pour aujourd'hui"),
+                ),
     );
   }
 }

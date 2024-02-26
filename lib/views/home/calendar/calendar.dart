@@ -39,9 +39,11 @@ class _CalendarViewState extends State<CalendarView> {
 
   // Needs to have the same parameters as the function onDaySelected [DateTime day, DateTime focusDay]
   void _onDaySelected(DateTime day, DateTime focusDay) {
-    setState(() {
-      isLoading = true;
-    });
+    if (mounted) {
+      setState(() {
+        isLoading = true;
+      });
+    }
 
     DateTime chosenStart =
         DateTime(focusDay.year, focusDay.month, focusDay.day, 1);
@@ -50,23 +52,30 @@ class _CalendarViewState extends State<CalendarView> {
     Future<String> allTodaysValues = _api.getSchedule(chosenStart, chosenEnd);
 
     allTodaysValues.then((value) {
-      setState(() {
-        isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
       // No delivery for today
       if (value == "[]") {
-        setState(() {
-          deliveryToday = false;
-        });
+        if (mounted) {
+          setState(() {
+            deliveryToday = false;
+          });
+        }
       } else {
         // There is delivery for today
-        setState(() {
-          scheduleList = json.decode(value);
-          scheduleList.sort((a, b) {
-            return a["order"]["order_date"].compareTo(b["order"]["order_date"]);
+        if (mounted) {
+          setState(() {
+            scheduleList = json.decode(value);
+            scheduleList.sort((a, b) {
+              return a["order"]["order_date"]
+                  .compareTo(b["order"]["order_date"]);
+            });
+            deliveryToday = true;
           });
-          deliveryToday = true;
-        });
+        }
       }
     }).catchError((error) {
       setState(() {
@@ -74,9 +83,11 @@ class _CalendarViewState extends State<CalendarView> {
       });
     });
     // Change the variable today to the day selected
-    setState(() {
-      today = focusDay;
-    });
+    if (mounted) {
+      setState(() {
+        today = focusDay;
+      });
+    }
   }
 
   @override

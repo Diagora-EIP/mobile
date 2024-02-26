@@ -75,9 +75,11 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
     if (nbDeliv == -1) {
       nbDeliv = 0;
     }
-    setState(() {
-      nbDeliveryToday = nbDeliv;
-    });
+    if (mounted) {
+      setState(() {
+        nbDeliveryToday = nbDeliv;
+      });
+    }
   }
 
   @override

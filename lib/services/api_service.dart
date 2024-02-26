@@ -16,7 +16,7 @@ import 'package:diagora/models/company_model.dart';
 class ApiRoutes {
   // static const String baseUrl = 'https://api.diagora.me';
   // static const String baseUrl = 'http://localhost:3000';
-  static const String baseUrl = 'https://82c9-130-212-95-93.ngrok-free.app';
+  static const String baseUrl = 'https://d471-130-212-95-215.ngrok-free.app';
   // static const String baseUrl = 'http://10.143.229.252:3000'; // Android studio test | Put computer IP
 
   // Authentification
