@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:diagora/views/settings/general/my_account/my_account_view.dart';
 import 'package:diagora/views/settings/display/theme/theme_view.dart';
 import 'package:diagora/views/settings/others/new_document.dart';
+import 'package:diagora/views/settings/others/view_documents.dart';
 
 class SettingsView extends StatefulWidget {
   final Function() logout;
@@ -105,7 +106,14 @@ class SettingsViewState extends State<SettingsView> {
               ListTile(
                 leading: const Icon(Icons.folder),
                 title: const Text('Documents'),
-                onTap: () {},
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ViewDocuments(),
+                    ),
+                  );
+                },
               ),
               ListTile(
                 leading: const Icon(Icons.logout, color: Colors.red),
