@@ -46,7 +46,7 @@ class User {
       'password': encryptedPassword,
       'created_at': createdAt?.toIso8601String(),
       'reset-password': resetPassword,
-      'company_id': companyId == -1 ? null : companyId,
+      'company_id': companyId != -1 ? companyId : null,
     };
   }
 }

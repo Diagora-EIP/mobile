@@ -31,6 +31,8 @@ class MapPageState extends State<MapPage> {
   String publicToken = const String.fromEnvironment("MAPBOX_PUBLIC_TOKEN");
   final Logger _logger = Logger();
   final List<Map<String, dynamic>> _deliveryStatus = [];
+  int _companyId = -1;
+  final List<String> _vehicules = [];
 
   mapbox.MapboxMap? mapboxMap;
   mapbox.PointAnnotationManager? pointAnnotationManager;
@@ -53,6 +55,17 @@ class MapPageState extends State<MapPage> {
   bool anyDeliveryToday = false;
 
   late DateTime currentDate;
+
+  void _getVehicules() async {
+    dynamic data = await _api.fetchUser();
+
+    _companyId = data.companyId;
+    dynamic vehicules = await _api.getCompanyVehicules(companyId: _companyId);
+
+    for (var vehicule in vehicules) {
+      _vehicules.add(vehicule['name']);
+    }
+  }
 
   void _fetch() async {
     var date = currentDate;
@@ -299,7 +312,7 @@ class MapPageState extends State<MapPage> {
                 setState(() {
                   isDeliveryStarted = true;
                 });
-                _chooseGps(context);
+                choseVehicule();
               },
               child: const Text('Start'),
             ),
@@ -383,6 +396,34 @@ class MapPageState extends State<MapPage> {
     );
   }
 
+  void choseVehicule() {
+    showCupertinoModalPopup(
+      context: context,
+      builder: (BuildContext context) {
+        return CupertinoActionSheet(
+          title: const Text('Choose a vehicule'),
+          actions: _vehicules
+              .map(
+                (String vehicule) => CupertinoActionSheetAction(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _chooseGps(context);
+                  },
+                  child: Text(vehicule),
+                ),
+              )
+              .toList(),
+          cancelButton: CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('Cancel'),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -395,9 +436,11 @@ class MapPageState extends State<MapPage> {
     _fetch();
     registerPosition();
 
-    Timer.periodic(const Duration(seconds: 20), (Timer timer) {
-      registerPosition();
-    });
+    _getVehicules();
+
+    // Timer.periodic(const Duration(seconds: 2), (Timer timer) {
+    //   registerPosition();
+    // });
   }
 
   @override
