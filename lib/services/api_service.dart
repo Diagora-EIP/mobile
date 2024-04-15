@@ -7,6 +7,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:diagora/services/performance_client.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:background_location/background_location.dart';
 
 import 'package:diagora/models/user_model.dart';
 import 'package:diagora/models/role_model.dart';
@@ -16,7 +17,7 @@ import 'package:diagora/models/company_model.dart';
 class ApiRoutes {
   // static const String baseUrl = 'https://api.diagora.me';
   static const String baseUrl = 'http://localhost:3000';
-  // static const String baseUrl = 'https://bdf2-135-180-233-204.ngrok-free.app';
+  // static const String baseUrl = 'https://7b0b-135-180-233-204.ngrok-free.app';
   // static const String baseUrl = 'http://10.143.229.252:3000'; // Android studio test | Put computer IP
 
   // Authentification
@@ -601,8 +602,25 @@ class ApiService {
     }
   }
 
-  void registerPosition(Position position) async {
+  // Function Location to Position
+  static Position locationToPosition(Location location) {
+    return Position(
+      latitude: location.latitude!,
+      longitude: location.longitude!,
+      timestamp: DateTime.fromMillisecondsSinceEpoch(location.time!.toInt()),
+      accuracy: location.accuracy!,
+      altitude: location.altitude!,
+      altitudeAccuracy: 0,
+      heading: location.bearing!,
+      headingAccuracy: 0,
+      speed: location.speed!,
+      speedAccuracy: 0,
+    );
+  }
+
+  void registerPosition(Location position) async {
     Uri url = ApiRoutes.route(ApiRoutes.registerLivreurPositionRoute);
+    Position positionConverted = locationToPosition(position);
 
     try {
       Response response = await _httpClient.post(
@@ -611,7 +629,7 @@ class ApiService {
           'Content-Type': 'application/json',
           "Authorization": "Bearer ${_token!}"
         },
-        body: json.encode(position),
+        body: json.encode(positionConverted),
       );
       if (response.statusCode == 200 || response.statusCode == 201) {
         _logger.d(response.body);

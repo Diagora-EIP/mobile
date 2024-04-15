@@ -9,6 +9,8 @@ import 'dart:io' show Platform;
 import 'dart:convert';
 import 'dart:async';
 
+import 'package:background_location/background_location.dart';
+
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' as mapbox;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:geolocator/geolocator.dart';
@@ -37,19 +39,6 @@ class MapPageState extends State<MapPage> {
   mapbox.MapboxMap? mapboxMap;
   mapbox.PointAnnotationManager? pointAnnotationManager;
   mapbox.PolylineAnnotationManager? polylineAnnotationManager;
-
-  Position _currentPosition = Position(
-    latitude: 0.0,
-    longitude: 0.0,
-    timestamp: DateTime.now(),
-    accuracy: 0.0,
-    altitude: 0.0,
-    altitudeAccuracy: 0.0,
-    heading: 0.0,
-    speed: 0.0,
-    headingAccuracy: 0.0,
-    speedAccuracy: 0.0,
-  );
 
   bool isDeliveryStarted = false;
   bool anyDeliveryToday = false;
@@ -182,14 +171,6 @@ class MapPageState extends State<MapPage> {
     });
   }
 
-  void registerPosition() async {
-    _currentPosition = await Geolocator.getCurrentPosition();
-
-    if (isDeliveryStarted) {
-      _api.registerPosition(_currentPosition);
-    }
-  }
-
   void launchAppleMaps(
       double latitude, double longitude, String address) async {
     try {
@@ -291,6 +272,22 @@ class MapPageState extends State<MapPage> {
     );
   }
 
+  Timer? locationUpdateTimer;
+  int lastTick = -1;
+
+  void startLocationUpdates() {
+    locationUpdateTimer =
+        Timer.periodic(const Duration(seconds: 10), (Timer timer) {
+      BackgroundLocation.getLocationUpdates((location) {
+        if (locationUpdateTimer?.tick == lastTick) {
+          return;
+        }
+        _api.registerPosition(location);
+        lastTick = locationUpdateTimer!.tick;
+      });
+    });
+  }
+
   void _startDelivery(BuildContext context) async {
     showDialog(
       context: context,
@@ -308,7 +305,11 @@ class MapPageState extends State<MapPage> {
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
-                _api.registerPosition(_currentPosition);
+                BackgroundLocation.stopLocationService();
+                BackgroundLocation.startLocationService();
+
+                startLocationUpdates();
+
                 setState(() {
                   isDeliveryStarted = true;
                 });
@@ -339,6 +340,7 @@ class MapPageState extends State<MapPage> {
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
+                BackgroundLocation.stopLocationService();
                 setState(() {
                   isDeliveryStarted = false;
                 });
@@ -434,13 +436,13 @@ class MapPageState extends State<MapPage> {
     Permission.locationWhenInUse.request();
     currentDate = DateTime.now();
     _fetch();
-    registerPosition();
-
     _getVehicules();
+  }
 
-    // Timer.periodic(const Duration(seconds: 2), (Timer timer) {
-    //   registerPosition();
-    // });
+  @override
+  void dispose() {
+    super.dispose();
+    BackgroundLocation.stopLocationService();
   }
 
   @override

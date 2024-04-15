@@ -1,15 +1,25 @@
+import 'dart:io';
 import 'dart:ui';
-
+import 'dart:async';
 import 'firebase_options.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_analytics/firebase_analytics.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:diagora/providers/theme_provider.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
+import 'package:diagora/providers/theme_provider.dart';
 import 'package:diagora/views/loading/loading_view.dart';
+
+final FlutterLocalNotificationsPlugin flutterLocalPlugin =
+    FlutterLocalNotificationsPlugin();
+const AndroidNotificationChannel notificationChannel =
+    AndroidNotificationChannel(
+        "coding is life foreground", "coding is life foreground service",
+        description: "This is channel des....", importance: Importance.high);
 
 /// Fonction principale de l'application.
 ///
@@ -44,6 +54,8 @@ void main() async {
   final themeProvider = ThemeProvider();
   await themeProvider.initialize();
 
+  // await initservice();
+
   // Run the application
   runApp(
     ChangeNotifierProvider.value(
@@ -51,6 +63,66 @@ void main() async {
       child: const MyApp(),
     ),
   );
+}
+
+Future<void> initservice() async {
+  var service = FlutterBackgroundService();
+  //set for ios
+  if (Platform.isIOS) {
+    await flutterLocalPlugin.initialize(
+        const InitializationSettings(iOS: DarwinInitializationSettings()));
+  }
+
+  await flutterLocalPlugin
+      .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>()
+      ?.createNotificationChannel(notificationChannel);
+
+  //service init and start
+  await service.configure(
+      iosConfiguration:
+          IosConfiguration(onBackground: iosBackground, onForeground: onStart),
+      androidConfiguration: AndroidConfiguration(
+          onStart: onStart,
+          autoStart: true,
+          isForegroundMode: true,
+          notificationChannelId:
+              "coding is life", //comment this line if show white screen and app crash
+          initialNotificationTitle: "Coding is life",
+          initialNotificationContent: "Awsome Content",
+          foregroundServiceNotificationId: 90));
+  service.startService();
+
+  //for ios enable background fetch from add capability inside background mode
+}
+
+//onstart method
+@pragma("vm:entry-point")
+void onStart(ServiceInstance service) {
+  DartPluginRegistrant.ensureInitialized();
+
+  service.on("setAsForeground").listen((event) {
+    print("foreground ===============");
+  });
+
+  service.on("setAsBackground").listen((event) {
+    print("background ===============");
+  });
+
+  service.on("stopService").listen((event) {
+    service.stopSelf();
+  });
+
+  print("Background service ${DateTime.now()}");
+}
+
+//iosbackground
+@pragma("vm:entry-point")
+Future<bool> iosBackground(ServiceInstance service) async {
+  WidgetsFlutterBinding.ensureInitialized();
+  DartPluginRegistrant.ensureInitialized();
+
+  return true;
 }
 
 /// Classe principale de l'application.

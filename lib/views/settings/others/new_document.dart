@@ -375,6 +375,7 @@ class _NewDocumentState extends State<NewDocument> {
                             );
                             return;
                           }
+                          Navigator.of(context).pop();
                         },
                         child: const Text('Save'),
                       ),

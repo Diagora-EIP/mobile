@@ -62,7 +62,9 @@ dependencies:
   url_launcher: ^6.2.4
   flutter_background_service: ^5.0.5
   flutter_local_notifications: ^17.0.0
-  workmanager: ^0.5.1
+  flutter_background_geolocation: ^4.15.1
+
+  background_location: ^0.13.0
 
 dev_dependencies:
   coverage: ^1.6.3
