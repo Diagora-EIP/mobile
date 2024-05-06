@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+
 import 'package:diagora/views/settings/general/my_account/my_account_view.dart';
 import 'package:diagora/views/settings/display/theme/theme_view.dart';
 import 'package:diagora/views/settings/others/new_document.dart';
 import 'package:diagora/views/settings/others/view_documents.dart';
+import 'package:diagora/views/settings/others/choose_vehicle.dart';
 
 class SettingsView extends StatefulWidget {
   final Function() logout;
@@ -115,6 +117,20 @@ class SettingsViewState extends State<SettingsView> {
                   );
                 },
               ),
+              if (widget.changeRoleView != null) ...[
+                ListTile(
+                  leading: const Icon(Icons.directions_car),
+                  title: const Text('Choose vehicule'),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ChooseVehicleView()
+                      ),
+                    );
+                  },
+                ),
+              ],
               ListTile(
                 leading: const Icon(Icons.logout, color: Colors.red),
                 title: const Text(

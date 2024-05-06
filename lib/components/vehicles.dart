@@ -35,7 +35,7 @@ class VehiculesComponentState extends State<VehiculesComponent> {
       setState(() {
         fetching = true;
       });
-      data = await _api.getCompanyVehicules(companyId: widget.companyId);
+      data = await _api.getCompanyVehicles(companyId: widget.companyId);
       setState(() {
         fetching = false;
       });
@@ -197,7 +197,7 @@ class VehiculesComponentState extends State<VehiculesComponent> {
       setState(() {
         fetching = true;
       });
-      var response = await _api.addVehicule(
+      var response = await _api.addVehicle(
         companyId: widget.companyId,
         name: vehiculeData["name"] ?? "",
       );
@@ -227,7 +227,7 @@ class VehiculesComponentState extends State<VehiculesComponent> {
       setState(() {
         fetching = true;
       });
-      var response = await _api.editVehicule(
+      var response = await _api.editVehicle(
         vehiculeId: vehiculeData["vehicle_id"],
         name: vehiculeData["name"] ?? "",
       );
@@ -254,7 +254,7 @@ class VehiculesComponentState extends State<VehiculesComponent> {
       setState(() {
         fetching = true;
       });
-      var response = await _api.deleteVehicule(
+      var response = await _api.deleteVehicle(
         vehiculeId: vehiculeData["vehicle_id"],
       );
       if (response == false) {

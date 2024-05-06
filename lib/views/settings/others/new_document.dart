@@ -1,9 +1,12 @@
 import 'dart:io';
+import 'dart:convert';
 
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:image_picker/image_picker.dart';
+
+import 'package:diagora/services/api_service.dart';
 
 class NewDocument extends StatefulWidget {
   const NewDocument({super.key});
@@ -13,17 +16,33 @@ class NewDocument extends StatefulWidget {
 }
 
 class _NewDocumentState extends State<NewDocument> {
+  final ApiService _api = ApiService.getInstance();
+
   String title = '';
   String price = '0';
   File? _image;
   int _selectedCategory = 0;
   DateTime? _selectedDate;
+  dynamic myVehicleData;
+  dynamic userId;
+  bool isLoading = false;
 
   final double _kItemExtent = 32.0;
   final List<String> _categoriesNames = <String>[
     'Invoice',
     'Other',
   ];
+
+  @override
+  void initState() {
+    super.initState();
+
+    userId = _api.user?.toJson()['user_id'];
+
+    _api.getUserVehicle(userId).then((value) {
+      myVehicleData = value;
+    });
+  }
 
   Future<void> _pickImage(ImageSource source) async {
     final imagePicker = ImagePicker();
@@ -37,6 +56,9 @@ class _NewDocumentState extends State<NewDocument> {
   }
 
   void _selectDate() {
+    setState(() {
+      _selectedDate = DateTime.now();
+    });
     showCupertinoModalPopup(
       context: context,
       builder: (BuildContext context) {
@@ -59,6 +81,27 @@ class _NewDocumentState extends State<NewDocument> {
         );
       },
     );
+  }
+
+  Future<bool> submitNewDocument({
+    required String title,
+    required int price,
+    required File image,
+    required String category,
+    required DateTime date,
+  }) async {
+    String imageBase64 = base64Encode(image.readAsBytesSync());
+    bool returnValue = false;
+
+    if (myVehicleData.toString() != "[]") {
+      setState(() {
+        isLoading = true;
+      });
+      returnValue = await _api.registerNewDocument(
+          myVehicleData[0]['vehicle_id'], title, category, price, imageBase64,
+          userId: userId);
+    }
+    return returnValue;
   }
 
   void _selectCategory() {
@@ -92,6 +135,24 @@ class _NewDocumentState extends State<NewDocument> {
           ),
         );
       },
+    );
+  }
+
+  void showAlertError() {
+    showDialog(
+      context: context,
+      builder: (context) => CupertinoAlertDialog(
+        title: const Text('Error'),
+        content: const Text('Please fill all fields'),
+        actions: [
+          CupertinoDialogAction(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('OK'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -353,31 +414,40 @@ class _NewDocumentState extends State<NewDocument> {
                       width: double.infinity,
                       child: CupertinoButton(
                         color: Theme.of(context).primaryColor,
-                        onPressed: () {
+                        onPressed: () async {
                           if (title.isEmpty ||
                               _image == null ||
                               price.isEmpty ||
                               _selectedDate == null) {
-                            showDialog(
-                              context: context,
-                              builder: (context) => CupertinoAlertDialog(
-                                title: const Text('Error'),
-                                content: const Text('Please fill all fields'),
-                                actions: [
-                                  CupertinoDialogAction(
-                                    onPressed: () {
-                                      Navigator.of(context).pop();
-                                    },
-                                    child: const Text('OK'),
-                                  ),
-                                ],
-                              ),
-                            );
+                            showAlertError();
                             return;
                           }
-                          Navigator.of(context).pop();
+                          bool returnValue = await submitNewDocument(
+                            title: title,
+                            price: price.isEmpty ? 0 : int.parse(price),
+                            image: _image!,
+                            category: _categoriesNames[_selectedCategory],
+                            date: _selectedDate!,
+                          );
+                          setState(() {
+                            isLoading = false;
+                          });
+                          if (returnValue) {
+                            if (mounted) {
+                              Navigator.of(context).pop();
+                            }
+                          } else {
+                            showAlertError();
+                          }
                         },
-                        child: const Text('Save'),
+                        child: isLoading
+                            ? const CircularProgressIndicator(
+                                backgroundColor: Colors.transparent,
+                                valueColor:
+                                    AlwaysStoppedAnimation<Color>(Colors.white),
+                                color: Colors.transparent,
+                              )
+                            : const Text('Save'),
                       ),
                     ),
                   ),

@@ -33,8 +33,9 @@ class MapPageState extends State<MapPage> {
   String publicToken = const String.fromEnvironment("MAPBOX_PUBLIC_TOKEN");
   final Logger _logger = Logger();
   final List<Map<String, dynamic>> _deliveryStatus = [];
-  int _companyId = -1;
-  final List<String> _vehicules = [];
+  final List<String> _vehicles = [];
+  dynamic allVehicles;
+  dynamic myVehicleData;
 
   mapbox.MapboxMap? mapboxMap;
   mapbox.PointAnnotationManager? pointAnnotationManager;
@@ -45,14 +46,17 @@ class MapPageState extends State<MapPage> {
 
   late DateTime currentDate;
 
-  void _getVehicules() async {
-    dynamic data = await _api.fetchUser();
+  void _getVehicles() async {
+    allVehicles = await _api.getAllUserVehicles();
 
-    _companyId = data.companyId;
-    dynamic vehicules = await _api.getCompanyVehicules(companyId: _companyId);
+    for (var vehicule in allVehicles) {
+      _vehicles.add(vehicule['name']);
+    }
 
-    for (var vehicule in vehicules) {
-      _vehicules.add(vehicule['name']);
+    myVehicleData = await _api.getUserVehicle(widget.userId);
+
+    if (myVehicleData.toString() != "[]") {
+      print(myVehicleData[0]['name']);
     }
   }
 
@@ -313,7 +317,11 @@ class MapPageState extends State<MapPage> {
                 setState(() {
                   isDeliveryStarted = true;
                 });
-                choseVehicule();
+                if (myVehicleData.toString() == "[]") {
+                  choseVehicule();
+                } else {
+                  _chooseGps(context);
+                }
               },
               child: const Text('Start'),
             ),
@@ -398,16 +406,34 @@ class MapPageState extends State<MapPage> {
     );
   }
 
+  void connectVehicleToUser(int choosenVehicle) async {
+    await _api.connectVehicleToUser(widget.userId, choosenVehicle);
+
+    _api.getUserVehicle(widget.userId).then((value) {
+      myVehicleData = value;
+    });
+  }
+
+  int getChoosenVehicleIndex(String choosenVehicle) {
+    for (var vehicle in allVehicles) {
+      if (vehicle['name'] == choosenVehicle) {
+        return vehicle['vehicle_id'];
+      }
+    }
+    return -1;
+  }
+
   void choseVehicule() {
     showCupertinoModalPopup(
       context: context,
       builder: (BuildContext context) {
         return CupertinoActionSheet(
           title: const Text('Choose a vehicule'),
-          actions: _vehicules
+          actions: _vehicles
               .map(
                 (String vehicule) => CupertinoActionSheetAction(
                   onPressed: () {
+                    connectVehicleToUser(getChoosenVehicleIndex(vehicule));
                     Navigator.of(context).pop();
                     _chooseGps(context);
                   },
@@ -436,7 +462,7 @@ class MapPageState extends State<MapPage> {
     Permission.locationWhenInUse.request();
     currentDate = DateTime.now();
     _fetch();
-    _getVehicules();
+    _getVehicles();
   }
 
   @override

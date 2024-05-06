@@ -4,7 +4,7 @@ import 'package:accordion/accordion.dart';
 import 'package:diagora/models/user_model.dart';
 import 'package:diagora/services/api_service.dart';
 import 'package:diagora/models/company_model.dart';
-import 'package:diagora/components/vehicules.dart';
+import 'package:diagora/components/vehicles.dart';
 
 class CompanyView extends StatefulWidget {
   final Company? company;

@@ -13,6 +13,18 @@ import 'package:diagora/models/user_model.dart';
 import 'package:diagora/models/role_model.dart';
 import 'package:diagora/models/company_model.dart';
 
+/*
+--- ALL DIFFERENT PART ---
+ROLES
+USER
+PASSWORD
+DOCUMENTS
+MAP
+SCHEDULES
+VEHICLES
+COMPANY
+*/
+
 /// Classe qui contient toutes les routes de l'API. Utilisez [route] pour créer une Uri.
 class ApiRoutes {
   // static const String baseUrl = 'https://api.diagora.me';
@@ -35,6 +47,7 @@ class ApiRoutes {
   static const String registerManagerRoute = '/user/registerManager'; // POST
   static const String getUserRolesRoute = '/userRoles'; // GET
   static const String checkSessionRoute = '/session'; // GET
+  static const String userVehicle = '/user/:userId/vehicles'; // GET
 
   // Admin - Utilisateurs
   static const String getAdminUsersRoute = '/admin/users'; // GET
@@ -75,15 +88,19 @@ class ApiRoutes {
   static const String createScheduleRoute = '/schedule/create'; // POST
   static const String getScheduleRoute = '/schedule/get-between-date'; // POST
 
-  // Vehicules
+  // Vehicles
   static const String createVehicleRoute = '/vehicle'; // POST
   static const String updateVehicleRoute = '/vehicle/:vehicle_id'; // PATCH
   static const String deleteVehicleRoute = '/vehicle/:vehicle_id'; // DELETE
   static const String getVehicleRoute = '/vehicle/:vehicle_id'; // GET
   static const String getUserVehiclesRoute = '/vehicles'; // GET
-  static const String getUserCompanyVehiclesRoute = '/user/:id/vehicles'; // GET
+  static const String createVehicleExpense = '/vehicleExpense'; // GET
+  static const String createVehicleExpenseUserIdRoute =
+      '/vehicleExpense/:id'; // GET
+  static const String updateUserVehicleRoute =
+      '/vehicles/:user_id/vehicles/:vehicle_id'; // PATCH
 
-  // Admin - Vehicules
+  // Admin - Vehicles
   static const String createAdminVehicleRoute =
       '/admin/vehicle/:company_id'; // POST
   static const String updateAdminVehicleRoute =
@@ -285,6 +302,8 @@ class ApiService {
     }
   }
 
+//////////////////////////////// ROLES /////////////////////////////////////////
+
   /// Permet de récupérer les permissions d'un utilisateur.
   ///
   /// Prend en paramètre optionnel un [userId] qui est un [int]. Si non spécifié, l'utilisateur connecté sera utilisé.
@@ -368,6 +387,8 @@ class ApiService {
       return (false);
     }
   }
+
+//////////////////////////////// USER //////////////////////////////////////////
 
   /// Permet de récupérer les informations d'un utilisateur.
   ///
@@ -490,6 +511,35 @@ class ApiService {
     }
   }
 
+  Future<List<dynamic>> getUserVehicle(int userId) async {
+    Uri url = ApiRoutes.route(
+        ApiRoutes.userVehicle.replaceAll(':userId', userId.toString()));
+
+    try {
+      Response response = await _httpClient.get(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          "Authorization": "Bearer ${_token!}"
+        },
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        _logger.d(response.body);
+        dynamic responseData = json.decode(response.body);
+        return responseData;
+      } else {
+        _logger.e(
+            "getUserVehicle() failed with status code ${response.statusCode}: ${response.body}");
+        return [];
+      }
+    } catch (e) {
+      _logger.e(e.toString());
+      return [];
+    }
+  }
+
+//////////////////////////////// PASSWORD //////////////////////////////////////
+
   /// Permet changer de mot de passe.
   ///
   /// Prend en paramètre un [email].
@@ -561,46 +611,50 @@ class ApiService {
     }
   }
 
-  /// Takes [DateTime] [begin], [end] as input and returns an output string if the api call succeed.
-  ///
-  /// The[begin], [end] parameter are required and cannot be null.
-  /// The output value will be the shipment date if the call succeed.
-  /// If [response.statusCode] is not 200 or 202, this function will return "false".
-  Future<String> calendarOrders(
-    DateTime begin,
-    DateTime end, {
-    Client? client,
-  }) async {
-    String beginTimeStamp =
-        DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(begin.toLocal());
-    String endTimeStamp =
-        DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(end.toLocal());
-    client ??= _httpClient;
+//////////////////////////////// DOCUMENTS /////////////////////////////////////
 
-    Uri url = ApiRoutes.route(
-        "${ApiRoutes.getOrdersBetweenDatesRoute}?start_date=$beginTimeStamp&end_date=$endTimeStamp");
+  Future<bool> registerNewDocument(
+    int vehiculeId,
+    String title,
+    String description,
+    int price,
+    String picture, {
+    int userId = -1,
+  }) async {
+    // Uri url = ApiRoutes.route(ApiRoutes.createVehicleExpense);
+    Uri url = ApiRoutes.route(ApiRoutes.createVehicleExpenseUserIdRoute
+        .replaceAll(":id", userId.toString()));
 
     try {
-      Response response = await client.get(
+      Response response = await _httpClient.post(
         url,
         headers: {
           'Content-Type': 'application/json',
           "Authorization": "Bearer ${_token!}"
         },
+        body: json.encode({
+          "title": title,
+          "description": description,
+          "amount": price,
+          "vehicle_id": vehiculeId,
+          "picture": picture,
+        }),
       );
-      if (response.statusCode == 200 || response.statusCode == 202) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
         _logger.d(response.body);
-        return (response.body);
+        return Future.value(true);
       } else {
         _logger.e(
-            "calendarOrders() failed with status code ${response.statusCode}: ${response.body}");
-        return "false";
+            "registerNewDocument() failed with status code ${response.statusCode}: ${response.body}");
+        return Future.value(false);
       }
     } catch (e) {
       _logger.e(e.toString());
-      return "false";
+      return Future.value(false);
     }
   }
+
+/////////////////////////////////// MAP  ///////////////////////////////////////
 
   // Function Location to Position
   static Position locationToPosition(Location location) {
@@ -639,6 +693,109 @@ class ApiService {
       }
     } catch (e) {
       _logger.e(e.toString());
+    }
+  }
+
+  /// Takes [DateTime] [begin], [end] as input and returns an output string if the api call succeed.
+  ///
+  /// The[begin], [end] parameter are required and cannot be null.
+  /// The output value will be the shipment date if the call succeed.
+  /// If [response.statusCode] is not 200 or 202, this function will return "false".
+  Future<String> mapItinenaries(
+    DateTime begin,
+    DateTime end, {
+    Client? client,
+  }) async {
+////////////////////////// test
+    // String dateString1 = '2023-06-08 16:00:00.000';
+    // DateTime begin = DateTime.parse(dateString1);
+
+    // String dateString = '2023-06-08 20:00:00.000';
+    // DateTime end = DateTime.parse(dateString);
+////////////////////////// end test
+    client ??= _httpClient;
+
+    String schedule = await getSchedule(begin, end);
+
+    if (schedule == "false" || schedule == "[]") {
+      return "false";
+    }
+    List<dynamic> scheduleData = json.decode(schedule);
+    int itineraryId = -1;
+
+    for (var i = 0; i < scheduleData.length; i++) {
+      if (scheduleData[i]["itinerary_id"] != 0) {
+        itineraryId = scheduleData[i]["itinerary_id"];
+        break;
+      }
+    }
+    if (itineraryId == -1 || itineraryId == 0) {
+      return "false";
+    }
+
+    Uri url = ApiRoutes.route(ApiRoutes.getItineraryRoute
+        .replaceAll(":itinerary_id", itineraryId.toString()));
+    try {
+      Response response = await client.get(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          "Authorization": "Bearer ${_token!}"
+        },
+      );
+      _logger.d(response.statusCode);
+      _logger.d(response.body);
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        return (response.body);
+      } else {
+        return "false";
+      }
+    } catch (e) {
+      _logger.e(e.toString());
+      return "false";
+    }
+  }
+
+/////////////////////////////////// SCHEDULES //////////////////////////////////
+
+  /// Takes [DateTime] [begin], [end] as input and returns an output string if the api call succeed.
+  ///
+  /// The[begin], [end] parameter are required and cannot be null.
+  /// The output value will be the shipment date if the call succeed.
+  /// If [response.statusCode] is not 200 or 202, this function will return "false".
+  Future<String> calendarOrders(
+    DateTime begin,
+    DateTime end, {
+    Client? client,
+  }) async {
+    String beginTimeStamp =
+        DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(begin.toLocal());
+    String endTimeStamp =
+        DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(end.toLocal());
+    client ??= _httpClient;
+
+    Uri url = ApiRoutes.route(
+        "${ApiRoutes.getOrdersBetweenDatesRoute}?start_date=$beginTimeStamp&end_date=$endTimeStamp");
+
+    try {
+      Response response = await client.get(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          "Authorization": "Bearer ${_token!}"
+        },
+      );
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        _logger.d(response.body);
+        return (response.body);
+      } else {
+        _logger.e(
+            "calendarOrders() failed with status code ${response.statusCode}: ${response.body}");
+        return "false";
+      }
+    } catch (e) {
+      _logger.e(e.toString());
+      return "false";
     }
   }
 
@@ -713,66 +870,6 @@ class ApiService {
     } catch (e) {
       _logger.e(e.toString());
       return Future.value("false");
-    }
-  }
-
-  /// Takes [DateTime] [begin], [end] as input and returns an output string if the api call succeed.
-  ///
-  /// The[begin], [end] parameter are required and cannot be null.
-  /// The output value will be the shipment date if the call succeed.
-  /// If [response.statusCode] is not 200 or 202, this function will return "false".
-  Future<String> mapItinenaries(
-    DateTime begin,
-    DateTime end, {
-    Client? client,
-  }) async {
-////////////////////////// test
-    // String dateString1 = '2023-06-08 16:00:00.000';
-    // DateTime begin = DateTime.parse(dateString1);
-
-    // String dateString = '2023-06-08 20:00:00.000';
-    // DateTime end = DateTime.parse(dateString);
-////////////////////////// end test
-    client ??= _httpClient;
-
-    String schedule = await getSchedule(begin, end);
-
-    if (schedule == "false" || schedule == "[]") {
-      return "false";
-    }
-    List<dynamic> scheduleData = json.decode(schedule);
-    int itineraryId = -1;
-
-    for (var i = 0; i < scheduleData.length; i++) {
-      if (scheduleData[i]["itinerary_id"] != 0) {
-        itineraryId = scheduleData[i]["itinerary_id"];
-        break;
-      }
-    }
-    if (itineraryId == -1 || itineraryId == 0) {
-      return "false";
-    }
-
-    Uri url = ApiRoutes.route(ApiRoutes.getItineraryRoute
-        .replaceAll(":itinerary_id", itineraryId.toString()));
-    try {
-      Response response = await client.get(
-        url,
-        headers: {
-          'Content-Type': 'application/json',
-          "Authorization": "Bearer ${_token!}"
-        },
-      );
-      _logger.d(response.statusCode);
-      _logger.d(response.body);
-      if (response.statusCode == 200 || response.statusCode == 202) {
-        return (response.body);
-      } else {
-        return "false";
-      }
-    } catch (e) {
-      _logger.e(e.toString());
-      return "false";
     }
   }
 
@@ -888,7 +985,40 @@ class ApiService {
   //   }
   // }
 
-  Future<dynamic> getMyVehicules({
+/////////////////////////////////// VEHICLES //////////////////////////////////
+//
+
+  Future<void> connectVehicleToUser(
+    int userId,
+    int vehiculeId, {
+    Client? client,
+    bool injectToken = true,
+  }) async {
+    client ??= _httpClient;
+    Uri url = ApiRoutes.route(ApiRoutes.updateUserVehicleRoute
+        .replaceAll(":user_id", userId.toString())
+        .replaceAll(":vehicle_id", vehiculeId.toString()));
+
+    try {
+      Response response = await client.patch(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          "Authorization": "Bearer ${_token!}"
+        },
+      );
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        _logger.d(response.body);
+      } else {
+        _logger.e(
+            "connectVehicleToUser() failed with status code ${response.statusCode}: ${response.body}");
+      }
+    } catch (e) {
+      _logger.e(e.toString());
+    }
+  }
+
+  Future<dynamic> getAllUserVehicles({
     Client? client,
     bool injectToken = true,
   }) async {
@@ -913,7 +1043,7 @@ class ApiService {
         return ([]);
       } else {
         _logger.e(
-            'getVehicules() failed with status code ${response.statusCode}: ${response.body}');
+            'getVehicles() failed with status code ${response.statusCode}: ${response.body}');
         return (false);
       }
     } catch (e) {
@@ -922,7 +1052,7 @@ class ApiService {
     }
   }
 
-  Future<dynamic> getCompanyVehicules({
+  Future<dynamic> getCompanyVehicles({
     Client? client,
     bool injectToken = true,
     required int companyId,
@@ -949,7 +1079,7 @@ class ApiService {
         return ([]);
       } else {
         _logger.e(
-            'getVehicules() failed with status code ${response.statusCode}: ${response.body}');
+            'getVehicles() failed with status code ${response.statusCode}: ${response.body}');
         return (false);
       }
     } catch (e) {
@@ -958,7 +1088,7 @@ class ApiService {
     }
   }
 
-  Future<dynamic> addVehicule({
+  Future<dynamic> addVehicle({
     Client? client,
     bool injectToken = true,
     required int companyId,
@@ -984,7 +1114,7 @@ class ApiService {
         return (responseData);
       } else {
         _logger.e(
-            'addVehicule() failed with status code ${response.statusCode}: ${response.body}');
+            'addVehicle() failed with status code ${response.statusCode}: ${response.body}');
         return (false);
       }
     } catch (e) {
@@ -993,7 +1123,7 @@ class ApiService {
     }
   }
 
-  Future<dynamic> editVehicule({
+  Future<dynamic> editVehicle({
     Client? client,
     bool injectToken = true,
     required int vehiculeId,
@@ -1019,7 +1149,7 @@ class ApiService {
         return (responseData);
       } else {
         _logger.e(
-            'editVehicule() failed with status code ${response.statusCode}: ${response.body}');
+            'editVehicle() failed with status code ${response.statusCode}: ${response.body}');
         return (false);
       }
     } catch (e) {
@@ -1028,7 +1158,7 @@ class ApiService {
     }
   }
 
-  Future<bool> deleteVehicule({
+  Future<bool> deleteVehicle({
     Client? client,
     bool injectToken = true,
     required int vehiculeId,
@@ -1049,7 +1179,7 @@ class ApiService {
         return (true);
       } else {
         _logger.e(
-            'deleteVehicule() failed with status code ${response.statusCode}: ${response.body}');
+            'deleteVehicle() failed with status code ${response.statusCode}: ${response.body}');
         return (false);
       }
     } catch (e) {
@@ -1057,6 +1187,8 @@ class ApiService {
       return false;
     }
   }
+
+/////////////////////////////////// COMPANY ////////////////////////////////////
 
   /// Permet de récupérer toutes les entreprises.
   ///
