@@ -6,6 +6,9 @@ import 'package:diagora/views/settings/others/new_document.dart';
 import 'package:diagora/views/settings/others/view_documents.dart';
 import 'package:diagora/views/settings/others/choose_vehicle.dart';
 
+import 'package:diagora/services/api_service.dart';
+import 'package:diagora/models/role_model.dart';
+
 class SettingsView extends StatefulWidget {
   final Function() logout;
   final Function()? changeRoleView;
@@ -18,6 +21,8 @@ class SettingsView extends StatefulWidget {
 }
 
 class SettingsViewState extends State<SettingsView> {
+  final ApiService _api = ApiService.getInstance();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -93,30 +98,6 @@ class SettingsViewState extends State<SettingsView> {
                 ),
               ),
               const Divider(),
-              ListTile(
-                leading: const Icon(Icons.add),
-                title: const Text('New Document'),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const NewDocument(),
-                    ),
-                  );
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.folder),
-                title: const Text('Documents'),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const ViewDocuments(),
-                    ),
-                  );
-                },
-              ),
               if (widget.changeRoleView != null) ...[
                 ListTile(
                   leading: const Icon(Icons.directions_car),
@@ -125,7 +106,32 @@ class SettingsViewState extends State<SettingsView> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const ChooseVehicleView()
+                          builder: (context) => const ChooseVehicleView()),
+                    );
+                  },
+                ),
+              ],
+              if (Roles.manager == _api.role?.role || Roles.livreur == _api.role?.role) ...[
+                ListTile(
+                  leading: const Icon(Icons.add),
+                  title: const Text('New Document'),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const NewDocument(),
+                      ),
+                    );
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.folder),
+                  title: const Text('Documents'),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ViewDocuments(),
                       ),
                     );
                   },

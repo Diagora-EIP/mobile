@@ -21,6 +21,7 @@ PASSWORD
 DOCUMENTS
 MAP
 SCHEDULES
+CLIENTS
 VEHICLES
 COMPANY
 */
@@ -28,8 +29,8 @@ COMPANY
 /// Classe qui contient toutes les routes de l'API. Utilisez [route] pour créer une Uri.
 class ApiRoutes {
   // static const String baseUrl = 'https://api.diagora.me';
-  static const String baseUrl = 'http://localhost:3000';
-  // static const String baseUrl = 'https://7b0b-135-180-233-204.ngrok-free.app';
+  // static const String baseUrl = 'http://localhost:3000';
+  static const String baseUrl = 'https://2a60-130-212-95-215.ngrok-free.app';
   // static const String baseUrl = 'http://10.143.229.252:3000'; // Android studio test | Put computer IP
 
   // Authentification
@@ -87,6 +88,10 @@ class ApiRoutes {
   // Schedule
   static const String createScheduleRoute = '/schedule/create'; // POST
   static const String getScheduleRoute = '/schedule/get-between-date'; // POST
+
+  // Clients
+  static const String createClientRoute = '/client'; // POST
+  static const String getAllClientByCompanyRoute = '/clients/getAll'; // GET
 
   // Vehicles
   static const String createVehicleRoute = '/vehicle'; // POST
@@ -823,6 +828,7 @@ class ApiService {
           "order_date": deliveryDate,
           "description": name,
           "delivery_address": address,
+          "client_id": 26,
         }),
       );
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -984,6 +990,38 @@ class ApiService {
   //     return false;
   //   }
   // }
+
+
+/////////////////////////////////// CLIENTS ////////////////////////////////////
+
+  Future<dynamic> getAllClients({
+    Client? client,
+    bool injectToken = true,
+  }) async {
+    client ??= _httpClient;
+    Uri url = ApiRoutes.route(ApiRoutes.getAllClientByCompanyRoute);
+    try {
+      Response response = await client.get(
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer ${_token!}"
+        },
+      );
+      if (response.statusCode == 200 || response.statusCode == 202) {
+        dynamic responseData = json.decode(response.body);
+        _logger.i(responseData);
+        return (responseData);
+      } else {
+        _logger.e(
+            'getAllClients() failed with status code ${response.statusCode}: ${response.body}');
+        return (false);
+      }
+    } catch (e) {
+      _logger.e(e.toString());
+      return false;
+    }
+  }
 
 /////////////////////////////////// VEHICLES //////////////////////////////////
 //

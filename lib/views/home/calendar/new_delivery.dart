@@ -19,6 +19,7 @@ class _NewDeliveryState extends State<NewDelivery> {
   final address = TextEditingController();
   late DateTime chosenDate;
   bool isLoading = false;
+  dynamic clientData;
 
   @override
   void dispose() {
@@ -49,7 +50,8 @@ class _NewDeliveryState extends State<NewDelivery> {
               const Offset end = Offset(0.0, 0.0);
               var curve = Curves.easeInOut;
 
-              var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+              var tween =
+                  Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
               var offsetAnimation = animation.drive(tween);
 
               return SlideTransition(
@@ -68,6 +70,10 @@ class _NewDeliveryState extends State<NewDelivery> {
   void initState() {
     super.initState();
     chosenDate = widget.pickedDate;
+
+    _api.getAllClients().then((value) => setState(() {
+          clientData = value;
+        }));
   }
 
   @override
