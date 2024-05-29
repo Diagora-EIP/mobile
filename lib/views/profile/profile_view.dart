@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:diagora/views/auth/register_view.dart';
+import 'package:diagora/views/settings/settings_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:image_picker/image_picker.dart';
@@ -70,6 +72,15 @@ class _ProfileViewState extends State<ProfileView> {
     );
   }
 
+  void logout() {
+    _api.logout();
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => const RegisterView()),
+      (route) => false,
+    );
+  }
+
   String _capitalizeFirstLetter(String input) {
     if (input.isEmpty) {
       return input;
@@ -82,6 +93,18 @@ class _ProfileViewState extends State<ProfileView> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profile'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => SettingsView(logout: logout),
+                  ));
+            },
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Padding(

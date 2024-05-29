@@ -43,9 +43,6 @@ class WrapperViewState extends State<WrapperView> {
         const AdminView(),
         const Statistiques(),
         const ProfileView(),
-        SettingsView(
-          logout: logout,
-        ),
       ]);
       showAdmin = true;
     } else if (_api.role?.role == Roles.manager) {
@@ -55,12 +52,10 @@ class WrapperViewState extends State<WrapperView> {
         const ManageView(),
         const Statistiques(),
         const ProfileView(),
-        SettingsView(logout: logout, changeRoleView: changeRoleView),
       ]);
       _managerTabs.addAll([
         const HomeView(),
         const ProfileView(),
-        SettingsView(logout: logout, changeRoleView: changeRoleView),
       ]);
       showManager = true;
     } else if (_api.role?.role == Roles.livreur) {
@@ -68,9 +63,6 @@ class WrapperViewState extends State<WrapperView> {
       _finalTabs.addAll([
         const HomeView(),
         const ProfileView(),
-        SettingsView(
-          logout: logout,
-        ),
       ]);
       showLivreur = true;
     } else if (_api.role?.role == Roles.client ||
@@ -79,9 +71,6 @@ class WrapperViewState extends State<WrapperView> {
       _finalTabs.addAll([
         const MyPackages(),
         const ProfileView(),
-        SettingsView(
-          logout: logout,
-        ),
       ]);
       showClient = true;
     }
@@ -91,15 +80,6 @@ class WrapperViewState extends State<WrapperView> {
   void initState() {
     super.initState();
     initViews();
-  }
-
-  void logout() {
-    _api.logout();
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (context) => const RegisterView()),
-      (route) => false,
-    );
   }
 
   void changeRoleView() {
@@ -134,15 +114,15 @@ class WrapperViewState extends State<WrapperView> {
                   },
                 ),
             } else ...{
-            for (final tab in _finalTabs)
-              Navigator(
-                key: ValueKey(tab),
-                onGenerateRoute: (RouteSettings settings) {
-                  return MaterialPageRoute(builder: (BuildContext context) {
-                    return tab;
-                  });
-                },
-              ),
+              for (final tab in _finalTabs)
+                Navigator(
+                  key: ValueKey(tab),
+                  onGenerateRoute: (RouteSettings settings) {
+                    return MaterialPageRoute(builder: (BuildContext context) {
+                      return tab;
+                    });
+                  },
+                ),
             }
           ],
         ),
@@ -207,10 +187,6 @@ class WrapperViewState extends State<WrapperView> {
             const BottomNavigationBarItem(
               icon: Icon(Icons.person),
               label: 'Profile',
-            ),
-            const BottomNavigationBarItem(
-              icon: Icon(Icons.settings),
-              label: 'Settings',
             ),
           ],
         ),
