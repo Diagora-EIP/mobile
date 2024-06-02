@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import 'package:diagora/views/home/map/map.dart';
 import 'package:diagora/services/api_service.dart';
-import 'package:diagora/views/home/order/order_view.dart';
 import 'package:diagora/views/home/calendar/calendar.dart';
 
 import 'package:intl/intl.dart';
@@ -128,15 +127,6 @@ class _HomeViewState extends State<HomeView> with WidgetsBindingObserver {
                   MaterialPageRoute(
                       builder: (context) =>
                           MapPage(userId: userData['user_id'])));
-            }),
-            _buildNavigationButton("Orders", () async {
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const OrderView(),
-                ),
-                (route) => false,
-              );
             }),
           ],
         ),

@@ -1,3 +1,4 @@
+import 'package:diagora/views/home/order/order_view.dart';
 import 'package:flutter/material.dart';
 
 import 'package:diagora/services/api_service.dart';
@@ -40,8 +41,8 @@ class WrapperViewState extends State<WrapperView> {
       // Si l'utilisateur est un admin
       _finalTabs.addAll([
         const HomeView(),
+        const OrderView(),
         const AdminView(),
-        const Statistiques(),
         const ProfileView(),
       ]);
       showAdmin = true;
@@ -49,8 +50,7 @@ class WrapperViewState extends State<WrapperView> {
       // Si l'utilisateur est un manager
       _finalTabs.addAll([
         const HomeView(),
-        const ManageView(),
-        const Statistiques(),
+        const OrderView(),
         const ProfileView(),
       ]);
       _managerTabs.addAll([
@@ -62,6 +62,7 @@ class WrapperViewState extends State<WrapperView> {
       // Si l'utilisateur est un livreur
       _finalTabs.addAll([
         const HomeView(),
+        const OrderView(),
         const ProfileView(),
       ]);
       showLivreur = true;
@@ -145,12 +146,12 @@ class WrapperViewState extends State<WrapperView> {
                 label: 'Home',
               ),
               const BottomNavigationBarItem(
-                icon: Icon(Icons.admin_panel_settings),
-                label: 'Admin',
+                icon: Icon(Icons.assignment),
+                label: 'Order',
               ),
               const BottomNavigationBarItem(
-                icon: Icon(Icons.bar_chart),
-                label: 'statistics',
+                icon: Icon(Icons.admin_panel_settings),
+                label: 'admin',
               ),
             ],
             if (showManager) ...[
@@ -161,12 +162,12 @@ class WrapperViewState extends State<WrapperView> {
               ),
               if (managerView) ...[
                 const BottomNavigationBarItem(
-                  icon: Icon(Icons.manage_accounts),
-                  label: 'Manage',
+                  icon: Icon(Icons.assignment),
+                  label: 'Order',
                 ),
                 const BottomNavigationBarItem(
-                  icon: Icon(Icons.bar_chart),
-                  label: 'statistics',
+                  icon: Icon(Icons.person),
+                  label: 'Manage',
                 ),
               ],
             ],
@@ -175,6 +176,10 @@ class WrapperViewState extends State<WrapperView> {
               const BottomNavigationBarItem(
                 icon: Icon(Icons.home),
                 label: 'Home',
+              ),
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.assignment),
+                label: 'Order',
               ),
             ],
             if (showClient) ...[
