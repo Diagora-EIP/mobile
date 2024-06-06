@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-
 import 'package:diagora/services/api_service.dart';
 import 'package:diagora/models/user_model.dart';
 import 'package:diagora/views/admin/users/user/user_view.dart';
+import 'package:diagora/models/role_model.dart';
+import 'package:diagora/models/company_model.dart';
+import 'package:diagora/views/admin/users/user_creation_dialog.dart';
 
 class UsersView extends StatefulWidget {
   const UsersView({
@@ -33,7 +35,8 @@ class UsersViewState extends State<UsersView> {
       if (users != null) {
         setState(() {
           this.users = users;
-          this.users.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+          this.users.sort(
+              (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
           filteredUsers = this.users;
           loading = false;
         });
@@ -41,11 +44,45 @@ class UsersViewState extends State<UsersView> {
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('An error occured while fetching users.'),
+            content: Text('An error occurred while fetching users.'),
             duration: Duration(seconds: 2),
           ),
         );
       }
+    });
+  }
+
+  void deleteUser(User user) {
+    setState(() {
+      users.remove(user);
+      filteredUsers.remove(user);
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('${user.name} has been deleted.'),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void createUser(
+      String email, String name, List<Role> roles, Company company) {
+    _apiService.createAdminUser(email, name, roles, company).then((_) {
+      fetchUsers();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('User created successfully.'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }).catchError((error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('An error occurred: $error'),
+          duration: const Duration(seconds: 2),
+        ),
+      );
     });
   }
 
@@ -61,7 +98,7 @@ class UsersViewState extends State<UsersView> {
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (loading == false) ...[
+              if (!loading) ...[
                 if (users.isNotEmpty) ...[
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
@@ -78,8 +115,12 @@ class UsersViewState extends State<UsersView> {
                           filteredUsers = users
                               .where(
                                 (user) =>
-                                    user.name.toLowerCase().contains(value.toLowerCase()) ||
-                                    user.email.toLowerCase().contains(value.toLowerCase()),
+                                    user.name
+                                        .toLowerCase()
+                                        .contains(value.toLowerCase()) ||
+                                    user.email
+                                        .toLowerCase()
+                                        .contains(value.toLowerCase()),
                               )
                               .toList();
                         });
@@ -97,9 +138,11 @@ class UsersViewState extends State<UsersView> {
                   ),
                 ],
                 for (User user in filteredUsers) ...[
-                  // If the user's name starts with a new character, a header row with the character is created
                   if (users.indexOf(user) == 0 ||
-                      user.name[0].toLowerCase() != users[users.indexOf(user) - 1].name[0].toLowerCase()) ...[
+                      user.name[0].toLowerCase() !=
+                          users[users.indexOf(user) - 1]
+                              .name[0]
+                              .toLowerCase()) ...[
                     if (users.indexOf(user) != 0) ...[
                       const SizedBox(height: 10),
                     ],
@@ -116,16 +159,32 @@ class UsersViewState extends State<UsersView> {
                     ),
                   ],
                   const Divider(),
-                  ListTile(
+                  Dismissible(
+                    key: Key(
+                        user.id.toString()), // assuming User has a unique id
+                    direction: DismissDirection.endToStart,
+                    onDismissed: (direction) {
+                      deleteUser(user);
+                    },
+                    background: Container(
+                      color: Colors.red,
+                      alignment: Alignment.centerRight,
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: const Icon(
+                        Icons.delete,
+                        color: Colors.white,
+                      ),
+                    ),
+                    child: ListTile(
                       title: Text(user.name),
                       subtitle: Text(user.email),
-                      leading: // Avatar
-                          CircleAvatar(
+                      leading: CircleAvatar(
                         backgroundColor: Colors.grey,
                         child: Text(
                           user.name.length == 1
                               ? user.name.toUpperCase()
-                              : user.name[0].toUpperCase() + user.name[1].toUpperCase(),
+                              : user.name[0].toUpperCase() +
+                                  user.name[1].toUpperCase(),
                           style: const TextStyle(color: Colors.white),
                         ),
                       ),
@@ -136,7 +195,9 @@ class UsersViewState extends State<UsersView> {
                             builder: (context) => UserView(user: user),
                           ),
                         );
-                      }),
+                      },
+                    ),
+                  ),
                 ],
               ] else ...[
                 const SizedBox(height: 60),
@@ -147,6 +208,19 @@ class UsersViewState extends State<UsersView> {
             ],
           ),
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return UserCreationDialog(
+                onCreate: createUser,
+              );
+            },
+          );
+        },
+        child: const Icon(Icons.add),
       ),
     );
   }

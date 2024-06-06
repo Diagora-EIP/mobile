@@ -56,6 +56,7 @@ class ApiRoutes {
   static const String getAdminUserRolesRoute = '/admin/userRoles/:id'; // GET
   static const String updateAdminUserRolesRoute =
       '/admin/userRoles/:id'; // PATCH
+  static const String createAdminUserRoute = "/admin/user";
 
   // Entreprises
   static const String getCompanyRoute = '/company'; // GET
@@ -1396,5 +1397,31 @@ class ApiService {
       _logger.e(e.toString());
       return (false);
     }
+  }
+
+  Future<dynamic> createAdminUser(
+    String email,
+    String name,
+    List<Role> roles,
+    Company company,
+  ) {
+    Uri url = ApiRoutes.route(ApiRoutes.createAdminUserRoute);
+    return _httpClient.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        "Authorization": "Bearer ${_token!}"
+      },
+      body: json.encode({
+        "email": email,
+        "name": name,
+        "roles": roles
+            .map((e) => e.toJson())
+            .toList()
+            .map((e) => e["name"])
+            .toList(),
+        "company_id": company.id,
+      }),
+    );
   }
 }
