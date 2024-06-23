@@ -56,7 +56,8 @@ class ApiRoutes {
   static const String getAdminUserRolesRoute = '/admin/userRoles/:id'; // GET
   static const String updateAdminUserRolesRoute =
       '/admin/userRoles/:id'; // PATCH
-  static const String createAdminUserRoute = "/admin/user";
+  static const String createAdminUserRoute = "/admin/user"; // POST
+  static const String deleteAdminUserRoute = "/admin/user/:id"; // DELETE
 
   // Entreprises
   static const String getCompanyRoute = '/company'; // GET
@@ -1423,5 +1424,33 @@ class ApiService {
         "company_id": company.id,
       }),
     );
+  }
+
+  Future<bool> deleteAdminUser({
+    required int userId,
+  }) async {
+    Uri url = ApiRoutes.route(
+        ApiRoutes.deleteAdminUserRoute.replaceAll(":id", userId.toString()));
+    _logger.d(url);
+    try {
+      Response response = await _httpClient.delete(
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer ${_token!}"
+        },
+      );
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        _logger.i(response.body);
+        return (true);
+      } else {
+        _logger.e(
+            'deleteUser() failed with status code ${response.statusCode}: ${response.body}');
+        return (false);
+      }
+    } catch (e) {
+      _logger.e(e.toString());
+      return false;
+    }
   }
 }

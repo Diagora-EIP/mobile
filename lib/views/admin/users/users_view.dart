@@ -54,6 +54,7 @@ class UsersViewState extends State<UsersView> {
 
   void deleteUser(User user) {
     setState(() {
+      _apiService.deleteAdminUser(userId: user.id);
       users.remove(user);
       filteredUsers.remove(user);
     });

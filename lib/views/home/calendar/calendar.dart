@@ -1,4 +1,7 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
@@ -11,6 +14,9 @@ import 'package:diagora/views/home/home.dart';
 import 'package:diagora/models/role_model.dart';
 import 'package:diagora/services/api_service.dart';
 import 'package:diagora/views/home/calendar/new_delivery.dart';
+
+import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' as mapbox;
+import 'package:permission_handler/permission_handler.dart';
 
 import 'dart:math';
 import 'dart:convert';
@@ -323,21 +329,90 @@ class ItemDetailsPage extends StatefulWidget {
 }
 
 class _ItemDetailsPageState extends State<ItemDetailsPage> {
-  LatLng coord = LatLng(0, 0);
+  Map<dynamic, double> coord = {};
+  mapbox.MapboxMap? mapboxMap;
+  mapbox.PointAnnotationManager? pointAnnotationManager;
 
-  Future<LatLng> fetchCoordinates(String givenAddress) async {
+  String publicToken = const String.fromEnvironment("MAPBOX_PUBLIC_TOKEN");
+
+  Future<Map<dynamic, double>> fetchCoordinates(String givenAddress) async {
     final address = givenAddress;
     try {
       final coordinates = await getCoordinates(address);
-
-      final latitude = coordinates['lat'];
-      final longitude = coordinates['long'];
-      return LatLng(latitude!, longitude!);
+      _addMarkers(coordinates);
+      Future.delayed(const Duration(milliseconds: 1000), () async {});
+      return coordinates;
     } catch (e) {
       // ignore: avoid_print
       print('Error fetching coordinates: $e');
     }
-    return LatLng(0, 0);
+    return {};
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    if (publicToken.isEmpty) {
+      throw Exception(
+          'Mapbox public token is required to use Mapbox maps. Please add it to your environment variables.');
+    }
+    fetchCoordinates(widget.scheduleList["order"]["delivery_address"]);
+  }
+
+  void _addMarkers(dynamic coordinates) async {
+    if (mapboxMap != null) {
+      pointAnnotationManager =
+          await mapboxMap!.annotations.createPointAnnotationManager();
+
+      final ByteData bytes =
+          await rootBundle.load('assets/images/marker-icon.png');
+      final Uint8List list = bytes.buffer.asUint8List();
+
+      var option = mapbox.PointAnnotationOptions(
+        geometry: mapbox.Point(
+          coordinates: mapbox.Position(
+            coordinates['long'],
+            coordinates['lat'],
+          ),
+        ).toJson(),
+        image: list,
+        iconSize: 0.10,
+      );
+
+      pointAnnotationManager?.create(option);
+    }
+  }
+
+  void _onMapCreated(mapbox.MapboxMap controller) async {
+    mapboxMap = controller;
+
+    // Add markers once map is ready
+    _addMarkers(coord);
+
+    // Show user location
+    mapboxMap?.location.updateSettings(mapbox.LocationComponentSettings(
+      enabled: true,
+      showAccuracyRing: true,
+      pulsingEnabled: true,
+      puckBearingEnabled: true,
+    ));
+
+    // Fly to the position
+    _flyToPosition(position: mapbox.Position(coord['long']!, coord['lat']!));
+  }
+
+  void _flyToPosition({required mapbox.Position position}) async {
+    mapboxMap?.flyTo(
+        mapbox.CameraOptions(
+          center: mapbox.Point(
+            coordinates: position,
+          ).toJson(),
+          zoom: 10,
+          bearing: 0,
+          pitch: 3,
+        ),
+        mapbox.MapAnimationOptions(duration: 2000, startDelay: 0));
   }
 
   @override
@@ -351,7 +426,7 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
           ),
         ),
       ),
-      body: FutureBuilder<LatLng>(
+      body: FutureBuilder<Map<dynamic, double>>(
         future:
             fetchCoordinates(widget.scheduleList["order"]["delivery_address"]),
         builder: (context, snapshot) {
@@ -371,90 +446,12 @@ class _ItemDetailsPageState extends State<ItemDetailsPage> {
               ),
             );
           } else {
-            coord = snapshot.data!;
-            const zoomLevel = 10.0; // Adjust the zoom level as desired
-
-            return Center(
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Text(
-                        widget.scheduleList["order"]["description"]
-                            .toUpperCase(),
-                        style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        widget.scheduleList["order"]["delivery_address"],
-                        style: const TextStyle(fontSize: 18),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            DateFormat('hh:mm aaa').format(DateTime.parse(
-                                widget.scheduleList["order"]["order_date"])),
-                            style: const TextStyle(fontSize: 18),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(width: 8),
-                          const Icon(
-                            Icons.arrow_forward,
-                            size: 18,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            DateFormat('hh:mm aaa').format(DateTime.parse(
-                                widget.scheduleList["order"]["order_date"])),
-                            style: const TextStyle(fontSize: 18),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
-                      ),
-                      SizedBox(
-                        height: 400,
-                        child: FlutterMap(
-                          options: MapOptions(
-                            center: coord,
-                            zoom: zoomLevel,
-                          ),
-                          children: [
-                            TileLayer(
-                              urlTemplate:
-                                  'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                              userAgentPackageName: 'com.example.app',
-                            ),
-                            MarkerLayer(
-                              markers: [
-                                Marker(
-                                  width: 80.0,
-                                  height: 80.0,
-                                  point: coord,
-                                  builder: (ctx) => const Icon(
-                                    Icons.place,
-                                    color: Colors.black,
-                                    size: 48,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+            coord = snapshot.data!; // Adjust the zoom level as desired
+            return mapbox.MapWidget(
+              resourceOptions: mapbox.ResourceOptions(
+                accessToken: publicToken,
               ),
+              onMapCreated: _onMapCreated,
             );
           }
         },
