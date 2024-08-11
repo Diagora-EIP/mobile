@@ -113,46 +113,41 @@ class SettingsViewState extends State<SettingsView> {
                 ),
               ),
               const Divider(),
-              if (widget.changeRoleView != null) ...[
-                ListTile(
-                  leading: const Icon(Icons.directions_car),
-                  title: const Text('Choose vehicule'),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const ChooseVehicleView()),
-                    );
-                  },
-                ),
-              ],
-              if (Roles.manager == _api.role?.role ||
-                  Roles.livreur == _api.role?.role) ...[
-                ListTile(
-                  leading: const Icon(Icons.add),
-                  title: const Text('New Document'),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const NewDocument(),
-                      ),
-                    );
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.folder),
-                  title: const Text('Documents'),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const ViewDocuments(),
-                      ),
-                    );
-                  },
-                ),
-              ],
+              ListTile(
+                leading: const Icon(Icons.directions_car),
+                title: const Text('Choose vehicule'),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const ChooseVehicleView()),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.add),
+                title: const Text('New Document'),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const NewDocument(),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.folder),
+                title: const Text('Documents'),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ViewDocuments(),
+                    ),
+                  );
+                },
+              ),
               ListTile(
                 leading: const Icon(Icons.logout, color: Colors.red),
                 title: const Text(

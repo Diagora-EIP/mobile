@@ -19,9 +19,12 @@ import 'package:diagora/services/api_service.dart';
 
 class MapPage extends StatefulWidget {
   final int userId;
-  const MapPage({
+  DateTime? date;
+
+  MapPage({
     Key? key,
     required this.userId,
+    this.date,
   }) : super(key: key);
 
   @override
@@ -61,6 +64,11 @@ class MapPageState extends State<MapPage> {
   }
 
   void _fetch() async {
+    if (widget.date != null) {
+      currentDate = widget.date!;
+    } else {
+      currentDate = DateTime.now();
+    }
     var date = currentDate;
     var dateStart = DateTime(date.year, date.month, date.day, 0, 0, 1);
     var dateEnd = DateTime(date.year, date.month, date.day, 23, 59, 59);
@@ -460,7 +468,6 @@ class MapPageState extends State<MapPage> {
       throw Exception("MAPBOX_PUBLIC_TOKEN is not set");
     }
     Permission.locationWhenInUse.request();
-    currentDate = DateTime.now();
     _fetch();
     _getVehicles();
   }

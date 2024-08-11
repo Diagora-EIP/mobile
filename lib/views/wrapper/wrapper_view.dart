@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import 'package:diagora/services/api_service.dart';
 
+import 'package:diagora/views/home/calendar/calendar.dart';
 import 'package:diagora/views/home/home.dart';
 import 'package:diagora/views/stats/stats.dart';
 import 'package:diagora/models/role_model.dart';
@@ -40,7 +41,7 @@ class WrapperViewState extends State<WrapperView> {
     if (_api.role?.role == Roles.admin) {
       // Si l'utilisateur est un admin
       _finalTabs.addAll([
-        const HomeView(),
+        const CalendarView(),
         const OrderView(),
         const AdminView(),
         const ProfileView(),
@@ -49,19 +50,19 @@ class WrapperViewState extends State<WrapperView> {
     } else if (_api.role?.role == Roles.manager) {
       // Si l'utilisateur est un manager
       _finalTabs.addAll([
-        const HomeView(),
+        const CalendarView(),
         const OrderView(),
         const ProfileView(),
       ]);
       _managerTabs.addAll([
-        const HomeView(),
+        const CalendarView(),
         const ProfileView(),
       ]);
       showManager = true;
     } else if (_api.role?.role == Roles.livreur) {
       // Si l'utilisateur est un livreur
       _finalTabs.addAll([
-        const HomeView(),
+        const CalendarView(),
         const OrderView(),
         const ProfileView(),
       ]);
@@ -142,28 +143,28 @@ class WrapperViewState extends State<WrapperView> {
             if (showAdmin) ...[
               // Si l'utilisateur est un admin
               const BottomNavigationBarItem(
-                icon: Icon(Icons.home),
-                label: 'Home',
+                icon: Icon(Icons.calendar_today),
+                label: 'Calendrier',
               ),
               const BottomNavigationBarItem(
                 icon: Icon(Icons.assignment),
-                label: 'Order',
+                label: 'Commandes',
               ),
               const BottomNavigationBarItem(
                 icon: Icon(Icons.admin_panel_settings),
-                label: 'admin',
+                label: 'Admin',
               ),
             ],
             if (showManager) ...[
               // Si l'utilisateur est un manager
               const BottomNavigationBarItem(
-                icon: Icon(Icons.home),
-                label: 'Home',
+                icon: Icon(Icons.calendar_today),
+                label: 'Calendrier',
               ),
               if (managerView) ...[
                 const BottomNavigationBarItem(
                   icon: Icon(Icons.assignment),
-                  label: 'Order',
+                  label: 'Commandes',
                 ),
                 const BottomNavigationBarItem(
                   icon: Icon(Icons.person),
@@ -174,8 +175,8 @@ class WrapperViewState extends State<WrapperView> {
             if (showLivreur) ...[
               // Si l'utilisateur est un livreur
               const BottomNavigationBarItem(
-                icon: Icon(Icons.home),
-                label: 'Home',
+                icon: Icon(Icons.calendar_today),
+                label: 'Calendrier',
               ),
               const BottomNavigationBarItem(
                 icon: Icon(Icons.assignment),
@@ -191,7 +192,7 @@ class WrapperViewState extends State<WrapperView> {
             ],
             const BottomNavigationBarItem(
               icon: Icon(Icons.person),
-              label: 'Profile',
+              label: 'Profil',
             ),
           ],
         ),

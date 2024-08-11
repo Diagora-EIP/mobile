@@ -14,6 +14,7 @@ import 'package:diagora/views/home/home.dart';
 import 'package:diagora/models/role_model.dart';
 import 'package:diagora/services/api_service.dart';
 import 'package:diagora/views/home/calendar/new_delivery.dart';
+import 'package:diagora/views/home/map/map.dart';
 
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' as mapbox;
 import 'package:permission_handler/permission_handler.dart';
@@ -36,6 +37,7 @@ class _CalendarViewState extends State<CalendarView> {
   List<dynamic> scheduleList = [];
   bool deliveryToday = true;
   bool isLoading = false;
+  late DateTime focusDay = today;
 
   @override
   void initState() {
@@ -45,8 +47,11 @@ class _CalendarViewState extends State<CalendarView> {
 
   // Needs to have the same parameters as the function onDaySelected [DateTime day, DateTime focusDay]
   void _onDaySelected(DateTime day, DateTime focusDay) {
+    print('Selected day: $day');
+    print('Focus day: $focusDay');
     if (mounted) {
       setState(() {
+        this.focusDay = focusDay;
         isLoading = true;
       });
     }
@@ -99,6 +104,21 @@ class _CalendarViewState extends State<CalendarView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton:
+          _api.role?.role == Roles.manager || _api.role?.role == Roles.admin
+              ? FloatingActionButton(
+                  child: const Icon(Icons.add),
+                  onPressed: () {
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => NewDelivery(pickedDate: today),
+                      ),
+                      (route) => false,
+                    );
+                  },
+                )
+              : const SizedBox(),
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -130,20 +150,15 @@ class _CalendarViewState extends State<CalendarView> {
         ),
         title: const Text('Calendar'),
         actions: <Widget>[
-          _api.role?.role == Roles.manager || _api.role?.role == Roles.admin
-              ? IconButton(
-                  icon: const Icon(Icons.add),
-                  onPressed: () {
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => NewDelivery(pickedDate: today),
-                      ),
-                      (route) => false,
-                    );
-                  },
-                )
-              : const SizedBox(),
+          IconButton(
+            icon: const Icon(Icons.today),
+            onPressed: () {
+              setState(() {
+                today = DateTime.now();
+                _onDaySelected(today, today);
+              });
+            },
+          ),
         ],
       ),
       body: Column(
@@ -169,35 +184,20 @@ class _CalendarViewState extends State<CalendarView> {
             },
             onDaySelected: _onDaySelected,
           ),
-          Container(
-            margin: const EdgeInsets.only(top: 10.0, bottom: 10.0),
-            child: Text(
-              "On ${DateFormat('EEEE, MMM d, yyyy').format(today)}",
-              style: const TextStyle(
-                fontSize: 16,
-              ),
-            ),
-          ),
-          CupertinoButton(
-            color: Theme.of(context).primaryColor,
-            onPressed: () => {
-              if (today.day != DateTime.now().day ||
-                  today.month != DateTime.now().month ||
-                  today.year != DateTime.now().year)
-                {
-                  setState(() {
-                    today = DateTime.now();
-                    _onDaySelected(today, today);
-                  })
-                }
+          //button to see the map with delivery map
+          ElevatedButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => MapPage(
+                    userId: _api.user!.id,
+                    date: today,
+                  ),
+                ),
+              );
             },
-            child: const Text(
-              "Back to Today",
-              style: TextStyle(
-                fontSize: 18,
-                color: Colors.white,
-              ),
-            ),
+            child: const Text('Voir la carte des livraisons'),
           ),
           Expanded(
               child: isLoading
