@@ -26,7 +26,6 @@ class CalendarView extends StatefulWidget {
   const CalendarView({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
   _CalendarViewState createState() => _CalendarViewState();
 }
 
@@ -34,120 +33,77 @@ class _CalendarViewState extends State<CalendarView> {
   final ApiService _api = ApiService.getInstance();
   CalendarFormat _calendarFormat = CalendarFormat.month;
   DateTime today = DateTime.now();
-  List<dynamic> scheduleList = [];
-  bool deliveryToday = true;
   bool isLoading = false;
   late DateTime focusDay = today;
+  Map<DateTime, List<dynamic>> ordersByDay = {};
+  Set<DateTime> daysWithOrders = {};
 
   @override
   void initState() {
     super.initState();
-    _onDaySelected(today, today);
+    // Charger les commandes pour le mois actuel
+    _fetchOrdersForMonth(today);
   }
 
-  // Needs to have the same parameters as the function onDaySelected [DateTime day, DateTime focusDay]
-  void _onDaySelected(DateTime day, DateTime focusDay) {
-    print('Selected day: $day');
-    print('Focus day: $focusDay');
-    if (mounted) {
-      setState(() {
-        this.focusDay = focusDay;
-        isLoading = true;
-      });
-    }
-
-    DateTime chosenStart =
-        DateTime(focusDay.year, focusDay.month, focusDay.day, 1);
-    DateTime chosenEnd =
-        DateTime(focusDay.year, focusDay.month, focusDay.day, 23);
-    Future<String> allTodaysValues = _api.getSchedule(chosenStart, chosenEnd);
-
-    allTodaysValues.then((value) {
-      if (mounted) {
-        setState(() {
-          isLoading = false;
-        });
-      }
-      // No delivery for today
-      if (value == "[]") {
-        if (mounted) {
-          setState(() {
-            deliveryToday = false;
-          });
-        }
-      } else {
-        // There is delivery for today
-        if (mounted) {
-          setState(() {
-            scheduleList = json.decode(value);
-            scheduleList.sort((a, b) {
-              return a["order"]["order_date"]
-                  .compareTo(b["order"]["order_date"]);
-            });
-            deliveryToday = true;
-          });
-        }
-      }
-    }).catchError((error) {
-      setState(() {
-        deliveryToday = false;
-      });
+  Future<void> _fetchOrdersForMonth(DateTime month) async {
+    setState(() {
+      isLoading = true;
     });
-    // Change the variable today to the day selected
-    if (mounted) {
+
+    DateTime firstDayOfMonth = DateTime(month.year, month.month, 1);
+    DateTime lastDayOfMonth = DateTime(month.year, month.month + 1, 0);
+
+    try {
+      String response = await _api.getSchedule(firstDayOfMonth, lastDayOfMonth);
       setState(() {
-        today = focusDay;
+        ordersByDay.clear();
+        daysWithOrders.clear();
+        List<dynamic> orders = json.decode(response);
+
+        for (var order in orders) {
+          DateTime orderDate = DateTime.parse(order["order"]["order_date"]);
+
+          // Normalisez la date pour exclure l'heure
+          DateTime key =
+              DateTime(orderDate.year, orderDate.month, orderDate.day);
+
+          if (ordersByDay.containsKey(key)) {
+            ordersByDay[key]!.add(order);
+          } else {
+            ordersByDay[key] = [order];
+          }
+          daysWithOrders.add(key);
+        }
+        isLoading = false; // Arrête le chargement ici
       });
+    } catch (e) {
+      setState(() {
+        isLoading = false; // Arrête le chargement en cas d'erreur
+      });
+      print("Exception occurred: $e");
+    }
+  }
+
+  void _onDaySelected(DateTime selectedDay, DateTime focusedDay) {
+    setState(() {
+      today = DateTime(selectedDay.year, selectedDay.month, selectedDay.day);
+      this.focusDay = focusedDay;
+    });
+
+    // Mettez à jour l'affichage après avoir sélectionné un jour
+    if (ordersByDay.containsKey(today)) {
+      setState(() {
+        // Vous pouvez ajouter une logique pour gérer les événements ici si nécessaire
+      });
+    } else {
+      print("No data for this day.");
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButton:
-          _api.role?.role == Roles.manager || _api.role?.role == Roles.admin
-              ? FloatingActionButton(
-                  child: const Icon(Icons.add),
-                  onPressed: () {
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => NewDelivery(pickedDate: today),
-                      ),
-                      (route) => false,
-                    );
-                  },
-                )
-              : const SizedBox(),
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pushAndRemoveUntil(
-              context,
-              PageRouteBuilder(
-                pageBuilder: (context, animation, secondaryAnimation) =>
-                    const HomeView(),
-                transitionsBuilder:
-                    (context, animation, secondaryAnimation, child) {
-                  const Offset begin = Offset(-1.0, 0.0);
-                  const Offset end = Offset(0.0, 0.0);
-                  var curve = Curves.easeInOut;
-
-                  var tween = Tween(begin: begin, end: end)
-                      .chain(CurveTween(curve: curve));
-                  var offsetAnimation = animation.drive(tween);
-
-                  return SlideTransition(
-                    position: offsetAnimation,
-                    child: child,
-                  );
-                },
-              ),
-              (route) => false,
-            );
-          },
-        ),
         title: const Text('Calendar'),
         actions: <Widget>[
           IconButton(
@@ -155,6 +111,7 @@ class _CalendarViewState extends State<CalendarView> {
             onPressed: () {
               setState(() {
                 today = DateTime.now();
+                _fetchOrdersForMonth(today);
                 _onDaySelected(today, today);
               });
             },
@@ -171,7 +128,7 @@ class _CalendarViewState extends State<CalendarView> {
             availableGestures: AvailableGestures.all,
             selectedDayPredicate: (day) => isSameDay(day, today),
             startingDayOfWeek: StartingDayOfWeek.monday,
-            focusedDay: today,
+            focusedDay: focusDay,
             firstDay: DateTime.utc(2010, 10, 16),
             lastDay: DateTime.utc(2030, 3, 15),
             calendarFormat: _calendarFormat,
@@ -183,8 +140,36 @@ class _CalendarViewState extends State<CalendarView> {
               }
             },
             onDaySelected: _onDaySelected,
+            onPageChanged: (focusedDay) {
+              setState(() {
+                this.focusDay = focusedDay;
+              });
+              _fetchOrdersForMonth(focusedDay);
+            },
+            eventLoader: (day) {
+              // Normalisez la date de la même manière
+              DateTime normalizedDay = DateTime(day.year, day.month, day.day);
+              return ordersByDay[normalizedDay] ?? [];
+            },
+            calendarBuilders: CalendarBuilders(
+              markerBuilder: (context, date, events) {
+                if (events.isNotEmpty) {
+                  return Positioned(
+                    bottom: 1,
+                    child: Container(
+                      width: 8.0,
+                      height: 8.0,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  );
+                }
+                return null;
+              },
+            ),
           ),
-          //button to see the map with delivery map
           ElevatedButton(
             onPressed: () {
               Navigator.push(
@@ -200,33 +185,25 @@ class _CalendarViewState extends State<CalendarView> {
             child: const Text('Voir la carte des livraisons'),
           ),
           Expanded(
-              child: isLoading
-                  ? const Center(
-                      child: CircularProgressIndicator(),
-                    )
-                  : deliveryToday
-                      ? MyListWidget(scheduleList: scheduleList, chosen: today)
-                      : const Center(
-                          child: Text(
-                            "No delivery for today",
-                            style: TextStyle(
-                              fontSize: 20,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ))
+            child: ordersByDay[today]?.isNotEmpty ?? false
+                ? MyListWidget(
+                    scheduleList: ordersByDay[today]!,
+                    chosen: today,
+                  )
+                : const Center(
+                    child: Text(
+                      "No delivery for today",
+                      style: TextStyle(fontSize: 20),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+          ),
         ],
       ),
     );
   }
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
 }
 
-// ignore: must_be_immutable
 class MyListWidget extends StatelessWidget {
   final List<dynamic> scheduleList;
   DateTime chosen;
@@ -290,6 +267,8 @@ class MyListWidget extends StatelessWidget {
     );
   }
 }
+
+// The rest of your code for fetching coordinates and displaying map markers remains unchanged.
 
 Future<Map<String, double>> getCoordinates(String address) async {
   Map<String, double> locationMap = {'lat': 0.0, 'long': 0.0};
