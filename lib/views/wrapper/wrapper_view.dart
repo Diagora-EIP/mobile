@@ -1,3 +1,4 @@
+import 'package:diagora/components/vehicles.dart';
 import 'package:diagora/views/home/order/order_view.dart';
 import 'package:flutter/material.dart';
 
@@ -13,6 +14,7 @@ import 'package:diagora/views/manage/manage_view.dart';
 import 'package:diagora/views/profile/profile_view.dart';
 import 'package:diagora/views/my_package/my_package.dart';
 import 'package:diagora/views/settings/settings_view.dart';
+import 'package:diagora/views/home/vehicle/vehicle.dart';
 
 class WrapperView extends StatefulWidget {
   const WrapperView({
@@ -43,6 +45,7 @@ class WrapperViewState extends State<WrapperView> {
       _finalTabs.addAll([
         const CalendarView(),
         const OrderView(),
+        const VehicleView(),
         const AdminView(),
         const ProfileView(),
       ]);
@@ -52,10 +55,12 @@ class WrapperViewState extends State<WrapperView> {
       _finalTabs.addAll([
         const CalendarView(),
         const OrderView(),
+        const VehicleView(),
         const ProfileView(),
       ]);
       _managerTabs.addAll([
         const CalendarView(),
+        const VehicleView(),
         const ProfileView(),
       ]);
       showManager = true;
@@ -64,6 +69,7 @@ class WrapperViewState extends State<WrapperView> {
       _finalTabs.addAll([
         const CalendarView(),
         const OrderView(),
+        const VehicleView(),
         const ProfileView(),
       ]);
       showLivreur = true;
@@ -151,6 +157,10 @@ class WrapperViewState extends State<WrapperView> {
                 label: 'Commandes',
               ),
               const BottomNavigationBarItem(
+                icon: Icon(Icons.directions_car),
+                label: 'Véhicules',
+              ),
+              const BottomNavigationBarItem(
                 icon: Icon(Icons.admin_panel_settings),
                 label: 'Admin',
               ),
@@ -167,6 +177,10 @@ class WrapperViewState extends State<WrapperView> {
                   label: 'Commandes',
                 ),
                 const BottomNavigationBarItem(
+                  icon: Icon(Icons.directions_car),
+                  label: 'Véhicules',
+                ),
+                const BottomNavigationBarItem(
                   icon: Icon(Icons.person),
                   label: 'Manage',
                 ),
@@ -181,6 +195,10 @@ class WrapperViewState extends State<WrapperView> {
               const BottomNavigationBarItem(
                 icon: Icon(Icons.assignment),
                 label: 'Order',
+              ),
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.directions_car),
+                label: 'Véhicules',
               ),
             ],
             if (showClient) ...[

@@ -85,6 +85,12 @@ class _ChooseVehicleViewState extends State<ChooseVehicleView> {
     return Scaffold(
         appBar: AppBar(
           title: const Text('Choose vehicle'),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
         ),
         body: SingleChildScrollView(
           child: Padding(

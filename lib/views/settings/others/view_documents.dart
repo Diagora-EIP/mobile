@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:diagora/services/api_service.dart';
 
 class ViewDocuments extends StatefulWidget {
   const ViewDocuments({super.key});
@@ -8,13 +9,29 @@ class ViewDocuments extends StatefulWidget {
 }
 
 class _ViewDocumentsState extends State<ViewDocuments> {
-  List<String> documents = [
-    'Document 1',
-    'Document 2',
-    'Document 3',
-    'Document 4',
-    'Document 5',
-  ];
+  final ApiService _api = ApiService.getInstance();
+  final List<dynamic> documents = [];
+  final bool hasDocuments = false;
+
+  void getDocuments() {
+    _api.getDocuments().then((value) {
+      setState(() {
+        if (value.toString() == "[]") {
+          return;
+        }
+        documents.addAll(value);
+        print(documents);
+        print("Documents" + documents.toString());
+      });
+    });
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    getDocuments();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,22 +39,26 @@ class _ViewDocumentsState extends State<ViewDocuments> {
       appBar: AppBar(
         title: const Text('View Documents'),
       ),
-      body: SingleChildScrollView(
-        child: ListView.builder(
-          shrinkWrap: true,
-          itemCount: documents.length,
-          itemBuilder: (context, index) {
-            return Card(
-              child: ListTile(
-                title: Text(documents[index]),
-                onTap: () {
-                  // Navigate to the document view
+      body: !hasDocuments
+          ? const Center(
+              child: Text('No documents available'),
+            )
+          : SingleChildScrollView(
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: documents.length,
+                itemBuilder: (context, index) {
+                  return Card(
+                    child: ListTile(
+                      title: Text(documents[index]),
+                      onTap: () {
+                        // Navigate to the document view
+                      },
+                    ),
+                  );
                 },
               ),
-            );
-          },
-        ),
-      ),
+            ),
     );
   }
 }

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:intl/intl.dart';
@@ -631,7 +632,7 @@ class ApiService {
     // Uri url = ApiRoutes.route(ApiRoutes.createVehicleExpense);
     Uri url = ApiRoutes.route(ApiRoutes.createVehicleExpenseUserIdRoute
         .replaceAll(":id", userId.toString()));
-
+    print(vehiculeId);
     try {
       Response response = await _httpClient.post(
         url,
@@ -658,6 +659,30 @@ class ApiService {
     } catch (e) {
       _logger.e(e.toString());
       return Future.value(false);
+    }
+  }
+
+  Future getDocuments() async {
+    Uri url = ApiRoutes.route(ApiRoutes.createVehicleExpense);
+    try {
+      Response response = await _httpClient.get(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          "Authorization": "Bearer ${_token!}"
+        },
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        _logger.d(response.body);
+        return response.body;
+      } else {
+        _logger.e(
+            "getDocuments() failed with status code ${response.statusCode}: ${response.body}");
+        return "false";
+      }
+    } catch (e) {
+      _logger.e(e.toString());
+      return "false";
     }
   }
 

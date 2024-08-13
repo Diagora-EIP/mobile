@@ -260,9 +260,9 @@ class _NewDocumentState extends State<NewDocument> {
                               padding: EdgeInsets.only(left: 8.0),
                               child: Text('in euros')),
                           Padding(
-                            padding: const EdgeInsets.all(8.0),
+                            padding: const EdgeInsets.all(2.0),
                             child: SizedBox(
-                              width: 160,
+                              width: 120,
                               child: TextFormField(
                                 keyboardType:
                                     const TextInputType.numberWithOptions(
@@ -285,6 +285,10 @@ class _NewDocumentState extends State<NewDocument> {
                         ],
                       )
                     ],
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.only(top: 8.0),
+                    child: Column(),
                   ),
                   const Padding(
                       padding: EdgeInsets.only(left: 8.0, top: 8.0),
