@@ -29,8 +29,8 @@ COMPANY
 
 /// Classe qui contient toutes les routes de l'API. Utilisez [route] pour créer une Uri.
 class ApiRoutes {
-  static const String baseUrl = 'https://api.diagora.me';
-  // static const String baseUrl = 'http://localhost:3000';
+  // static const String baseUrl = 'https://api.diagora.me';
+  static const String baseUrl = 'http://localhost:3000';
   // static const String baseUrl = 'https://2a60-130-212-95-215.ngrok-free.app';
   // static const String baseUrl = 'http://10.143.229.252:3000'; // Android studio test | Put computer IP
 
@@ -654,6 +654,38 @@ class ApiService {
       } else {
         _logger.e(
             "registerNewDocument() failed with status code ${response.statusCode}: ${response.body}");
+        return Future.value(false);
+      }
+    } catch (e) {
+      _logger.e(e.toString());
+      return Future.value(false);
+    }
+  }
+
+  Future updateDocument(int vehiculeId, String title, String description,
+      int price, String picture, int documentId) async {
+    Uri url = ApiRoutes.route(ApiRoutes.createVehicleExpenseUserIdRoute
+        .replaceAll(":id", documentId.toString()));
+    try {
+      Response response = await _httpClient.patch(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          "Authorization": "Bearer ${_token!}"
+        },
+        body: json.encode({
+          "title": title,
+          "description": description,
+          "amount": price,
+          "picture": picture,
+        }),
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        _logger.d(response.body);
+        return Future.value(true);
+      } else {
+        _logger.e(
+            "modifyDocument() failed with status code ${response.statusCode}: ${response.body}");
         return Future.value(false);
       }
     } catch (e) {
