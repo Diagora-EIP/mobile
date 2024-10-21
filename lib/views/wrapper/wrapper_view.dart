@@ -64,7 +64,8 @@ class WrapperViewState extends State<WrapperView> {
         const ProfileView(),
       ]);
       showManager = true;
-    } else if (_api.role?.role == Roles.livreur) {
+    } else if (_api.role?.role == Roles.livreur ||
+        _api.role?.role == Roles.user) {
       // Si l'utilisateur est un livreur
       _finalTabs.addAll([
         const CalendarView(),
@@ -73,8 +74,7 @@ class WrapperViewState extends State<WrapperView> {
         const ProfileView(),
       ]);
       showLivreur = true;
-    } else if (_api.role?.role == Roles.client ||
-        _api.role?.role == Roles.user) {
+    } else if (_api.role?.role == Roles.client) {
       // Si l'utilisateur est un client
       _finalTabs.addAll([
         const MyPackages(),
@@ -179,10 +179,6 @@ class WrapperViewState extends State<WrapperView> {
                 const BottomNavigationBarItem(
                   icon: Icon(Icons.directions_car),
                   label: 'Véhicules',
-                ),
-                const BottomNavigationBarItem(
-                  icon: Icon(Icons.person),
-                  label: 'Manage',
                 ),
               ],
             ],

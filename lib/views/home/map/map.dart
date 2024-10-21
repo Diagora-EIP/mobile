@@ -317,8 +317,6 @@ class MapPageState extends State<MapPage> {
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
-                BackgroundLocation.stopLocationService();
-                BackgroundLocation.startLocationService();
 
                 startLocationUpdates();
 

@@ -124,17 +124,6 @@ class _LoginViewState extends State<LoginView> {
                     },
                     child: const Text('Forgot your password?'),
                   ),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const RegisterView(),
-                        ),
-                      );
-                    },
-                    child: const Text('Don\'t have an account yet? Register'),
-                  ),
                 ],
               ),
             ),

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:diagora/views/auth/login_view.dart';
 import 'package:diagora/views/auth/register_view.dart';
 import 'package:diagora/views/settings/settings_view.dart';
 import 'package:flutter/material.dart';
@@ -76,7 +77,7 @@ class _ProfileViewState extends State<ProfileView> {
     _api.logout();
     Navigator.pushAndRemoveUntil(
       context,
-      MaterialPageRoute(builder: (context) => const RegisterView()),
+      MaterialPageRoute(builder: (context) => const LoginView()),
       (route) => false,
     );
   }

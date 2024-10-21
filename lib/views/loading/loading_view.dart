@@ -1,10 +1,10 @@
+import 'package:diagora/views/auth/login_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 
 import 'package:diagora/views/wrapper/wrapper_view.dart';
 import 'package:diagora/views/auth/register_view.dart';
 import 'package:diagora/services/api_service.dart';
-
 
 class LoadingView extends StatefulWidget {
   const LoadingView({
@@ -39,7 +39,7 @@ class LoadingViewState extends State<LoadingView> {
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(
-          builder: (context) => const RegisterView(),
+          builder: (context) => const LoginView(),
         ),
         (route) => false,
       );
@@ -68,7 +68,7 @@ class LoadingViewState extends State<LoadingView> {
                 onPressed: () async {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const RegisterView()),
+                    MaterialPageRoute(builder: (context) => const LoginView()),
                   );
                   await _api.logout();
                 },

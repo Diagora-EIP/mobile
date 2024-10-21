@@ -8,7 +8,6 @@
 MAPBOX_PUBLIC_TOKEN = "pk.eyJ1IjoiZGlhZ29yYSIsImEiOiJjbG9qNXBwMHcxbjdzMmtvMTkyeGIzYnFjIn0.YAW88p0zcUrGejfjnShxew"
 
 run:
-	adb reverse tcp:8000 tcp:8000
 	flutter run \
 	--dart-define MAPBOX_PUBLIC_TOKEN=$(MAPBOX_PUBLIC_TOKEN)
 

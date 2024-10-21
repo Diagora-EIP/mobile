@@ -101,53 +101,53 @@ class SettingsViewState extends State<SettingsView> {
                   onTap: widget.changeRoleView,
                 ),
               ],
-              const Align(
-                alignment: Alignment.centerLeft,
-                child: Padding(
-                  padding: EdgeInsets.only(left: 16.0, top: 16.0),
-                  child: Text(
-                    "Others",
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                    textAlign: TextAlign.left,
-                  ),
-                ),
-              ),
-              const Divider(),
-              ListTile(
-                leading: const Icon(Icons.directions_car),
-                title: const Text('Choose vehicule'),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const ChooseVehicleView()),
-                  );
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.add),
-                title: const Text('New Document'),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const NewDocument(),
-                    ),
-                  );
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.folder),
-                title: const Text('Documents'),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const ViewDocuments(),
-                    ),
-                  );
-                },
-              ),
+              // const Align(
+              //   alignment: Alignment.centerLeft,
+              //   child: Padding(
+              //     padding: EdgeInsets.only(left: 16.0, top: 16.0),
+              //     child: Text(
+              //       "Others",
+              //       style: TextStyle(fontWeight: FontWeight.bold),
+              //       textAlign: TextAlign.left,
+              //     ),
+              //   ),
+              // ),
+              // const Divider(),
+              // ListTile(
+              //   leading: const Icon(Icons.directions_car),
+              //   title: const Text('Choose vehicule'),
+              //   onTap: () {
+              //     Navigator.push(
+              //       context,
+              //       MaterialPageRoute(
+              //           builder: (context) => const ChooseVehicleView()),
+              //     );
+              //   },
+              // ),
+              // ListTile(
+              //   leading: const Icon(Icons.add),
+              //   title: const Text('New Document'),
+              //   onTap: () {
+              //     Navigator.push(
+              //       context,
+              //       MaterialPageRoute(
+              //         builder: (context) => const NewDocument(),
+              //       ),
+              //     );
+              //   },
+              // ),
+              // ListTile(
+              //   leading: const Icon(Icons.folder),
+              //   title: const Text('Documents'),
+              //   onTap: () {
+              //     Navigator.push(
+              //       context,
+              //       MaterialPageRoute(
+              //         builder: (context) => const ViewDocuments(),
+              //       ),
+              //     );
+              //   },
+              // ),
               ListTile(
                 leading: const Icon(Icons.logout, color: Colors.red),
                 title: const Text(

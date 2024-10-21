@@ -118,6 +118,17 @@ class _CalendarViewState extends State<CalendarView> {
           ),
         ],
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => NewDelivery(pickedDate: today),
+            ),
+          );
+        },
+        child: const Icon(Icons.add),
+      ),
       body: Column(
         children: [
           TableCalendar(
