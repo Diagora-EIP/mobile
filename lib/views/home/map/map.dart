@@ -216,6 +216,15 @@ class MapPageState extends State<MapPage> {
     }
   }
 
+  void beenDelivered() {
+    for (var i = 0; i < _deliveryStatus.length; i++) {
+      if (!_deliveryStatus[i]['isDelivered']) {
+        _deliveryStatus[i]['isDelivered'] = true;
+        break;
+      }
+    }
+  }
+
   Map<String, dynamic> _nextDeliveryPosition() {
     for (var i = 0; i < _deliveryStatus.length; i++) {
       if (!_deliveryStatus[i]['isDelivered']) {
@@ -229,7 +238,31 @@ class MapPageState extends State<MapPage> {
     return {};
   }
 
+  void finishDeliveryPopup() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return CupertinoAlertDialog(
+          title: const Text('All deliveries have been completed'),
+          content: const Text('You have completed all deliveries for today.'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _chooseGps(BuildContext context) {
+    if (_nextDeliveryPosition().isEmpty) {
+      finishDeliveryPopup();
+      return;
+    }
     showCupertinoModalPopup(
       context: context,
       builder: (BuildContext context) {
@@ -530,11 +563,11 @@ class MapPageState extends State<MapPage> {
             ? isDeliveryStarted
                 ? Positioned(
                     bottom: 16,
-                    left: MediaQuery.of(context).size.width / 2 - 60.0,
+                    left: MediaQuery.of(context).size.width / 3 - 55.0,
                     child: Row(
                       children: [
                         Padding(
-                          padding: const EdgeInsets.only(right: 10),
+                          padding: const EdgeInsets.all(10),
                           child: FloatingActionButton(
                             onPressed: () {
                               _stopDelivery(context);
@@ -543,12 +576,28 @@ class MapPageState extends State<MapPage> {
                             child: const Icon(Icons.local_shipping),
                           ),
                         ),
-                        FloatingActionButton(
-                          onPressed: () {
-                            _chooseGps(context);
-                          },
-                          backgroundColor: Theme.of(context).primaryColor,
-                          child: const Icon(Icons.map),
+                        Padding(
+                          padding: const EdgeInsets.all(10),
+                          child: FloatingActionButton(
+                            onPressed: () {
+                              _chooseGps(context);
+                            },
+                            backgroundColor: Theme.of(context).primaryColor,
+                            child: const Icon(Icons.map),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(10),
+                          child: FloatingActionButton(
+                              onPressed: () {
+                                beenDelivered();
+                                if (_nextDeliveryPosition().isEmpty) {
+                                  finishDeliveryPopup();
+                                  return;
+                                }
+                              },
+                              backgroundColor: Theme.of(context).primaryColor,
+                              child: const Icon(Icons.check)),
                         ),
                       ],
                     ),

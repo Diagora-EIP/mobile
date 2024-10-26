@@ -1,3 +1,4 @@
+import 'package:diagora/views/profile/profile_view.dart';
 import 'package:flutter/material.dart';
 import 'package:diagora/services/api_service.dart';
 import 'package:diagora/models/user_model.dart';
@@ -79,7 +80,13 @@ class MyAccountViewState extends State<MyAccountView> {
       _user.name = _nameController.text;
       _apiService.patchUser(_user).then((succeed) {
         if (succeed) {
-          Navigator.of(context).pop(true);
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const ProfileView(),
+            ),
+            (route) => false,
+          );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -156,10 +163,14 @@ class MyAccountViewState extends State<MyAccountView> {
                       ListTile(
                         contentPadding: EdgeInsets.zero,
                         title: Text("Company",
-                            style: loading || _company == null ? const TextStyle(color: Colors.grey) : null),
+                            style: loading || _company == null
+                                ? const TextStyle(color: Colors.grey)
+                                : null),
                         trailing: Text(
                           _company?.name ?? 'None',
-                          style: loading || _company == null ? const TextStyle(color: Colors.grey) : null,
+                          style: loading || _company == null
+                              ? const TextStyle(color: Colors.grey)
+                              : null,
                         ),
                       ),
                     ],

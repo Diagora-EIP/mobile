@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:diagora/views/auth/login_view.dart';
-import 'package:diagora/views/auth/register_view.dart';
 import 'package:diagora/views/settings/settings_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
@@ -17,7 +16,7 @@ class ProfileView extends StatefulWidget {
   State<ProfileView> createState() => _ProfileViewState();
 }
 
-class _ProfileViewState extends State<ProfileView> {
+class _ProfileViewState extends State<ProfileView> with RouteAware {
   final ApiService _api = ApiService.getInstance();
 
   final String profilePictureUrl1 = 'assets/images/PdP.jpeg';
@@ -29,6 +28,28 @@ class _ProfileViewState extends State<ProfileView> {
   dynamic userData;
 
   File? _image;
+
+  @override
+  void initState() {
+    super.initState();
+    print("initState");
+    _fetchUserData();
+  }
+
+  Future<void> _fetchUserData() async {
+    await _api.fetchUser();
+    setState(() {
+      userData = _api.user?.toJson();
+      if (userData != null) {
+        userId = userData['user_id'];
+        username = capitalizeFirstLetter(userData['name']);
+        email = userData['email'];
+      }
+
+      permissionsData = _api.role?.toJson();
+      permissions = permissionsData?['name'] ?? 'user';
+    });
+  }
 
   Future<void> _pickImage(ImageSource source) async {
     final imagePicker = ImagePicker();
@@ -46,18 +67,6 @@ class _ProfileViewState extends State<ProfileView> {
       return input;
     }
     return input[0].toUpperCase() + input.substring(1);
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    userData = _api.user?.toJson();
-    userId = userData['user_id'];
-    username = capitalizeFirstLetter(userData['name']);
-    email = userData['email'];
-
-    permissionsData = _api.role?.toJson();
-    permissions = permissionsData['name'] ?? 'user';
   }
 
   void _showImageSourcePicker() {
@@ -99,10 +108,11 @@ class _ProfileViewState extends State<ProfileView> {
             icon: const Icon(Icons.settings),
             onPressed: () {
               Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => SettingsView(logout: logout),
-                  ));
+                context,
+                MaterialPageRoute(
+                  builder: (context) => SettingsView(logout: logout),
+                ),
+              );
             },
           ),
         ],
@@ -120,9 +130,8 @@ class _ProfileViewState extends State<ProfileView> {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: Theme.of(context)
-                              .primaryColor, // Set the border color to blue
-                          width: 2.0, // Set the border width
+                          color: Theme.of(context).primaryColor,
+                          width: 2.0,
                         ),
                       ),
                       child: CircleAvatar(
@@ -144,12 +153,16 @@ class _ProfileViewState extends State<ProfileView> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(username.toUpperCase(),
-                          style: const TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.bold)),
-                      Text(_capitalizeFirstLetter(permissions),
-                          style: const TextStyle(
-                              color: Color.fromARGB(255, 76, 76, 76))),
+                      Text(
+                        username.toUpperCase(),
+                        style: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        _capitalizeFirstLetter(permissions),
+                        style: const TextStyle(
+                            color: Color.fromARGB(255, 76, 76, 76)),
+                      ),
                     ],
                   ),
                 ],
@@ -161,8 +174,8 @@ class _ProfileViewState extends State<ProfileView> {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: Colors.blue, // Set the border color to blue
-                        width: 2.0, // Set the border width
+                        color: Colors.blue,
+                        width: 2.0,
                       ),
                     ),
                     child: const CircleAvatar(
@@ -172,15 +185,13 @@ class _ProfileViewState extends State<ProfileView> {
                     ),
                   ),
                   const SizedBox(width: 14),
-                  const Text("Account Information",
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  const Text(
+                    "Account Information",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
                 ],
               ),
-              const Divider(
-                height: 20,
-                color: Color.fromARGB(255, 76, 76, 76),
-              ),
+              const Divider(height: 20, color: Color.fromARGB(255, 76, 76, 76)),
               ListView(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
@@ -191,11 +202,15 @@ class _ProfileViewState extends State<ProfileView> {
                     horizontalTitleGap: 10,
                     title: Row(
                       children: [
-                        const Text('Name ',
-                            style: TextStyle(fontSize: 14, color: Colors.grey)),
-                        Text(username,
-                            style: const TextStyle(
-                                fontSize: 14, fontWeight: FontWeight.bold)),
+                        const Text(
+                          'Name ',
+                          style: TextStyle(fontSize: 14, color: Colors.grey),
+                        ),
+                        Text(
+                          username,
+                          style: const TextStyle(
+                              fontSize: 14, fontWeight: FontWeight.bold),
+                        ),
                       ],
                     ),
                   ),
@@ -206,11 +221,15 @@ class _ProfileViewState extends State<ProfileView> {
                     horizontalTitleGap: 10,
                     title: Row(
                       children: [
-                        const Text('Email ',
-                            style: TextStyle(fontSize: 14, color: Colors.grey)),
-                        Text(email,
-                            style: const TextStyle(
-                                fontSize: 14, fontWeight: FontWeight.bold)),
+                        const Text(
+                          'Email ',
+                          style: TextStyle(fontSize: 14, color: Colors.grey),
+                        ),
+                        Text(
+                          email,
+                          style: const TextStyle(
+                              fontSize: 14, fontWeight: FontWeight.bold),
+                        ),
                       ],
                     ),
                   ),
@@ -221,26 +240,15 @@ class _ProfileViewState extends State<ProfileView> {
                     horizontalTitleGap: 10,
                     title: Row(
                       children: [
-                        const Text('Permissions ',
-                            style: TextStyle(fontSize: 14, color: Colors.grey)),
-                        Text(_capitalizeFirstLetter(permissions),
-                            style: const TextStyle(
-                                fontSize: 14, fontWeight: FontWeight.bold)),
-                      ],
-                    ),
-                  ),
-                  const Divider(),
-                  ListTile(
-                    leading: const Icon(Icons.work),
-                    minLeadingWidth: 0,
-                    horizontalTitleGap: 10,
-                    title: Row(
-                      children: [
-                        const Text('Company ',
-                            style: TextStyle(fontSize: 14, color: Colors.grey)),
-                        Text(_capitalizeFirstLetter("company"),
-                            style: const TextStyle(
-                                fontSize: 14, fontWeight: FontWeight.bold)),
+                        const Text(
+                          'Permissions ',
+                          style: TextStyle(fontSize: 14, color: Colors.grey),
+                        ),
+                        Text(
+                          _capitalizeFirstLetter(permissions),
+                          style: const TextStyle(
+                              fontSize: 14, fontWeight: FontWeight.bold),
+                        ),
                       ],
                     ),
                   ),
@@ -251,9 +259,10 @@ class _ProfileViewState extends State<ProfileView> {
                 color: Theme.of(context).primaryColor,
                 onPressed: () {
                   Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const ChangePassword()));
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const ChangePassword()),
+                  );
                 },
                 child: const Text('Change Password'),
               ),

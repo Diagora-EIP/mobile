@@ -429,6 +429,9 @@ class ApiService {
         dynamic responseData = json.decode(response.body);
         User user = User.fromJson(responseData);
         _logger.i(responseData);
+        if (userId == null || userId == _user?.id) {
+          _user = user;
+        }
         return (user);
       } else {
         _logger.e('fetchUser() failed with status code ${response.statusCode}');

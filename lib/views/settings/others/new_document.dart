@@ -24,6 +24,8 @@ class _NewDocumentState extends State<NewDocument> {
   int _selectedCategory = 0;
   DateTime? _selectedDate;
   dynamic myVehicleData;
+  int? _selectedVehicleId; // To store the selected vehicle ID
+  List<dynamic> allVehicles = []; // List to store all vehicles
   dynamic userId;
   bool isLoading = false;
 
@@ -40,7 +42,12 @@ class _NewDocumentState extends State<NewDocument> {
     userId = _api.user?.toJson()['user_id'];
 
     _api.getUserVehicle(userId).then((value) {
-      myVehicleData = value;
+      // Retrieve the list of all vehicles
+      _api.getAllUserVehicles().then((vehicles) {
+        setState(() {
+          allVehicles = vehicles;
+        });
+      });
     });
   }
 
@@ -87,20 +94,20 @@ class _NewDocumentState extends State<NewDocument> {
     required String title,
     required int price,
     required File image,
+    required int vehicleId,
     required String category,
     required DateTime date,
   }) async {
     String imageBase64 = base64Encode(image.readAsBytesSync());
     bool returnValue = false;
 
-    if (myVehicleData.toString() != "[]") {
-      setState(() {
-        isLoading = true;
-      });
-      returnValue = await _api.registerNewDocument(
-          myVehicleData[0]['vehicle_id'], title, category, price, imageBase64,
-          userId: userId);
-    }
+    setState(() {
+      isLoading = true;
+    });
+    returnValue = await _api.registerNewDocument(
+        vehicleId, title, category, price, imageBase64,
+        userId: userId);
+
     return returnValue;
   }
 
@@ -290,6 +297,29 @@ class _NewDocumentState extends State<NewDocument> {
                     padding: EdgeInsets.only(top: 8.0),
                     child: Column(),
                   ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: DropdownButtonFormField<int>(
+                      decoration: const InputDecoration(
+                        labelText: 'Select Vehicle',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(10)),
+                        ),
+                      ),
+                      value: _selectedVehicleId,
+                      items: allVehicles
+                          .map<DropdownMenuItem<int>>((vehicle) =>
+                              DropdownMenuItem<int>(
+                                  value: vehicle['vehicle_id'],
+                                  child: Text(vehicle['name'])))
+                          .toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedVehicleId = value;
+                        });
+                      },
+                    ),
+                  ),
                   const Padding(
                       padding: EdgeInsets.only(left: 8.0, top: 8.0),
                       child: Text(
@@ -430,6 +460,7 @@ class _NewDocumentState extends State<NewDocument> {
                             title: title,
                             price: price.isEmpty ? 0 : int.parse(price),
                             image: _image!,
+                            vehicleId: _selectedVehicleId!,
                             category: _categoriesNames[_selectedCategory],
                             date: _selectedDate!,
                           );

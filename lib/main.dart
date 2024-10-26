@@ -124,6 +124,8 @@ Future<bool> iosBackground(ServiceInstance service) async {
   return true;
 }
 
+final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
+
 /// Classe principale de l'application.
 ///
 /// Cette classe initialise le thème de l'application, puis lance la vue de chargement.
@@ -143,6 +145,7 @@ class MyApp extends StatelessWidget {
           theme: themeProvider.lightTheme,
           darkTheme: themeProvider.darkTheme,
           home: const LoadingView(),
+          navigatorObservers: [routeObserver],
         );
       },
     );
