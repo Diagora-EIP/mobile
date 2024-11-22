@@ -456,6 +456,8 @@ class _NewDocumentState extends State<NewDocument> {
                             showAlertError();
                             return;
                           }
+                          print('Submitting new document');
+                          print(_selectedVehicleId!);
                           bool returnValue = await submitNewDocument(
                             title: title,
                             price: price.isEmpty ? 0 : int.parse(price),

@@ -219,7 +219,7 @@ class _ViewDocumentsState extends State<ViewDocuments> {
                               if (base64Image.isNotEmpty) {
                                 _showFullScreenImage(base64Image);
                               }
-                            },
+                            },  
                           ),
                           onTap: () {
                             // Navigate to the edit dialog on tap

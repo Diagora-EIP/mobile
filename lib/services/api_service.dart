@@ -890,7 +890,8 @@ class ApiService {
           "order_date": deliveryDate,
           "description": name,
           "delivery_address": address,
-          "client_id": 26,
+          "end_hour": null,
+          "client_id": 31,
         }),
       );
       if (response.statusCode == 200 || response.statusCode == 201) {
