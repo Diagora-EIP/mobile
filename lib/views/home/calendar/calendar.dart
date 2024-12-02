@@ -75,6 +75,7 @@ class _CalendarViewState extends State<CalendarView> {
           daysWithOrders.add(key);
         }
         isLoading = false; // Arrête le chargement ici
+        _onDaySelected(today, today);
       });
     } catch (e) {
       setState(() {
@@ -90,14 +91,7 @@ class _CalendarViewState extends State<CalendarView> {
       this.focusDay = focusedDay;
     });
 
-    // Mettez à jour l'affichage après avoir sélectionné un jour
-    if (ordersByDay.containsKey(today)) {
-      setState(() {
-        // Vous pouvez ajouter une logique pour gérer les événements ici si nécessaire
-      });
-    } else {
-      print("No data for this day.");
-    }
+    setState(() {});
   }
 
   @override
@@ -112,7 +106,7 @@ class _CalendarViewState extends State<CalendarView> {
               setState(() {
                 today = DateTime.now();
                 _fetchOrdersForMonth(today);
-                _onDaySelected(today, today);
+                // _onDaySelected(today, today);
               });
             },
           ),

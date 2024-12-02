@@ -498,6 +498,8 @@ class _NewDocumentState extends State<NewDocument> {
   }
 }
 
+
+
 class ImageSourcePicker extends StatelessWidget {
   final Function(ImageSource) onImageSourceSelected;
 
